@@ -1,0 +1,3034 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide C — Exam Rank 02 | 42 Lausanne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ─── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FFFAF5;
+  --primary: #D4552A;
+  --primary-d: #A83E1A;
+  --primary-l: #FAE8E0;
+  --green: #2B6B4F;
+  --green-l: #E8F5EF;
+  --gold: #E8A838;
+  --gold-l: #FEF7E6;
+  --purple: #6C5CE7;
+  --purple-l: #F0EEFF;
+  --blue: #2B7B8C;
+  --blue-l: #E6F4F7;
+  --dark: #1A1A2E;
+  --mid: #5A4A40;
+  --muted: #9A8A80;
+  --card1: #FFF5EB;
+  --card2: #F0F7F4;
+  --card3: #FFF0E6;
+  --card4: #F5F0FF;
+  --card5: #E6F4F7;
+  --border: #EAD8CC;
+  --shadow: rgba(212,85,42,0.10);
+  --gap: 16px;
+  --radius: 20px;
+  --danger: #E74C3C;
+  --danger-l: #FDEDEB;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ─── READING PROGRESS BAR ──────────────────────────────────── */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--gold), #F4886A);
+  z-index: 9999;
+  transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── HERO ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+  background: var(--dark);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(212,85,42,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(108,92,231,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(43,107,79,0.15) 0%, transparent 60%),
+    #1A1A2E;
+  animation: heroShift 12s ease-in-out infinite alternate;
+}
+
+@keyframes heroShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  33%  { filter: hue-rotate(8deg) brightness(1.05); }
+  66%  { filter: hue-rotate(-5deg) brightness(0.97); }
+  100% { filter: hue-rotate(4deg) brightness(1.02); }
+}
+
+.hero-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  animation: floatShape 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero-shape-1 {
+  width: 300px; height: 300px;
+  background: var(--primary);
+  top: -80px; right: -80px;
+}
+.hero-shape-2 {
+  width: 200px; height: 200px;
+  background: var(--purple);
+  bottom: -40px; left: -40px;
+  animation-delay: -3s;
+}
+.hero-shape-3 {
+  width: 120px; height: 120px;
+  background: var(--green);
+  top: 30%; left: 8%;
+  opacity: 0.08;
+  animation-delay: -5s;
+}
+.hero-shape-4 {
+  width: 80px; height: 80px;
+  background: var(--gold);
+  top: 20%; right: 12%;
+  opacity: 0.1;
+  animation-delay: -2s;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+@keyframes floatShape {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(8deg); }
+}
+
+.hero-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 750px; }
+
+.hero-tag {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 30px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(32px, 7vw, 64px);
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, #F4886A 0%, var(--gold) 60%, #FFCBA4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 32px;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.hero-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.3);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── STICKY NAV ────────────────────────────────────────────── */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  background: rgba(255,250,245,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border);
+  z-index: 100;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.nav-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--primary-l);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-d);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-pill:hover { background: var(--primary); color: #fff; }
+.nav-pill .n {
+  width: 16px; height: 16px;
+  background: var(--primary);
+  border-radius: 50%;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.nav-pill:hover .n { background: rgba(255,255,255,0.3); }
+
+.nav-pill.active { background: var(--primary); color: #fff; }
+
+/* ─── MAIN LAYOUT ───────────────────────────────────────────── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* ─── BENTO GRID ────────────────────────────────────────────── */
+.bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap);
+  margin-bottom: 40px;
+}
+
+@media (min-width: 900px) {
+  .bento {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bento-wide   { grid-column: 1 / -1; }
+  .bento-tall   { grid-row: span 2; }
+}
+
+@media (min-width: 1200px) {
+  .bento-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* ─── BENTO CARD ────────────────────────────────────────────── */
+.bcard {
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(26,26,46,0.07), 0 1px 3px rgba(26,26,46,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bcard:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 36px rgba(26,26,46,0.12), 0 4px 12px rgba(26,26,46,0.08);
+}
+
+.bcard, .anim-el {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
+}
+.bcard.in-view, .anim-el.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.bcard-warm   { background: var(--card1); border: 1.5px solid #F0D5C0; }
+.bcard-green  { background: var(--card2); border: 1.5px solid #C5DDD4; }
+.bcard-peach  { background: var(--card3); border: 1.5px solid #F0CEB8; }
+.bcard-purple { background: var(--card4); border: 1.5px solid #D0C5F5; }
+.bcard-dark   { background: var(--dark);  border: 1.5px solid #2E2E44; }
+.bcard-gold   { background: var(--gold-l); border: 1.5px solid #F0CC80; }
+.bcard-white  { background: #fff;          border: 1.5px solid var(--border); }
+.bcard-blue   { background: var(--card5); border: 1.5px solid #B0D8E0; }
+.bcard-danger { background: var(--danger-l); border: 1.5px solid #F0B0A8; }
+
+/* ─── SECTION HEADINGS ──────────────────────────────────────── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.section-label.in-view { opacity: 1; transform: translateY(0); }
+
+.sec-num {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.sec-num.red    { background: var(--primary); color: #fff; }
+.sec-num.green  { background: var(--green);   color: #fff; }
+.sec-num.gold   { background: var(--gold);    color: #1A1A2E; }
+.sec-num.purple { background: var(--purple);  color: #fff; }
+.sec-num.blue   { background: var(--blue);    color: #fff; }
+
+.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+}
+.sec-title em { color: var(--primary); font-style: italic; }
+
+/* ─── CARD HEADER ──────────────────────────────────────────── */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.card-icon.red    { background: var(--primary); color: #fff; }
+.card-icon.green  { background: var(--green);   color: #fff; }
+.card-icon.gold   { background: var(--gold);    color: #1A1A2E; }
+.card-icon.purple { background: var(--purple);  color: #fff; }
+.card-icon.blue   { background: var(--blue);    color: #fff; }
+.card-icon.danger { background: var(--danger);  color: #fff; }
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* ─── CODE BLOCKS ──────────────────────────────────────────── */
+.code-block {
+  background: #0D1117;
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 12px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.code-titlebar {
+  background: #1C2128;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.code-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.code-dot-r { background: #FF5F57; }
+.code-dot-y { background: #FEBC2E; }
+.code-dot-g { background: #28C840; }
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  margin-left: 8px;
+}
+.code-body {
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #e6edf3;
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 4;
+}
+.code-body .kw { color: #ff7b72; }
+.code-body .fn { color: #d2a8ff; }
+.code-body .str { color: #a5d6ff; }
+.code-body .num { color: #79c0ff; }
+.code-body .cm { color: #8b949e; }
+.code-body .type { color: #ff7b72; font-weight: 500; }
+.code-body .inc { color: #ff7b72; }
+.code-body .pp { color: #ffa657; }
+.code-body .op { color: #e6edf3; }
+
+/* ─── PIEGE (PITFALL) BOX ──────────────────────────────────── */
+.piege-box {
+  background: linear-gradient(135deg, #FFF0ED 0%, #FDEDEB 100%);
+  border: 1.5px solid #F0B0A8;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 12px 0;
+  position: relative;
+}
+.piege-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--danger);
+  border-radius: 14px 0 0 14px;
+}
+.piege-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--danger);
+  margin-bottom: 6px;
+}
+.piege-body {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.55;
+}
+.piege-body code {
+  background: rgba(231,76,60,0.1);
+  color: var(--danger);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* ─── CONCEPT TAG ──────────────────────────────────────────── */
+.concept-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.concept-tag.red    { background: var(--primary-l); color: var(--primary-d); }
+.concept-tag.green  { background: var(--green-l);   color: var(--green); }
+.concept-tag.gold   { background: var(--gold-l);    color: #8B6914; }
+.concept-tag.purple { background: var(--purple-l);  color: var(--purple); }
+.concept-tag.blue   { background: var(--blue-l);    color: var(--blue); }
+
+/* ─── EXERCISE BOX ─────────────────────────────────────────── */
+.exercise-box {
+  background: linear-gradient(135deg, #F0EEFF 0%, #E8E0FF 100%);
+  border: 1.5px solid #D0C5F5;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 8px 0;
+}
+.exercise-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--purple);
+  margin-bottom: 8px;
+}
+.exercise-body {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.6;
+}
+.exercise-body code {
+  background: rgba(108,92,231,0.1);
+  color: var(--purple);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* ─── EXAM LINK ────────────────────────────────────────────── */
+.exam-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(43,107,79,0.08);
+  border: 1px solid rgba(43,107,79,0.2);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  margin: 2px;
+}
+
+/* ─── ASCII TABLE ──────────────────────────────────────────── */
+.ascii-table {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--dark);
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ─── ANALOGY BOX ──────────────────────────────────────────── */
+.analogy-box {
+  background: linear-gradient(135deg, var(--gold-l) 0%, #FFF5E0 100%);
+  border: 1.5px solid #F0CC80;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 10px 0;
+}
+.analogy-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #8B6914;
+  margin-bottom: 6px;
+}
+.analogy-body {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ─── SVG DIAGRAMS ─────────────────────────────────────────── */
+.diagram-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+.diagram-wrap svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── TLDR BANNER ───────────────────────────────────────────── */
+.tldr-banner {
+  background: var(--dark);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(26,26,46,0.2);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.tldr-banner.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.tldr-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 5px; height: 100%;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--gold) 100%);
+}
+.tldr-badge {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.tldr-banner p {
+  font-size: 15px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.75;
+}
+.tldr-banner strong { color: #F4886A; font-weight: 700; }
+
+/* ─── BACK TO TOP ──────────────────────────────────────────── */
+.back-top {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0 20px;
+}
+.back-top a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--dark);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.back-top a:hover {
+  background: var(--primary);
+  transform: translateY(-2px);
+}
+
+/* ─── FOOTER ───────────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1.5px solid var(--border);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ─── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .bcard { padding: 20px; }
+  .code-body { font-size: 11px; padding: 12px 14px; }
+  .hero { padding: 60px 16px 50px; }
+  .sticky-nav { padding: 8px 12px; }
+}
+
+/* ─── INLINE TEXT HELPERS ──────────────────────────────────── */
+.text-sm { font-size: 13px; color: var(--mid); line-height: 1.6; }
+.text-sm code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--dark);
+}
+.text-sm strong { color: var(--dark); }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mt-12 { margin-top: 12px; }
+
+/* ─── CHAPTER EXERCISE LISTING ─────────────────────────────── */
+.exam-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* ─── SVG decorative wave ──────────────────────────────────── */
+.hero-deco-svg {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+</style>
+</head>
+<body id="top">
+
+<!-- ═══ PROGRESS BAR ═══ -->
+<div id="progress-bar"></div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-shape hero-shape-4"></div>
+  <div class="hero-dots"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">42 Lausanne</div>
+    <h1>Guide C<br><span class="gradient-text">Exam Rank 02</span></h1>
+    <p class="hero-sub">Tout ce qu'il faut savoir pour crush l'examen, de zero a hero.<br>Pour Rayan, par un ami qui veut le voir reussir.</p>
+
+    <div class="hero-stats">
+      <span class="hero-stat">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
+        4 chapitres
+      </span>
+      <span class="hero-stat">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"/></svg>
+        ~50 exercices
+      </span>
+      <span class="hero-stat">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
+        Level 1 a 4
+      </span>
+    </div>
+  </div>
+
+  <svg class="hero-deco-svg" viewBox="0 0 1440 60" preserveAspectRatio="none" style="height:60px;width:100%">
+    <path d="M0,40 C360,60 720,20 1080,40 C1260,50 1380,35 1440,40 L1440,60 L0,60 Z" fill="var(--bg)"/>
+  </svg>
+
+  <div class="scroll-hint">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ═══ STICKY NAV ═══ -->
+<nav class="sticky-nav">
+  <span class="nav-label">Chapitres</span>
+  <a href="#ch1" class="nav-pill"><span class="n">1</span> Fondations</a>
+  <a href="#ch2" class="nav-pill"><span class="n">2</span> Puissance</a>
+  <a href="#ch3" class="nav-pill"><span class="n">3</span> Algorithmes</a>
+  <a href="#ch4" class="nav-pill"><span class="n">4</span> Boss Final</a>
+</nav>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TL;DR
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="tldr-banner anim-el">
+  <div class="tldr-badge">Comment utiliser ce guide</div>
+  <p>L'exam rank 02 de 42 teste ta capacite a coder des fonctions C <strong>de memoire, sans internet</strong>. Tu recois un exercice aleatoire parmi ~50. Il faut le coder en <strong>moins de 15 minutes</strong> dans un terminal nu. Ce guide couvre <strong>toute la theorie</strong> necessaire, avec des exemples dans ton style de code. Lis chaque chapitre, pratique les mini-exercices, puis entraine-toi sur les vrais sujets.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAPITRE 1 — LES FONDATIONS
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="ch1" class="section-label anim-el">
+  <div class="sec-num red">1</div>
+  <div>
+    <div class="sec-title">Les <em>Fondations</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Level 1 de l'exam — Les bases indispensables du C</div>
+  </div>
+</div>
+
+<div class="bento">
+
+  <!-- ── Variables et types ── -->
+  <div class="bcard bcard-warm">
+    <span class="concept-tag red">Concept</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="white" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Variables et types</div>
+    </div>
+    <p class="text-sm mb-12">Une variable est une <strong>boite avec un nom</strong> qui stocke une valeur en memoire. En C, il faut toujours declarer le type de la boite <em>avant</em> de l'utiliser.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Imagine des boites de rangement. Un <code>int</code> est une grande boite pour des nombres entiers. Un <code>char</code> est une toute petite boite pour une seule lettre. Tu ne peux pas mettre un frigo dans une boite a chaussures.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">types.c</span>
+      </div>
+      <div class="code-body"><span class="type">int</span>		i = <span class="num">0</span>;          <span class="cm">// entier : -2147483648 a 2147483647</span>
+<span class="type">char</span>		c = <span class="str">'A'</span>;        <span class="cm">// un caractere (1 octet, 0 a 127)</span>
+<span class="type">unsigned int</span>	n = <span class="num">42</span>;      <span class="cm">// entier positif uniquement</span>
+<span class="type">char</span>		*str = <span class="str">"hello"</span>; <span class="cm">// pointeur vers une chaine</span>
+<span class="type">long</span>		big = <span class="num">9999999</span>; <span class="cm">// entier plus grand</span></div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Un <code>char</code> non-signe va de 0 a 255, mais un <code>char</code> signe va de -128 a 127. Si tu ecris <code>char c = 200;</code>, le resultat sera negatif ! Fais attention au type quand tu manipules des valeurs ASCII.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">ft_strlen</span>
+      <span class="exam-link">ft_strcpy</span>
+      <span class="exam-link">repeat_alpha</span>
+    </div>
+  </div>
+
+  <!-- ── write() vs printf() ── -->
+  <div class="bcard bcard-green">
+    <span class="concept-tag green">Concept</span>
+    <div class="card-header">
+      <div class="card-icon green">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">write() vs printf()</div>
+    </div>
+    <p class="text-sm mb-12">A 42, on utilise <strong>write()</strong> au lieu de printf(). Pourquoi ? Parce que <code>printf</code> est une fonction de haut niveau qui fait plein de choses en coulisses. <code>write</code> est un <strong>appel systeme direct</strong> au noyau — c'est la base.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">write_demo.c</span>
+      </div>
+      <div class="code-body"><span class="inc">#include</span> <span class="str">&lt;unistd.h&gt;</span>
+
+<span class="cm">// write(fd, buffer, nb_octets)</span>
+<span class="cm">// fd = 1 pour la sortie standard (le terminal)</span>
+
+<span class="type">void</span>	<span class="fn">ft_putchar</span>(<span class="type">char</span> c)
+{
+	<span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);
+}
+
+<span class="type">void</span>	<span class="fn">ft_putstr</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, &amp;str[i], <span class="num">1</span>);
+		i++;
+	}
+}
+
+<span class="type">void</span>	<span class="fn">ft_putnbr</span>(<span class="type">int</span> n)
+{
+	<span class="type">char</span>	c;
+
+	<span class="kw">if</span> (n == <span class="num">-2147483648</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"-2147483648"</span>, <span class="num">11</span>);
+		<span class="kw">return</span> ;
+	}
+	<span class="kw">if</span> (n &lt; <span class="num">0</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"-"</span>, <span class="num">1</span>);
+		n = -n;
+	}
+	<span class="kw">if</span> (n &gt;= <span class="num">10</span>)
+		<span class="fn">ft_putnbr</span>(n / <span class="num">10</span>);
+	c = (n % <span class="num">10</span>) + <span class="str">'0'</span>;
+	<span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body"><code>write(1, "a", 1)</code> ecrit le caractere 'a'. Mais <code>write(1, 'a', 1)</code> est <strong>FAUX</strong> — les guillemets simples donnent un int, pas une adresse. Pour un char variable, utilise <code>write(1, &amp;c, 1)</code> avec l'esperluette.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">ft_putstr</span>
+      <span class="exam-link">fizzbuzz</span>
+      <span class="exam-link">all Level 1</span>
+    </div>
+  </div>
+
+  <!-- ── Boucles while et conditions ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Concept</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4" stroke="white" stroke-width="2"/><path d="M3 11V9a4 4 0 014-4h14" stroke="white" stroke-width="2"/><path d="M7 21l-4-4 4-4" stroke="white" stroke-width="2"/><path d="M21 13v2a4 4 0 01-4 4H3" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Boucles while et conditions if/else</div>
+    </div>
+    <p class="text-sm mb-12">A 42, on utilise principalement <code>while</code> (jamais <code>for</code> a la norme). La boucle <code>while</code> repete un bloc <strong>tant que</strong> la condition est vraie (non-zero). Le <code>if/else</code> permet d'executer du code <strong>sous condition</strong>.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Un <code>while</code> c'est comme un reveil qui sonne en boucle tant que tu ne l'eteins pas. Le <code>if/else</code> c'est un carrefour : tu tournes a gauche OU a droite selon le panneau.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">while.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Afficher les chiffres 0 a 9</span>
+<span class="type">int</span>	i = <span class="num">0</span>;
+
+<span class="kw">while</span> (i &lt; <span class="num">10</span>)
+{
+	c = i + <span class="str">'0'</span>;
+	<span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);
+	i++;
+}
+<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);</div>
+      </div>
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">if_else.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// FizzBuzz simplifie</span>
+<span class="kw">if</span> (n % <span class="num">15</span> == <span class="num">0</span>)
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"fb"</span>, <span class="num">2</span>);
+<span class="kw">else if</span> (n % <span class="num">3</span> == <span class="num">0</span>)
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"f"</span>, <span class="num">1</span>);
+<span class="kw">else if</span> (n % <span class="num">5</span> == <span class="num">0</span>)
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"b"</span>, <span class="num">1</span>);
+<span class="kw">else</span>
+	<span class="fn">ft_putnbr</span>(n);</div>
+      </div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Oublier d'incrementer <code>i++</code> dans un <code>while</code> = <strong>boucle infinie</strong>. Ton programme ne s'arretera jamais. Autre piege : ecrire <code>if (n = 5)</code> au lieu de <code>if (n == 5)</code> — le premier est une <em>assignation</em> (toujours vraie), pas une comparaison !</div>
+    </div>
+  </div>
+
+  <!-- ── Fonctions ── -->
+  <div class="bcard bcard-gold">
+    <span class="concept-tag gold">Concept</span>
+    <div class="card-header">
+      <div class="card-icon gold">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" stroke="#1A1A2E" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Fonctions</div>
+    </div>
+    <p class="text-sm mb-12">Une fonction est un <strong>bloc de code reutilisable</strong>. Elle a un type de retour, un nom, des parametres, et un corps. Si elle ne retourne rien, son type est <code>void</code>.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">fonctions.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// Prototype : type nom(params);</span>
+<span class="type">int</span>	<span class="fn">ft_strlen</span>(<span class="type">char</span> *str);
+
+<span class="cm">// Implementation</span>
+<span class="type">int</span>	<span class="fn">ft_strlen</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (str[i])
+		i++;
+	<span class="kw">return</span> (i);
+}
+
+<span class="cm">// Fonction void (ne retourne rien)</span>
+<span class="type">void</span>	<span class="fn">ft_swap</span>(<span class="type">int</span> *a, <span class="type">int</span> *b)
+{
+	<span class="type">int</span>	tmp;
+
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>ft_swap</code>, on passe des <strong>pointeurs</strong> (<code>int *a</code>), pas des valeurs. Si tu passes des <code>int</code> normaux, la fonction modifie des <em>copies</em> et rien ne change dans le main ! C'est le piege n1 des debutants.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">ft_swap</span>
+      <span class="exam-link">ft_strlen</span>
+      <span class="exam-link">ft_putstr</span>
+    </div>
+  </div>
+
+  <!-- ── Chaines de caracteres ── -->
+  <div class="bcard bcard-blue">
+    <span class="concept-tag blue">Concept</span>
+    <div class="card-header">
+      <div class="card-icon blue">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Chaines de caracteres</div>
+    </div>
+    <p class="text-sm mb-12">En C, une chaine est juste un <strong>tableau de <code>char</code></strong> termine par un <code>'\0'</code> (le "null terminator", valeur 0). Quand tu fais <code>while(str[i])</code>, tu parcours jusqu'a ce <code>'\0'</code>.</p>
+
+    <div class="diagram-wrap">
+      <svg width="440" height="80" viewBox="0 0 440 80" fill="none">
+        <text x="10" y="15" font-family="JetBrains Mono" font-size="11" fill="#9A8A80">char str[] = "hello";</text>
+        <!-- boxes -->
+        <rect x="10" y="28" width="50" height="40" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="65" y="28" width="50" height="40" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="120" y="28" width="50" height="40" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="175" y="28" width="50" height="40" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="230" y="28" width="50" height="40" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="285" y="28" width="50" height="40" rx="6" fill="#FDEDEB" stroke="#F0B0A8" stroke-width="1.5"/>
+        <!-- chars -->
+        <text x="28" y="53" font-family="JetBrains Mono" font-size="16" fill="#1A1A2E" text-anchor="middle">'h'</text>
+        <text x="83" y="53" font-family="JetBrains Mono" font-size="16" fill="#1A1A2E" text-anchor="middle">'e'</text>
+        <text x="138" y="53" font-family="JetBrains Mono" font-size="16" fill="#1A1A2E" text-anchor="middle">'l'</text>
+        <text x="193" y="53" font-family="JetBrains Mono" font-size="16" fill="#1A1A2E" text-anchor="middle">'l'</text>
+        <text x="248" y="53" font-family="JetBrains Mono" font-size="16" fill="#1A1A2E" text-anchor="middle">'o'</text>
+        <text x="303" y="53" font-family="JetBrains Mono" font-size="16" fill="#E74C3C" text-anchor="middle">\0</text>
+        <!-- indices -->
+        <text x="28" y="78" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">[0]</text>
+        <text x="83" y="78" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">[1]</text>
+        <text x="138" y="78" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">[2]</text>
+        <text x="193" y="78" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">[3]</text>
+        <text x="248" y="78" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">[4]</text>
+        <text x="303" y="78" font-family="Inter" font-size="9" fill="#E74C3C" text-anchor="middle">[5]</text>
+        <text x="360" y="53" font-family="Inter" font-size="10" fill="#9A8A80">len = 5</text>
+      </svg>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">ft_strcpy.c</span>
+      </div>
+      <div class="code-body"><span class="type">char</span>	*<span class="fn">ft_strcpy</span>(<span class="type">char</span> *dest, <span class="type">char</span> *src)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (src[i])
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = <span class="str">'\0'</span>;
+	<span class="kw">return</span> (dest);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body"><strong>TOUJOURS</strong> terminer tes chaines par <code>'\0'</code> ! Si tu copies une chaine sans ajouter le null-terminator, tout ce qui vient apres en memoire sera lu comme faisant partie de ta chaine. Resultat : des caracteres poubelle a l'affichage.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">ft_strcpy</span>
+      <span class="exam-link">ft_strlen</span>
+      <span class="exam-link">rev_print</span>
+      <span class="exam-link">search_and_replace</span>
+    </div>
+  </div>
+
+  <!-- ── argc / argv ── -->
+  <div class="bcard bcard-peach">
+    <span class="concept-tag red">Concept</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6M12 19h8" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">argc / argv</div>
+    </div>
+    <p class="text-sm mb-12">Quand tu lances <code>./prog hello world</code>, le systeme passe les arguments a ton <code>main</code>. <code>argc</code> = nombre d'arguments (ici 3), <code>argv</code> = tableau de chaines (argv[0]="./prog", argv[1]="hello", argv[2]="world").</p>
+
+    <div class="diagram-wrap">
+      <svg width="400" height="100" viewBox="0 0 400 100" fill="none">
+        <text x="10" y="15" font-family="JetBrains Mono" font-size="11" fill="#9A8A80">./search_and_replace "abcabc" 'a' 'z'</text>
+        <text x="10" y="38" font-family="Inter" font-size="11" fill="#D4552A" font-weight="700">argc = 4</text>
+        <!-- argv boxes -->
+        <rect x="10" y="48" width="80" height="32" rx="6" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <rect x="100" y="48" width="80" height="32" rx="6" fill="#E8F5EF" stroke="#C5DDD4" stroke-width="1.5"/>
+        <rect x="190" y="48" width="50" height="32" rx="6" fill="#E8F5EF" stroke="#C5DDD4" stroke-width="1.5"/>
+        <rect x="250" y="48" width="50" height="32" rx="6" fill="#E8F5EF" stroke="#C5DDD4" stroke-width="1.5"/>
+        <text x="50" y="68" font-family="JetBrains Mono" font-size="10" fill="#5A4A40" text-anchor="middle">argv[0]</text>
+        <text x="140" y="68" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F" text-anchor="middle">argv[1]</text>
+        <text x="215" y="68" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F" text-anchor="middle">argv[2]</text>
+        <text x="275" y="68" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F" text-anchor="middle">argv[3]</text>
+        <text x="50" y="94" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">prog name</text>
+        <text x="140" y="94" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">"abcabc"</text>
+        <text x="215" y="94" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">"a"</text>
+        <text x="275" y="94" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">"z"</text>
+      </svg>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">main_args.c</span>
+      </div>
+      <div class="code-body"><span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> (<span class="num">0</span>);
+	}
+	<span class="fn">ft_putstr</span>(argv[<span class="num">1</span>]);
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Si l'exo attend 2 arguments et l'user en donne 0, il faut juste ecrire <code>"\n"</code> et quitter proprement. <strong>Toujours verifier argc en premier !</strong> Et rappelle-toi : <code>argv[1][0]</code> est le premier <em>caractere</em> du premier argument, pas la chaine entiere.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">search_and_replace</span>
+      <span class="exam-link">first_word</span>
+      <span class="exam-link">rotone</span>
+    </div>
+  </div>
+
+  <!-- ── Arithmetique de caracteres ── -->
+  <div class="bcard bcard-warm">
+    <span class="concept-tag red">Concept</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Arithmetique de caracteres et ASCII</div>
+    </div>
+    <p class="text-sm mb-12">Chaque caractere est un <strong>nombre</strong> dans la table ASCII. <code>'A'</code> = 65, <code>'a'</code> = 97, <code>'0'</code> = 48. La difference entre majuscule et minuscule est toujours <strong>32</strong>. On peut donc faire des maths sur les caracteres !</p>
+
+    <div class="ascii-table">  Char | Dec | Hex        Char | Dec | Hex
+  ─────┼─────┼────        ─────┼─────┼────
+  '0'  |  48 | 0x30       'A'  |  65 | 0x41
+  '9'  |  57 | 0x39       'Z'  |  90 | 0x5A
+  ' '  |  32 | 0x20       'a'  |  97 | 0x61
+  '\n' |  10 | 0x0A       'z'  | 122 | 0x7A
+  '\0' |   0 | 0x00       '~'  | 126 | 0x7E</div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">char_math.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// Convertir un chiffre char en int</span>
+<span class="type">int</span>	n = c - <span class="str">'0'</span>;        <span class="cm">// '7' - '0' = 55 - 48 = 7</span>
+
+<span class="cm">// Convertir minuscule en majuscule</span>
+<span class="type">char</span>	upper = c - <span class="num">32</span>;     <span class="cm">// 'a' - 32 = 97 - 32 = 65 = 'A'</span>
+
+<span class="cm">// ROT13 : decaler de 13 dans l'alphabet</span>
+<span class="kw">if</span> (c &gt;= <span class="str">'a'</span> &amp;&amp; c &lt;= <span class="str">'z'</span>)
+	c = (c - <span class="str">'a'</span> + <span class="num">13</span>) % <span class="num">26</span> + <span class="str">'a'</span>;
+
+<span class="cm">// Verifier si c'est un chiffre</span>
+<span class="kw">if</span> (c &gt;= <span class="str">'0'</span> &amp;&amp; c &lt;= <span class="str">'9'</span>)
+	<span class="cm">// c est un chiffre</span>
+
+<span class="cm">// repeat_alpha : 'a' se repete 1x, 'b' 2x, 'z' 26x</span>
+<span class="type">int</span>	count = c - <span class="str">'a'</span> + <span class="num">1</span>;  <span class="cm">// 'c' - 'a' + 1 = 3</span></div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour ROT13/ROT1, attention au <strong>wrap-around</strong> ! Apres 'z' on revient a 'a'. La formule <code>(c - 'a' + N) % 26 + 'a'</code> gere ca automatiquement. N'oublie pas de traiter majuscules et minuscules separement.</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">rotone</span>
+      <span class="exam-link">rot_13</span>
+      <span class="exam-link">ulstr</span>
+      <span class="exam-link">repeat_alpha</span>
+    </div>
+  </div>
+
+  <!-- ── Exercices du Level 1 ── -->
+  <div class="bcard bcard-dark bento-wide">
+    <span class="concept-tag" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Exercices Level 1</span>
+    <div style="color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:12px;">Tous les exercices du Level 1</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">first_word</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Afficher le 1er mot de argv[1]</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">fizzbuzz</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Classique fizz/buzz/fizzbuzz</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">ft_strlen</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Compter les caracteres</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">ft_strcpy</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Copier une chaine</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">ft_putstr</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Ecrire une chaine avec write</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">ft_swap</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Echanger 2 int via pointeurs</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">repeat_alpha</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Repeter chaque lettre N fois</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">rev_print</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Afficher a l'envers</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">rotone / rot_13</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Decalage alphabetique</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">search_and_replace</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Remplacer un char par un autre</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#F4886A;font-weight:700;font-size:12px;">ulstr</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Inverser la casse</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mini exercices Chapitre 1 ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Entrainement</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">3 Mini-exercices (hors exam)</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 1 — ft_is_alpha</div>
+      <div class="exercise-body">Ecris une fonction <code>int ft_is_alpha(char c)</code> qui retourne 1 si <code>c</code> est une lettre (a-z ou A-Z), 0 sinon. Utilise uniquement l'arithmetique de caracteres, pas de fonction de la libc.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 2 — ft_count_words</div>
+      <div class="exercise-body">Ecris une fonction <code>int ft_count_words(char *str)</code> qui retourne le nombre de mots dans une chaine (les mots sont separes par des espaces et des tabs). Indice : un mot commence quand tu passes d'un separateur a un non-separateur.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 3 — ft_print_digits</div>
+      <div class="exercise-body">Ecris un programme qui recoit une chaine en argument et n'affiche que les chiffres qu'elle contient, suivis d'un <code>\n</code>. Exemple : <code>"h3ll0 w0rld"</code> affiche <code>"300"</code>.</div>
+    </div>
+  </div>
+
+</div><!-- end bento ch1 -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAPITRE 2 — MONTER EN PUISSANCE
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="ch2" class="section-label anim-el">
+  <div class="sec-num green">2</div>
+  <div>
+    <div class="sec-title">Monter en <em>puissance</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Level 2 de l'exam — Pointeurs, malloc, bitwise et libc</div>
+  </div>
+</div>
+
+<div class="bento">
+
+  <!-- ── Pointeurs en profondeur ── -->
+  <div class="bcard bcard-green bento-wide">
+    <span class="concept-tag green">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon green">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 22V12M12 12L6 6M12 12l6-6" stroke="white" stroke-width="2.5"/></svg>
+      </div>
+      <div class="card-title">Pointeurs en profondeur</div>
+    </div>
+    <p class="text-sm mb-12">Un pointeur est une variable qui stocke une <strong>adresse memoire</strong>. Quand tu ecris <code>int *p = &amp;x</code>, <code>p</code> contient l'adresse de <code>x</code>, et <code>*p</code> te donne la valeur stockee a cette adresse.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Imagine la memoire comme un immeuble. Chaque appartement a un numero (l'adresse). Un pointeur, c'est un papier ou tu as ecrit le numero d'un appartement. Avec ce papier tu peux aller visiter l'appartement (*p) ou juste lire le numero (p).</div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="500" height="120" viewBox="0 0 500 120" fill="none">
+        <!-- Variable x -->
+        <rect x="30" y="20" width="100" height="50" rx="10" fill="#E8F5EF" stroke="#C5DDD4" stroke-width="1.5"/>
+        <text x="80" y="42" font-family="JetBrains Mono" font-size="12" fill="#2B6B4F" text-anchor="middle" font-weight="700">int x = 42</text>
+        <text x="80" y="60" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">adresse: 0x7ff0</text>
+
+        <!-- Arrow -->
+        <line x1="190" y1="45" x2="240" y2="45" stroke="#2B6B4F" stroke-width="2" marker-end="url(#arrowG)"/>
+        <text x="215" y="38" font-family="Inter" font-size="9" fill="#9A8A80" text-anchor="middle">&amp;x</text>
+
+        <!-- Pointeur p -->
+        <rect x="250" y="20" width="120" height="50" rx="10" fill="#FFF5EB" stroke="#F0D5C0" stroke-width="1.5"/>
+        <text x="310" y="42" font-family="JetBrains Mono" font-size="12" fill="#D4552A" text-anchor="middle" font-weight="700">int *p = &amp;x</text>
+        <text x="310" y="60" font-family="JetBrains Mono" font-size="9" fill="#9A8A80" text-anchor="middle">contient: 0x7ff0</text>
+
+        <!-- *p arrow -->
+        <path d="M310 70 L310 95 L130 95 L130 70" stroke="#D4552A" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowR)"/>
+        <text x="220" y="108" font-family="JetBrains Mono" font-size="10" fill="#D4552A" text-anchor="middle">*p == 42</text>
+
+        <defs>
+          <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#2B6B4F"/></marker>
+          <marker id="arrowR" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto"><path d="M0,6 L4,0 L8,6" fill="#D4552A"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">pointeurs.c</span>
+      </div>
+      <div class="code-body"><span class="type">int</span>	x = <span class="num">42</span>;
+<span class="type">int</span>	*p = &amp;x;       <span class="cm">// p pointe vers x</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, *p);  <span class="cm">// 42 — dereferencement</span>
+*p = <span class="num">100</span>;              <span class="cm">// x vaut maintenant 100</span>
+
+<span class="cm">// Pointeur de pointeur (double pointeur)</span>
+<span class="type">int</span>	**pp = &amp;p;     <span class="cm">// pp pointe vers p</span>
+**pp = <span class="num">200</span>;            <span class="cm">// x vaut maintenant 200</span>
+
+<span class="cm">// Arithmetique de pointeurs</span>
+<span class="type">int</span>	tab[] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>};
+<span class="type">int</span>	*ptr = tab;    <span class="cm">// tab est deja une adresse</span>
+<span class="cm">// *(ptr + 1) == tab[1] == 20</span>
+<span class="cm">// ptr++ avance de sizeof(int) = 4 octets</span></div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Ne <strong>jamais</strong> dereferencer un pointeur NULL : <code>*NULL</code> = segfault garanti. Verifie toujours <code>if (ptr != NULL)</code> ou <code>if (ptr)</code> avant d'utiliser <code>*ptr</code>. Autre piege : confondre <code>p++</code> (avance le pointeur) et <code>(*p)++</code> (incremente la valeur pointee).</div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <span class="exam-link">ft_strdup</span>
+      <span class="exam-link">ft_strrev</span>
+      <span class="exam-link">ft_swap</span>
+    </div>
+  </div>
+
+  <!-- ── malloc / free ── -->
+  <div class="bcard bcard-gold">
+    <span class="concept-tag gold">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon gold">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" stroke="#1A1A2E" stroke-width="2"/><path d="M2 9h20M8 9v12" stroke="#1A1A2E" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">malloc / free</div>
+    </div>
+    <p class="text-sm mb-12"><code>malloc</code> demande au systeme de la memoire sur le <strong>heap</strong> (le tas). Contrairement aux variables locales (sur la stack), cette memoire persiste jusqu'a ce que tu la liberes avec <code>free</code>.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body"><code>malloc</code> c'est comme louer un box de stockage. Tu demandes la taille dont tu as besoin, on te donne une clef (le pointeur). Quand tu n'en as plus besoin, tu rends la clef (<code>free</code>). Si tu perds la clef sans rendre le box, c'est un <strong>memory leak</strong>.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">ft_strdup.c</span>
+      </div>
+      <div class="code-body"><span class="inc">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="type">char</span>	*<span class="fn">ft_strdup</span>(<span class="type">char</span> *src)
+{
+	<span class="type">int</span>		i = <span class="num">0</span>;
+	<span class="type">int</span>		len = <span class="num">0</span>;
+	<span class="type">char</span>	*res;
+
+	<span class="kw">while</span> (src[len])
+		len++;
+	res = (<span class="type">char</span> *)<span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">char</span>) * (len + <span class="num">1</span>));
+	<span class="kw">if</span> (!res)
+		<span class="kw">return</span> (<span class="num">NULL</span>);
+	<span class="kw">while</span> (src[i])
+	{
+		res[i] = src[i];
+		i++;
+	}
+	res[i] = <span class="str">'\0'</span>;
+	<span class="kw">return</span> (res);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body"><strong>Toujours allouer +1</strong> pour le <code>'\0'</code> ! <code>malloc(len)</code> au lieu de <code>malloc(len + 1)</code> = buffer overflow. Et toujours verifier si malloc retourne NULL (plus de memoire). Dans l'exam, ne pas free ne te penalisera pas, mais c'est une mauvaise habitude.</div>
+    </div>
+  </div>
+
+  <!-- ── Operations bitwise ── -->
+  <div class="bcard bcard-purple">
+    <span class="concept-tag purple">Concept</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="9" cy="12" r="5" stroke="white" stroke-width="2"/><circle cx="15" cy="12" r="5" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Operations bitwise</div>
+    </div>
+    <p class="text-sm mb-12">Les operations bit-a-bit manipulent les <strong>bits individuels</strong> d'un nombre. Chaque int est compose de 32 bits (0 ou 1). Tres utile pour print_bits, reverse_bits, swap_bits et is_power_of_2.</p>
+
+    <div class="ascii-table">  Operateur | Nom        | Exemple (8 bits)
+  ──────────┼────────────┼──────────────────
+     &amp;      | AND        | 1100 &amp; 1010 = 1000
+     |      | OR         | 1100 | 1010 = 1110
+     ^      | XOR        | 1100 ^ 1010 = 0110
+     ~      | NOT        | ~1100 = 0011
+     &lt;&lt;     | Shift left | 0001 &lt;&lt; 3 = 1000
+     &gt;&gt;     | Shift right| 1000 &gt;&gt; 2 = 0010</div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">bitwise.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// print_bits : afficher les 8 bits d'un octet</span>
+<span class="type">void</span>	<span class="fn">print_bits</span>(<span class="type">unsigned char</span> octet)
+{
+	<span class="type">int</span>	i = <span class="num">7</span>;
+
+	<span class="kw">while</span> (i &gt;= <span class="num">0</span>)
+	{
+		<span class="type">char</span> c = ((octet &gt;&gt; i) &amp; <span class="num">1</span>) + <span class="str">'0'</span>;
+		<span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);
+		i--;
+	}
+}
+
+<span class="cm">// reverse_bits : inverser l'ordre des bits</span>
+<span class="type">unsigned char</span>	<span class="fn">reverse_bits</span>(<span class="type">unsigned char</span> octet)
+{
+	<span class="type">unsigned char</span>	res = <span class="num">0</span>;
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (i &lt; <span class="num">8</span>)
+	{
+		res = (res &lt;&lt; <span class="num">1</span>) | (octet &amp; <span class="num">1</span>);
+		octet &gt;&gt;= <span class="num">1</span>;
+		i++;
+	}
+	<span class="kw">return</span> (res);
+}
+
+<span class="cm">// is_power_of_2 : astuce elegante</span>
+<span class="type">int</span>	<span class="fn">is_power_of_2</span>(<span class="type">unsigned int</span> n)
+{
+	<span class="kw">return</span> (n != <span class="num">0</span> &amp;&amp; (n &amp; (n - <span class="num">1</span>)) == <span class="num">0</span>);
+}
+<span class="cm">// 8 = 1000, 7 = 0111 → 1000 &amp; 0111 = 0000 → true!</span></div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Le bit de poids fort est a <strong>gauche</strong> (indice 7), le bit de poids faible a <strong>droite</strong> (indice 0). Pour print_bits, parcours de 7 a 0 (decroissant). Pour <code>swap_bits</code>, le nibble haut ce sont les bits 4-7, le nibble bas les bits 0-3.</div>
+    </div>
+  </div>
+
+  <!-- ── Fonctions libc a reproduire ── -->
+  <div class="bcard bcard-warm bento-wide">
+    <span class="concept-tag red">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="white" stroke-width="2"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Reproduire les fonctions de la libc</div>
+    </div>
+    <p class="text-sm mb-16">L'exam te demandera de recoder des fonctions standard. Voici les plus importantes avec leurs subtilites.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">ft_atoi.c</span>
+        </div>
+        <div class="code-body"><span class="type">int</span>	<span class="fn">ft_atoi</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	sign = <span class="num">1</span>;
+	<span class="type">int</span>	res = <span class="num">0</span>;
+
+	<span class="kw">while</span> (str[i] == <span class="str">' '</span> || str[i] == <span class="str">'\t'</span>)
+		i++;
+	<span class="kw">if</span> (str[i] == <span class="str">'-'</span> || str[i] == <span class="str">'+'</span>)
+	{
+		<span class="kw">if</span> (str[i] == <span class="str">'-'</span>)
+			sign = <span class="num">-1</span>;
+		i++;
+	}
+	<span class="kw">while</span> (str[i] &gt;= <span class="str">'0'</span> &amp;&amp; str[i] &lt;= <span class="str">'9'</span>)
+	{
+		res = res * <span class="num">10</span> + (str[i] - <span class="str">'0'</span>);
+		i++;
+	}
+	<span class="kw">return</span> (res * sign);
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">ft_strcmp.c</span>
+        </div>
+        <div class="code-body"><span class="type">int</span>	<span class="fn">ft_strcmp</span>(<span class="type">char</span> *s1, <span class="type">char</span> *s2)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (s1[i] &amp;&amp; s1[i] == s2[i])
+		i++;
+	<span class="kw">return</span> ((<span class="type">unsigned char</span>)s1[i]
+		- (<span class="type">unsigned char</span>)s2[i]);
+}
+
+<span class="cm">// strcmp retourne :</span>
+<span class="cm">//   0 si egal</span>
+<span class="cm">//   &lt; 0 si s1 &lt; s2</span>
+<span class="cm">//   &gt; 0 si s1 &gt; s2</span></div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">ft_strrev.c</span>
+        </div>
+        <div class="code-body"><span class="type">char</span>	*<span class="fn">ft_strrev</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	j = <span class="num">0</span>;
+	<span class="type">char</span>	tmp;
+
+	<span class="kw">while</span> (str[j])
+		j++;
+	j--;
+	<span class="kw">while</span> (i &lt; j)
+	{
+		tmp = str[i];
+		str[i] = str[j];
+		str[j] = tmp;
+		i++;
+		j--;
+	}
+	<span class="kw">return</span> (str);
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">ft_strcspn.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Longueur du prefixe de s qui</span>
+<span class="cm">// ne contient AUCUN char de reject</span>
+<span class="type">size_t</span>	<span class="fn">ft_strcspn</span>(<span class="type">char</span> *s, <span class="type">char</span> *reject)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	j;
+
+	<span class="kw">while</span> (s[i])
+	{
+		j = <span class="num">0</span>;
+		<span class="kw">while</span> (reject[j])
+		{
+			<span class="kw">if</span> (s[i] == reject[j])
+				<span class="kw">return</span> (i);
+			j++;
+		}
+		i++;
+	}
+	<span class="kw">return</span> (i);
+}</div>
+      </div>
+
+    </div>
+
+    <div class="piege-box" style="margin-top:16px;">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Dans <code>ft_atoi</code>, on skip les espaces ET les tabs en debut. On gere UN seul signe (+/-). On s'arrete au premier non-chiffre. Pour <code>ft_strcmp</code>, le cast en <code>unsigned char</code> est crucial pour eviter des resultats negatifs inattendus avec des caracteres > 127.</div>
+    </div>
+  </div>
+
+  <!-- ── union / wdmatch / snake_camel ── -->
+  <div class="bcard bcard-peach">
+    <span class="concept-tag red">Exercices cles</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="white" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Exercices de manipulation de chaines</div>
+    </div>
+    <p class="text-sm mb-12">Ces exercices combinent parcours de chaine, conditions et ecriture. Ils sont classiques a l'exam Level 2.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">snake_to_camel.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// "my_var_name" → "myVarName"</span>
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">if</span> (argc == <span class="num">2</span>)
+	{
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][i] == <span class="str">'_'</span>)
+			{
+				i++;
+				<span class="kw">if</span> (argv[<span class="num">1</span>][i] &gt;= <span class="str">'a'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="str">'z'</span>)
+				{
+					<span class="type">char</span> c = argv[<span class="num">1</span>][i] - <span class="num">32</span>;
+					<span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);
+				}
+			}
+			<span class="kw">else</span>
+				<span class="fn">write</span>(<span class="num">1</span>, &amp;argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			i++;
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">union.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// Afficher les chars de s1 puis s2, sans doublon</span>
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	seen[<span class="num">256</span>] = {<span class="num">0</span>};
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">if</span> (argc == <span class="num">3</span>)
+	{
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+		{
+			<span class="kw">if</span> (!seen[(<span class="type">unsigned char</span>)argv[<span class="num">1</span>][i]])
+			{
+				seen[(<span class="type">unsigned char</span>)argv[<span class="num">1</span>][i]] = <span class="num">1</span>;
+				<span class="fn">write</span>(<span class="num">1</span>, &amp;argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			}
+			i++;
+		}
+		i = <span class="num">0</span>;
+		<span class="kw">while</span> (argv[<span class="num">2</span>][i])
+		{
+			<span class="kw">if</span> (!seen[(<span class="type">unsigned char</span>)argv[<span class="num">2</span>][i]])
+			{
+				seen[(<span class="type">unsigned char</span>)argv[<span class="num">2</span>][i]] = <span class="num">1</span>;
+				<span class="fn">write</span>(<span class="num">1</span>, &amp;argv[<span class="num">2</span>][i], <span class="num">1</span>);
+			}
+			i++;
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>union</code>, le tableau <code>seen[256]</code> doit etre initialise a zero. En C, <code>int seen[256] = {0}</code> met tous les elements a 0. Le cast en <code>unsigned char</code> evite les indices negatifs si le char est signe.</div>
+    </div>
+  </div>
+
+  <!-- ── do_op ── -->
+  <div class="bcard bcard-blue">
+    <span class="concept-tag blue">Exercice</span>
+    <div class="card-header">
+      <div class="card-icon blue">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke="white" stroke-width="2.5"/></svg>
+      </div>
+      <div class="card-title">do_op — mini calculatrice</div>
+    </div>
+    <p class="text-sm mb-12">Recevoir 3 arguments : nombre, operateur, nombre. Afficher le resultat. Utilise <code>atoi</code> pour convertir.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">do_op.c</span>
+      </div>
+      <div class="code-body"><span class="inc">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="inc">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="kw">if</span> (argc == <span class="num">4</span>)
+	{
+		<span class="type">int</span> a = <span class="fn">atoi</span>(argv[<span class="num">1</span>]);
+		<span class="type">int</span> b = <span class="fn">atoi</span>(argv[<span class="num">3</span>]);
+		<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="str">'+'</span>)
+			<span class="fn">printf</span>(<span class="str">"%d"</span>, a + b);
+		<span class="kw">else if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="str">'-'</span>)
+			<span class="fn">printf</span>(<span class="str">"%d"</span>, a - b);
+		<span class="kw">else if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="str">'*'</span>)
+			<span class="fn">printf</span>(<span class="str">"%d"</span>, a * b);
+		<span class="kw">else if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="str">'/'</span>)
+			<span class="fn">printf</span>(<span class="str">"%d"</span>, a / b);
+		<span class="kw">else if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="str">'%'</span>)
+			<span class="fn">printf</span>(<span class="str">"%d"</span>, a % b);
+	}
+	<span class="fn">printf</span>(<span class="str">"\n"</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+    </div>
+    <p class="text-sm" style="margin-top:8px;"><strong>Note :</strong> <code>do_op</code> est un des rares exos ou on utilise <code>printf</code> au lieu de <code>write</code>, car il faut afficher un <code>%d</code>.</p>
+  </div>
+
+  <!-- ── Exercices Level 2 ── -->
+  <div class="bcard bcard-dark bento-wide">
+    <span class="concept-tag" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Exercices Level 2</span>
+    <div style="color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:12px;">Tous les exercices du Level 2</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_atoi</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">String vers int</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_strdup</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Dupliquer avec malloc</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_strcmp</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Comparer deux chaines</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_strcspn / ft_strspn</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Prefixes accept/reject</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_strpbrk</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Trouver un char dans un set</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">ft_strrev</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Renverser une chaine</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">max</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Trouver le max d'un tableau</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">print_bits / reverse_bits</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Operations bitwise</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">swap_bits / is_power_of_2</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Encore du bitwise</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">alpha_mirror</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">'a'→'z', 'b'→'y', etc.</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">snake_to_camel / camel_to_snake</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Conversions de nommage</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#2ecc71;font-weight:700;font-size:12px;">wdmatch / union / do_op / last_word</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Exercices classiques</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mini exercices Chapitre 2 ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Entrainement</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">3 Mini-exercices (hors exam)</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 1 — ft_strncat</div>
+      <div class="exercise-body">Ecris <code>char *ft_strncat(char *dest, char *src, int n)</code> qui ajoute au maximum <code>n</code> caracteres de <code>src</code> a la fin de <code>dest</code>, puis ajoute un <code>'\0'</code>. Retourne <code>dest</code>.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 2 — ft_count_bits</div>
+      <div class="exercise-body">Ecris <code>int ft_count_bits(unsigned char octet)</code> qui retourne le nombre de bits a 1 dans <code>octet</code>. Exemple : <code>ft_count_bits(0b10110001)</code> retourne <code>4</code>.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 3 — ft_capitalize_first</div>
+      <div class="exercise-body">Ecris un programme qui met en majuscule la <strong>premiere lettre</strong> de chaque mot de <code>argv[1]</code> et affiche le resultat. Les mots sont separes par des espaces. Exemple : <code>"hello world"</code> donne <code>"Hello World"</code>.</div>
+    </div>
+  </div>
+
+</div><!-- end bento ch2 -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAPITRE 3 — ALGORITHMES ET STRUCTURES
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="ch3" class="section-label anim-el">
+  <div class="sec-num gold">3</div>
+  <div>
+    <div class="sec-title">Algorithmes et <em>structures</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Level 3 de l'exam — Maths, conversions de base, listes chainees</div>
+  </div>
+</div>
+
+<div class="bento">
+
+  <!-- ── Algorithmes mathematiques ── -->
+  <div class="bcard bcard-gold bento-wide">
+    <span class="concept-tag gold">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon gold">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="#1A1A2E" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Algorithmes mathematiques</div>
+    </div>
+    <p class="text-sm mb-16">L'exam Level 3 adore les maths : PGCD, PPCM, nombres premiers, somme de premiers. Voici les formules cles.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+      <div>
+        <div class="analogy-box">
+          <div class="analogy-header">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+            PGCD — Euclide
+          </div>
+          <div class="analogy-body">Le PGCD de deux nombres, c'est le plus grand nombre qui divise les deux. L'algorithme d'Euclide : on remplace le plus grand par le reste de la division, jusqu'a ce que le reste soit 0.</div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-titlebar">
+            <div class="code-dot code-dot-r"></div>
+            <div class="code-dot code-dot-y"></div>
+            <div class="code-dot code-dot-g"></div>
+            <span class="code-filename">pgcd.c</span>
+          </div>
+          <div class="code-body"><span class="cm">// PGCD iteratif (Euclide)</span>
+<span class="type">int</span>	<span class="fn">pgcd</span>(<span class="type">int</span> a, <span class="type">int</span> b)
+{
+	<span class="type">int</span>	tmp;
+
+	<span class="kw">while</span> (b != <span class="num">0</span>)
+	{
+		tmp = b;
+		b = a % b;
+		a = tmp;
+	}
+	<span class="kw">return</span> (a);
+}
+
+<span class="cm">// PPCM a partir du PGCD</span>
+<span class="cm">// lcm(a, b) = (a * b) / gcd(a, b)</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="analogy-box">
+          <div class="analogy-header">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+            Nombres premiers
+          </div>
+          <div class="analogy-body">Un nombre premier est divisible uniquement par 1 et lui-meme. Pour verifier, on teste les diviseurs de 2 a la racine carree du nombre. Si aucun ne divise, c'est premier.</div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-titlebar">
+            <div class="code-dot code-dot-r"></div>
+            <div class="code-dot code-dot-y"></div>
+            <div class="code-dot code-dot-g"></div>
+            <span class="code-filename">primes.c</span>
+          </div>
+          <div class="code-body"><span class="type">int</span>	<span class="fn">is_prime</span>(<span class="type">int</span> n)
+{
+	<span class="type">int</span>	i = <span class="num">2</span>;
+
+	<span class="kw">if</span> (n &lt; <span class="num">2</span>)
+		<span class="kw">return</span> (<span class="num">0</span>);
+	<span class="kw">while</span> (i * i &lt;= n)
+	{
+		<span class="kw">if</span> (n % i == <span class="num">0</span>)
+			<span class="kw">return</span> (<span class="num">0</span>);
+		i++;
+	}
+	<span class="kw">return</span> (<span class="num">1</span>);
+}
+
+<span class="cm">// add_prime_sum : somme des</span>
+<span class="cm">// premiers &lt;= n</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="piege-box" style="margin-top:12px;">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>pgcd</code>, l'exam passe les arguments en string via argv. Il faut les convertir avec <code>atoi</code>. Si argc != 3, afficher <code>"\n"</code>. Pour <code>is_prime</code>, utilise <code>i * i &lt;= n</code> au lieu de <code>i &lt;= sqrt(n)</code> pour eviter d'inclure <code>math.h</code>.</div>
+    </div>
+  </div>
+
+  <!-- ── Conversion de base ── -->
+  <div class="bcard bcard-warm">
+    <span class="concept-tag red">Concept</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Conversion de base</div>
+    </div>
+    <p class="text-sm mb-12">Convertir un nombre decimal en hexadecimal ou en base N. Le principe : diviser par la base et collecter les restes.</p>
+
+    <div class="diagram-wrap">
+      <svg width="380" height="100" viewBox="0 0 380 100" fill="none">
+        <text x="10" y="18" font-family="JetBrains Mono" font-size="12" fill="#D4552A" font-weight="700">42 en hexa :</text>
+        <text x="10" y="40" font-family="JetBrains Mono" font-size="11" fill="#5A4A40">42 / 16 = 2  reste 10 (a)</text>
+        <text x="10" y="58" font-family="JetBrains Mono" font-size="11" fill="#5A4A40"> 2 / 16 = 0  reste  2 (2)</text>
+        <text x="10" y="82" font-family="JetBrains Mono" font-size="12" fill="#2B6B4F" font-weight="700">Resultat (lire a l'envers) : 2a</text>
+      </svg>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">print_hex.c</span>
+      </div>
+      <div class="code-body"><span class="type">void</span>	<span class="fn">print_hex</span>(<span class="type">int</span> n)
+{
+	<span class="type">char</span>	*base = <span class="str">"0123456789abcdef"</span>;
+
+	<span class="kw">if</span> (n &gt;= <span class="num">16</span>)
+		<span class="fn">print_hex</span>(n / <span class="num">16</span>);
+	<span class="fn">write</span>(<span class="num">1</span>, &amp;base[n % <span class="num">16</span>], <span class="num">1</span>);
+}
+
+<span class="cm">// ft_atoi_base : string en base N vers int</span>
+<span class="type">int</span>	<span class="fn">ft_atoi_base</span>(<span class="type">char</span> *str, <span class="type">int</span> base)
+{
+	<span class="type">int</span>	res = <span class="num">0</span>;
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	digit;
+
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="kw">if</span> (str[i] &gt;= <span class="str">'0'</span> &amp;&amp; str[i] &lt;= <span class="str">'9'</span>)
+			digit = str[i] - <span class="str">'0'</span>;
+		<span class="kw">else if</span> (str[i] &gt;= <span class="str">'a'</span> &amp;&amp; str[i] &lt;= <span class="str">'f'</span>)
+			digit = str[i] - <span class="str">'a'</span> + <span class="num">10</span>;
+		<span class="kw">else if</span> (str[i] &gt;= <span class="str">'A'</span> &amp;&amp; str[i] &lt;= <span class="str">'F'</span>)
+			digit = str[i] - <span class="str">'A'</span> + <span class="num">10</span>;
+		<span class="kw">else</span>
+			<span class="kw">break</span> ;
+		res = res * base + digit;
+		i++;
+	}
+	<span class="kw">return</span> (res);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>print_hex</code>, la recursion affiche les chiffres dans le bon ordre (les plus significatifs en premier). Si tu fais une boucle iterative, les chiffres sortent a l'envers ! La recursion est la methode la plus simple ici.</div>
+    </div>
+  </div>
+
+  <!-- ── Listes chainees ── -->
+  <div class="bcard bcard-green">
+    <span class="concept-tag green">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon green">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="5" cy="12" r="3" stroke="white" stroke-width="2"/><circle cx="19" cy="12" r="3" stroke="white" stroke-width="2"/><path d="M8 12h8" stroke="white" stroke-width="2" marker-end="url(#aw)"/></svg>
+      </div>
+      <div class="card-title">Listes chainees</div>
+    </div>
+    <p class="text-sm mb-12">Une liste chainee est une suite de <strong>noeuds</strong>. Chaque noeud contient une valeur et un pointeur vers le noeud suivant. Le dernier pointe vers NULL.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Imagine un train : chaque wagon (noeud) a un contenu (passagers/data) et un accrochage vers le wagon suivant (pointeur next). Le dernier wagon n'est accroche a rien (NULL).</div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="480" height="80" viewBox="0 0 480 80" fill="none">
+        <!-- Node 1 -->
+        <rect x="10" y="15" width="90" height="45" rx="8" fill="#E8F5EF" stroke="#2B6B4F" stroke-width="1.5"/>
+        <text x="35" y="34" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F">data: 42</text>
+        <text x="35" y="50" font-family="JetBrains Mono" font-size="9" fill="#9A8A80">next →</text>
+        <!-- Arrow -->
+        <line x1="100" y1="37" x2="130" y2="37" stroke="#2B6B4F" stroke-width="1.5"/>
+        <polygon points="128,33 136,37 128,41" fill="#2B6B4F"/>
+        <!-- Node 2 -->
+        <rect x="140" y="15" width="90" height="45" rx="8" fill="#E8F5EF" stroke="#2B6B4F" stroke-width="1.5"/>
+        <text x="165" y="34" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F">data: 17</text>
+        <text x="165" y="50" font-family="JetBrains Mono" font-size="9" fill="#9A8A80">next →</text>
+        <!-- Arrow -->
+        <line x1="230" y1="37" x2="260" y2="37" stroke="#2B6B4F" stroke-width="1.5"/>
+        <polygon points="258,33 266,37 258,41" fill="#2B6B4F"/>
+        <!-- Node 3 -->
+        <rect x="270" y="15" width="90" height="45" rx="8" fill="#E8F5EF" stroke="#2B6B4F" stroke-width="1.5"/>
+        <text x="295" y="34" font-family="JetBrains Mono" font-size="10" fill="#2B6B4F">data: 99</text>
+        <text x="295" y="50" font-family="JetBrains Mono" font-size="9" fill="#9A8A80">next →</text>
+        <!-- Arrow to NULL -->
+        <line x1="360" y1="37" x2="390" y2="37" stroke="#E74C3C" stroke-width="1.5"/>
+        <text x="395" y="41" font-family="JetBrains Mono" font-size="12" fill="#E74C3C" font-weight="700">NULL</text>
+      </svg>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">linked_list.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// La structure d'un noeud</span>
+<span class="kw">typedef struct</span> s_list
+{
+	<span class="type">void</span>			*data;
+	<span class="kw">struct</span> s_list	*next;
+}	t_list;
+
+<span class="cm">// Compter les elements (ft_list_size)</span>
+<span class="type">int</span>	<span class="fn">ft_list_size</span>(t_list *begin_list)
+{
+	<span class="type">int</span>	count = <span class="num">0</span>;
+
+	<span class="kw">while</span> (begin_list)
+	{
+		count++;
+		begin_list = begin_list-&gt;next;
+	}
+	<span class="kw">return</span> (count);
+}
+
+<span class="cm">// Appliquer une fonction a chaque element</span>
+<span class="type">void</span>	<span class="fn">ft_list_foreach</span>(t_list *begin, <span class="type">void</span> (*f)(<span class="type">void</span> *))
+{
+	<span class="kw">while</span> (begin)
+	{
+		f(begin-&gt;data);
+		begin = begin-&gt;next;
+	}
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">L'exam fournit la structure <code>t_list</code> dans l'enonce — tu n'as pas a la definir toi-meme. Le champ <code>data</code> est un <code>void *</code> : il peut pointer vers n'importe quel type. Pour avancer, c'est <code>node = node-&gt;next</code>, pas <code>node++</code> (ce n'est pas un tableau !).</div>
+    </div>
+  </div>
+
+  <!-- ── Manipulation avancee de chaines ── -->
+  <div class="bcard bcard-peach bento-wide">
+    <span class="concept-tag red">Exercices</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M17 10H3M21 6H3M21 14H3M17 18H3" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Manipulation avancee de chaines</div>
+    </div>
+    <p class="text-sm mb-12">Les exos Level 3 demandent souvent de nettoyer des espaces ou de capitaliser des mots. La cle : savoir detecter les <strong>transitions</strong> entre espaces et non-espaces.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">epur_str.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// "  hello  world  " → "hello world"</span>
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	space = <span class="num">0</span>;
+
+	<span class="kw">if</span> (argc == <span class="num">2</span>)
+	{
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i] == <span class="str">' '</span>
+			|| argv[<span class="num">1</span>][i] == <span class="str">'\t'</span>)
+			i++;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][i] == <span class="str">' '</span>
+				|| argv[<span class="num">1</span>][i] == <span class="str">'\t'</span>)
+				space = <span class="num">1</span>;
+			<span class="kw">else</span>
+			{
+				<span class="kw">if</span> (space)
+				{
+					<span class="fn">write</span>(<span class="num">1</span>, <span class="str">" "</span>, <span class="num">1</span>);
+					space = <span class="num">0</span>;
+				}
+				<span class="fn">write</span>(<span class="num">1</span>, &amp;argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			}
+			i++;
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">str_capitalizer.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Capitaliser le debut de chaque mot</span>
+<span class="cm">// "hello world" → "Hello World"</span>
+<span class="type">void</span>	<span class="fn">capitalize</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="cm">// Debut de mot : debut de chaine</span>
+		<span class="cm">// ou char apres espace/tab</span>
+		<span class="kw">if</span> (str[i] &gt;= <span class="str">'a'</span> &amp;&amp; str[i] &lt;= <span class="str">'z'</span>
+			&amp;&amp; (i == <span class="num">0</span> || str[i - <span class="num">1</span>] == <span class="str">' '</span>
+			|| str[i - <span class="num">1</span>] == <span class="str">'\t'</span>))
+			str[i] -= <span class="num">32</span>;
+		<span class="kw">else if</span> (str[i] &gt;= <span class="str">'A'</span>
+			&amp;&amp; str[i] &lt;= <span class="str">'Z'</span>
+			&amp;&amp; i &gt; <span class="num">0</span> &amp;&amp; str[i - <span class="num">1</span>] != <span class="str">' '</span>
+			&amp;&amp; str[i - <span class="num">1</span>] != <span class="str">'\t'</span>)
+			str[i] += <span class="num">32</span>;
+		<span class="fn">write</span>(<span class="num">1</span>, &amp;str[i], <span class="num">1</span>);
+		i++;
+	}
+}</div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:12px;">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">ft_range.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// Creer un tableau d'int de start a end (exclu)</span>
+<span class="type">int</span>	*<span class="fn">ft_range</span>(<span class="type">int</span> start, <span class="type">int</span> end)
+{
+	<span class="type">int</span>	len;
+	<span class="type">int</span>	*res;
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	len = end - start;
+	<span class="kw">if</span> (len &lt; <span class="num">0</span>)
+		len = -len;
+	res = (<span class="type">int</span> *)<span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">int</span>) * len);
+	<span class="kw">if</span> (!res)
+		<span class="kw">return</span> (<span class="num">NULL</span>);
+	<span class="kw">while</span> (i &lt; len)
+	{
+		<span class="kw">if</span> (start &lt; end)
+			res[i] = start + i;
+		<span class="kw">else</span>
+			res[i] = start - i;
+		i++;
+	}
+	<span class="kw">return</span> (res);
+}</div>
+    </div>
+
+    <div class="piege-box" style="margin-top:12px;">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>epur_str</code>, le piege est les espaces de <strong>fin de chaine</strong>. Avec le flag <code>space</code>, on n'ecrit l'espace que quand un nouveau mot suit — ca evite le trailing space. Pour <code>rstr_capitalizer</code>, c'est la <strong>derniere</strong> lettre de chaque mot qui est capitalisee (pas la premiere).</div>
+    </div>
+  </div>
+
+  <!-- ── hidenp ── -->
+  <div class="bcard bcard-purple">
+    <span class="concept-tag purple">Exercice</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="white" stroke-width="2"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">hidenp — technique deux pointeurs</div>
+    </div>
+    <p class="text-sm mb-12">Verifier si les chars de <code>s1</code> apparaissent <strong>dans l'ordre</strong> dans <code>s2</code>. La technique deux pointeurs : un curseur sur s1, un sur s2. Quand on match, on avance s1. On avance toujours s2.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">hidenp.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// "ace" dans "abcdef" → 1 (oui)</span>
+<span class="cm">// "aec" dans "abcdef" → 0 (non, pas dans l'ordre)</span>
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	i = <span class="num">0</span>;
+	<span class="type">int</span>	j = <span class="num">0</span>;
+
+	<span class="kw">if</span> (argc == <span class="num">3</span>)
+	{
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i] &amp;&amp; argv[<span class="num">2</span>][j])
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][i] == argv[<span class="num">2</span>][j])
+				i++;
+			j++;
+		}
+		<span class="kw">if</span> (!argv[<span class="num">1</span>][i])
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"1"</span>, <span class="num">1</span>);
+		<span class="kw">else</span>
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"0"</span>, <span class="num">1</span>);
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+    </div>
+  </div>
+
+  <!-- ── Exercices Level 3 ── -->
+  <div class="bcard bcard-dark bento-wide">
+    <span class="concept-tag" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Exercices Level 3</span>
+    <div style="color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:12px;">Tous les exercices du Level 3</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">epur_str / expand_str</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Nettoyer/expandre les espaces</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">str_capitalizer / rstr_capitalizer</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Capitaliser premier/dernier char</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">hidenp</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Sous-sequence cachee</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">add_prime_sum / pgcd / lcm</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Maths classiques</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">paramsum / tab_mult</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Affichage de nombres</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">ft_range / ft_rrange</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Creer des tableaux d'int</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">ft_list_size / ft_list_foreach</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Listes chainees basiques</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#E8A838;font-weight:700;font-size:12px;">ft_atoi_base / print_hex</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Conversions de base</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mini exercices Chapitre 3 ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Entrainement</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">3 Mini-exercices (hors exam)</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 1 — ft_is_palindrome</div>
+      <div class="exercise-body">Ecris <code>int ft_is_palindrome(char *str)</code> qui retourne 1 si la chaine est un palindrome, 0 sinon. Utilise la technique des deux pointeurs (un au debut, un a la fin).</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 2 — print_binary</div>
+      <div class="exercise-body">Ecris un programme qui recoit un nombre decimal en argument (via argv) et affiche sa representation en binaire. Exemple : <code>"42"</code> affiche <code>"101010"</code>. Utilise la recursion comme pour <code>print_hex</code>.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 3 — ft_list_push_back</div>
+      <div class="exercise-body">Ecris <code>void ft_list_push_back(t_list **begin, void *data)</code> qui ajoute un nouveau noeud a la <strong>fin</strong> de la liste chainee. N'oublie pas de gerer le cas ou la liste est vide.</div>
+    </div>
+  </div>
+
+</div><!-- end bento ch3 -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAPITRE 4 — LE BOSS FINAL
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="ch4" class="section-label anim-el">
+  <div class="sec-num purple">4</div>
+  <div>
+    <div class="sec-title">Le <em>Boss Final</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Level 4 de l'exam — Recursion, pointeurs de fonction, ft_split, listes chainees avancees</div>
+  </div>
+</div>
+
+<div class="bento">
+
+  <!-- ── Recursion avancee ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Concept cle</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 019-9" stroke="white" stroke-width="1.5"/></svg>
+      </div>
+      <div class="card-title">Recursion avancee et Flood Fill</div>
+    </div>
+    <p class="text-sm mb-12">La recursion, c'est une fonction qui s'appelle elle-meme. Chaque appel resout un <strong>sous-probleme plus petit</strong> jusqu'a atteindre un <strong>cas de base</strong> (condition d'arret). Le flood fill est un algorithme recursif qui "remplit" une zone a partir d'un point.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Imagine que tu cherches tes clefs dans un immeuble. Tu demandes au gardien du 1er etage. Il ne les a pas, alors il demande au gardien du 2e, qui demande au 3e... jusqu'a ce qu'un gardien les trouve (cas de base) et les passe a celui d'en dessous, etc.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">flood_fill.c</span>
+      </div>
+      <div class="code-body"><span class="kw">typedef struct</span> s_point
+{
+	<span class="type">int</span>	x;
+	<span class="type">int</span>	y;
+}	t_point;
+
+<span class="type">void</span>	<span class="fn">fill</span>(<span class="type">char</span> **tab, t_point size, t_point cur, <span class="type">char</span> target)
+{
+	<span class="cm">// Cas de base : hors limites ou pas la bonne couleur</span>
+	<span class="kw">if</span> (cur.x &lt; <span class="num">0</span> || cur.x &gt;= size.x
+		|| cur.y &lt; <span class="num">0</span> || cur.y &gt;= size.y)
+		<span class="kw">return</span> ;
+	<span class="kw">if</span> (tab[cur.y][cur.x] != target)
+		<span class="kw">return</span> ;
+
+	<span class="cm">// Remplir le pixel courant</span>
+	tab[cur.y][cur.x] = <span class="str">'F'</span>;
+
+	<span class="cm">// Remplir les 4 voisins</span>
+	<span class="fn">fill</span>(tab, size, (t_point){cur.x - <span class="num">1</span>, cur.y}, target);
+	<span class="fn">fill</span>(tab, size, (t_point){cur.x + <span class="num">1</span>, cur.y}, target);
+	<span class="fn">fill</span>(tab, size, (t_point){cur.x, cur.y - <span class="num">1</span>}, target);
+	<span class="fn">fill</span>(tab, size, (t_point){cur.x, cur.y + <span class="num">1</span>}, target);
+}
+
+<span class="type">void</span>	<span class="fn">flood_fill</span>(<span class="type">char</span> **tab, t_point size, t_point begin)
+{
+	<span class="type">char</span>	target = tab[begin.y][begin.x];
+
+	<span class="kw">if</span> (target == <span class="str">'F'</span>)
+		<span class="kw">return</span> ;
+	<span class="fn">fill</span>(tab, size, begin, target);
+}</div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="300" height="160" viewBox="0 0 300 160" fill="none">
+        <text x="10" y="16" font-family="Inter" font-size="11" fill="#6C5CE7" font-weight="700">Flood Fill en action :</text>
+        <!-- Before -->
+        <text x="10" y="36" font-family="JetBrains Mono" font-size="10" fill="#9A8A80">Avant:</text>
+        <text x="10" y="52" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">1 1 1 0 0</text>
+        <text x="10" y="67" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">1 1 1 0 0</text>
+        <text x="10" y="82" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">0 0 1 0 0</text>
+        <text x="10" y="97" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">0 0 0 1 1</text>
+        <!-- Arrow -->
+        <text x="120" y="72" font-family="Inter" font-size="20" fill="#D4552A">→</text>
+        <!-- After -->
+        <text x="160" y="36" font-family="JetBrains Mono" font-size="10" fill="#9A8A80">Apres fill(0,0):</text>
+        <text x="160" y="52" font-family="JetBrains Mono" font-size="12" fill="#6C5CE7" font-weight="700">F F F 0 0</text>
+        <text x="160" y="67" font-family="JetBrains Mono" font-size="12" fill="#6C5CE7" font-weight="700">F F F 0 0</text>
+        <text x="160" y="82" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">0 0 <tspan fill="#6C5CE7" font-weight="700">F</tspan> 0 0</text>
+        <text x="160" y="97" font-family="JetBrains Mono" font-size="12" fill="#5A4A40">0 0 0 1 1</text>
+        <text x="10" y="125" font-family="Inter" font-size="10" fill="#9A8A80">Les '1' connectes au point de depart deviennent 'F'</text>
+        <text x="10" y="140" font-family="Inter" font-size="10" fill="#9A8A80">Les '1' en bas-droite ne sont pas connectes → pas changes</text>
+      </svg>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Dans flood_fill, on <strong>modifie la cellule AVANT</strong> de recurser. Sinon on tombe dans une boucle infinie (A appelle B, B appelle A...). L'exam donne les structs <code>t_point</code> dans l'enonce. Attention : <code>tab[y][x]</code>, pas <code>tab[x][y]</code> !</div>
+    </div>
+  </div>
+
+  <!-- ── Pointeurs de fonction ── -->
+  <div class="bcard bcard-gold">
+    <span class="concept-tag gold">Concept</span>
+    <div class="card-header">
+      <div class="card-icon gold">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" stroke="#1A1A2E" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Pointeurs de fonction</div>
+    </div>
+    <p class="text-sm mb-12">Un pointeur de fonction stocke l'adresse d'une fonction. Ca permet de passer une fonction <strong>en parametre</strong> d'une autre — tres utile pour trier ou appliquer une operation a chaque element.</p>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">func_ptr.c</span>
+      </div>
+      <div class="code-body"><span class="cm">// Syntaxe : type_retour (*nom)(params)</span>
+<span class="type">int</span>	(*cmp)(<span class="type">int</span>, <span class="type">int</span>);
+
+<span class="cm">// Exemple : fonction comparateur</span>
+<span class="type">int</span>	<span class="fn">ascending</span>(<span class="type">int</span> a, <span class="type">int</span> b)
+{
+	<span class="kw">return</span> (a - b);
+}
+
+<span class="cm">// sort_list utilise un comparateur</span>
+t_list	*<span class="fn">sort_list</span>(t_list *lst, <span class="type">int</span> (*cmp)(<span class="type">int</span>, <span class="type">int</span>))
+{
+	<span class="type">int</span>		swapped = <span class="num">1</span>;
+	t_list	*cur;
+	<span class="type">void</span>	*tmp;
+
+	<span class="kw">while</span> (swapped)
+	{
+		swapped = <span class="num">0</span>;
+		cur = lst;
+		<span class="kw">while</span> (cur-&gt;next)
+		{
+			<span class="kw">if</span> (cmp(*(<span class="type">int</span> *)cur-&gt;data,
+				*(<span class="type">int</span> *)cur-&gt;next-&gt;data) &gt; <span class="num">0</span>)
+			{
+				tmp = cur-&gt;data;
+				cur-&gt;data = cur-&gt;next-&gt;data;
+				cur-&gt;next-&gt;data = tmp;
+				swapped = <span class="num">1</span>;
+			}
+			cur = cur-&gt;next;
+		}
+	}
+	<span class="kw">return</span> (lst);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">La syntaxe du pointeur de fonction est dure a memoriser : <code>int (*f)(int, int)</code>. Les parentheses autour de <code>*f</code> sont obligatoires ! Sans elles, <code>int *f(int, int)</code> declare une fonction qui retourne un <code>int *</code>. Pour sort_list, on swap les <strong>data</strong>, pas les noeuds.</div>
+    </div>
+  </div>
+
+  <!-- ── ft_split ── -->
+  <div class="bcard bcard-warm">
+    <span class="concept-tag red">Exercice cle</span>
+    <div class="card-header">
+      <div class="card-icon red">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">ft_split — malloc 2D</div>
+    </div>
+    <p class="text-sm mb-12">L'exercice le plus difficile de l'exam. Il faut decouper une chaine en un <strong>tableau de chaines</strong> (tableau 2D) en se basant sur un ou plusieurs separateurs.</p>
+
+    <div class="analogy-box">
+      <div class="analogy-header">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#8B6914" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#8B6914" stroke-width="2"/></svg>
+        Analogie
+      </div>
+      <div class="analogy-body">Imagine une phrase ecrite sur un ruban. <code>ft_split</code> coupe le ruban a chaque espace et met chaque morceau dans une enveloppe separee. Le resultat est une pile d'enveloppes (le tableau de chaines).</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-titlebar">
+        <div class="code-dot code-dot-r"></div>
+        <div class="code-dot code-dot-y"></div>
+        <div class="code-dot code-dot-g"></div>
+        <span class="code-filename">ft_split.c</span>
+      </div>
+      <div class="code-body"><span class="inc">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="type">static int</span>	<span class="fn">is_sep</span>(<span class="type">char</span> c)
+{
+	<span class="kw">return</span> (c == <span class="str">' '</span> || c == <span class="str">'\t'</span> || c == <span class="str">'\n'</span>);
+}
+
+<span class="type">static int</span>	<span class="fn">count_words</span>(<span class="type">char</span> *str)
+{
+	<span class="type">int</span>	count = <span class="num">0</span>;
+	<span class="type">int</span>	i = <span class="num">0</span>;
+
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="kw">while</span> (str[i] &amp;&amp; <span class="fn">is_sep</span>(str[i]))
+			i++;
+		<span class="kw">if</span> (str[i])
+			count++;
+		<span class="kw">while</span> (str[i] &amp;&amp; !<span class="fn">is_sep</span>(str[i]))
+			i++;
+	}
+	<span class="kw">return</span> (count);
+}
+
+<span class="type">static char</span>	*<span class="fn">get_word</span>(<span class="type">char</span> *str, <span class="type">int</span> start, <span class="type">int</span> end)
+{
+	<span class="type">char</span>	*word;
+	<span class="type">int</span>		i = <span class="num">0</span>;
+
+	word = (<span class="type">char</span> *)<span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">char</span>) * (end - start + <span class="num">1</span>));
+	<span class="kw">if</span> (!word)
+		<span class="kw">return</span> (<span class="num">NULL</span>);
+	<span class="kw">while</span> (start &lt; end)
+	{
+		word[i] = str[start];
+		i++;
+		start++;
+	}
+	word[i] = <span class="str">'\0'</span>;
+	<span class="kw">return</span> (word);
+}
+
+<span class="type">char</span>	**<span class="fn">ft_split</span>(<span class="type">char</span> *str)
+{
+	<span class="type">char</span>	**res;
+	<span class="type">int</span>		i = <span class="num">0</span>;
+	<span class="type">int</span>		j = <span class="num">0</span>;
+	<span class="type">int</span>		start;
+
+	res = (<span class="type">char</span> **)<span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">char</span> *)
+		* (<span class="fn">count_words</span>(str) + <span class="num">1</span>));
+	<span class="kw">if</span> (!res)
+		<span class="kw">return</span> (<span class="num">NULL</span>);
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="kw">while</span> (str[i] &amp;&amp; <span class="fn">is_sep</span>(str[i]))
+			i++;
+		<span class="kw">if</span> (str[i])
+		{
+			start = i;
+			<span class="kw">while</span> (str[i] &amp;&amp; !<span class="fn">is_sep</span>(str[i]))
+				i++;
+			res[j] = <span class="fn">get_word</span>(str, start, i);
+			j++;
+		}
+	}
+	res[j] = <span class="num">NULL</span>;
+	<span class="kw">return</span> (res);
+}</div>
+    </div>
+
+    <div class="piege-box">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Le tableau final doit se terminer par <code>NULL</code> (c'est <code>res[j] = NULL</code> a la fin). N'oublie pas le <code>+1</code> dans le malloc du tableau de pointeurs. Les separateurs de l'exam sont souvent espaces + tabs + newlines. Lis bien l'enonce !</div>
+    </div>
+  </div>
+
+  <!-- ── fprime / sort_int_tab / rev_wstr / rostring ── -->
+  <div class="bcard bcard-green bento-wide">
+    <span class="concept-tag green">Exercices</span>
+    <div class="card-header">
+      <div class="card-icon green">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="white" stroke-width="2"/><path d="M22 4L12 14.01l-3-3" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">Autres exercices Level 4</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">fprime.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Decomposer en facteurs premiers</span>
+<span class="cm">// 225 → "3*3*5*5"</span>
+<span class="inc">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="inc">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	n;
+	<span class="type">int</span>	div = <span class="num">2</span>;
+
+	<span class="kw">if</span> (argc == <span class="num">2</span>)
+	{
+		n = <span class="fn">atoi</span>(argv[<span class="num">1</span>]);
+		<span class="kw">if</span> (n == <span class="num">1</span>)
+			<span class="fn">printf</span>(<span class="str">"1"</span>);
+		<span class="kw">while</span> (n &gt;= <span class="num">2</span>)
+		{
+			<span class="kw">if</span> (n % div == <span class="num">0</span>)
+			{
+				<span class="fn">printf</span>(<span class="str">"%d"</span>, div);
+				n /= div;
+				<span class="kw">if</span> (n &gt;= <span class="num">2</span>)
+					<span class="fn">printf</span>(<span class="str">"*"</span>);
+			}
+			<span class="kw">else</span>
+				div++;
+		}
+	}
+	<span class="fn">printf</span>(<span class="str">"\n"</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">sort_int_tab.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Trier un tableau d'int (bubble sort)</span>
+<span class="type">void</span>	<span class="fn">sort_int_tab</span>(<span class="type">int</span> *tab, <span class="type">unsigned int</span> size)
+{
+	<span class="type">unsigned int</span>	i;
+	<span class="type">int</span>				tmp;
+	<span class="type">int</span>				swapped = <span class="num">1</span>;
+
+	<span class="kw">while</span> (swapped)
+	{
+		swapped = <span class="num">0</span>;
+		i = <span class="num">0</span>;
+		<span class="kw">while</span> (i &lt; size - <span class="num">1</span>)
+		{
+			<span class="kw">if</span> (tab[i] &gt; tab[i + <span class="num">1</span>])
+			{
+				tmp = tab[i];
+				tab[i] = tab[i + <span class="num">1</span>];
+				tab[i + <span class="num">1</span>] = tmp;
+				swapped = <span class="num">1</span>;
+			}
+			i++;
+		}
+	}
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">rev_wstr.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// "hello world 42" → "42 world hello"</span>
+<span class="type">int</span>	<span class="fn">main</span>(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+	<span class="type">int</span>	i;
+	<span class="type">int</span>	end;
+	<span class="type">int</span>	start;
+
+	<span class="kw">if</span> (argc == <span class="num">2</span>)
+	{
+		i = <span class="num">0</span>;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+			i++;
+		<span class="kw">while</span> (i &gt; <span class="num">0</span>)
+		{
+			i--;
+			<span class="kw">while</span> (i &gt;= <span class="num">0</span>
+				&amp;&amp; argv[<span class="num">1</span>][i] == <span class="str">' '</span>)
+				i--;
+			end = i + <span class="num">1</span>;
+			<span class="kw">while</span> (i &gt;= <span class="num">0</span>
+				&amp;&amp; argv[<span class="num">1</span>][i] != <span class="str">' '</span>)
+				i--;
+			start = i + <span class="num">1</span>;
+			<span class="fn">write</span>(<span class="num">1</span>, &amp;argv[<span class="num">1</span>][start],
+				end - start);
+			<span class="kw">if</span> (start &gt; <span class="num">0</span>)
+				<span class="fn">write</span>(<span class="num">1</span>, <span class="str">" "</span>, <span class="num">1</span>);
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-titlebar">
+          <div class="code-dot code-dot-r"></div>
+          <div class="code-dot code-dot-y"></div>
+          <div class="code-dot code-dot-g"></div>
+          <span class="code-filename">ft_list_remove_if.c</span>
+        </div>
+        <div class="code-body"><span class="cm">// Supprimer les noeuds ou</span>
+<span class="cm">// data == data_ref</span>
+<span class="type">void</span>	<span class="fn">ft_list_remove_if</span>(t_list **begin,
+	<span class="type">void</span> *data_ref,
+	<span class="type">int</span> (*cmp)(<span class="type">void</span> *, <span class="type">void</span> *))
+{
+	t_list	*tmp;
+
+	<span class="kw">if</span> (!begin || !*begin)
+		<span class="kw">return</span> ;
+	<span class="kw">if</span> (cmp((*begin)-&gt;data, data_ref) == <span class="num">0</span>)
+	{
+		tmp = *begin;
+		*begin = (*begin)-&gt;next;
+		<span class="fn">free</span>(tmp);
+		<span class="fn">ft_list_remove_if</span>(begin,
+			data_ref, cmp);
+	}
+	<span class="kw">else</span>
+		<span class="fn">ft_list_remove_if</span>(&amp;(*begin)-&gt;next,
+			data_ref, cmp);
+}</div>
+      </div>
+    </div>
+
+    <div class="piege-box" style="margin-top:16px;">
+      <div class="piege-header">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E74C3C" stroke-width="2"/></svg>
+        Piege
+      </div>
+      <div class="piege-body">Pour <code>fprime</code>, ne pas incrementer <code>div</code> apres avoir divise — on peut avoir le meme facteur plusieurs fois (ex: 8 = 2*2*2). Pour <code>ft_list_remove_if</code>, la version recursive est la plus simple : on passe <code>begin</code> comme double pointeur pour modifier la tete de liste. Quand <code>cmp</code> retourne 0, c'est un match (comme strcmp).</div>
+    </div>
+  </div>
+
+  <!-- ── Exercices Level 4 ── -->
+  <div class="bcard bcard-dark bento-wide">
+    <span class="concept-tag" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Exercices Level 4</span>
+    <div style="color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:12px;">Tous les exercices du Level 4</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">fprime</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Facteurs premiers</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">sort_int_tab</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Tri bubble sort</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">rev_wstr / rostring</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Inverser/pivoter les mots</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">ft_split</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Decouper en tableau 2D</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">flood_fill</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Remplissage recursif</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">sort_list</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Trier une linked list</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;">
+        <div style="color:#a78bfa;font-weight:700;font-size:12px;">ft_list_remove_if</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;">Suppression conditionnelle</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mini exercices Chapitre 4 ── -->
+  <div class="bcard bcard-purple bento-wide">
+    <span class="concept-tag purple">Entrainement</span>
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <div class="card-title">3 Mini-exercices (hors exam)</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 1 — ft_recursive_power</div>
+      <div class="exercise-body">Ecris <code>int ft_recursive_power(int base, int power)</code> qui calcule <code>base</code> elevee a la puissance <code>power</code> de maniere recursive. Cas de base : <code>power == 0</code> retourne 1. Si <code>power &lt; 0</code>, retourne 0.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 2 — ft_apply_to_array</div>
+      <div class="exercise-body">Ecris <code>void ft_apply_to_array(int *tab, int size, void (*f)(int))</code> qui applique la fonction <code>f</code> a chaque element du tableau. Teste avec une fonction qui affiche chaque nombre suivi d'un espace.</div>
+    </div>
+
+    <div class="exercise-box">
+      <div class="exercise-header">Exercice 3 — ft_join_words</div>
+      <div class="exercise-body">Ecris <code>char *ft_join_words(char **words, int count, char sep)</code> qui joint un tableau de chaines en une seule, separees par <code>sep</code>. Utilise malloc. Exemple : <code>{"hello", "world"}</code> avec sep <code>'-'</code> donne <code>"hello-world"</code>.</div>
+    </div>
+  </div>
+
+</div><!-- end bento ch4 -->
+
+
+<!-- ═══ RECAP FINAL ═══ -->
+<div class="tldr-banner anim-el">
+  <div class="tldr-badge">Checklist avant l'exam</div>
+  <p>
+    <strong>1.</strong> Sais-tu ecrire <code>ft_putstr</code>, <code>ft_putnbr</code>, <code>ft_strlen</code> de memoire ?<br>
+    <strong>2.</strong> Sais-tu manipuler les pointeurs (<code>*p</code>, <code>&amp;x</code>, <code>**pp</code>) ?<br>
+    <strong>3.</strong> Sais-tu faire un <code>malloc</code> et verifier le retour ?<br>
+    <strong>4.</strong> Sais-tu parcourir une liste chainee (<code>while (node)</code>) ?<br>
+    <strong>5.</strong> Sais-tu expliquer et coder un <code>bubble sort</code> ?<br>
+    <strong>6.</strong> Sais-tu coder <code>ft_split</code> en moins de 15 minutes ?<br>
+    <strong>7.</strong> As-tu pratique <code>flood_fill</code> au moins 3 fois ?<br>
+    Si tu coches tout, tu es <strong>pret</strong>. Go crush cet exam, Rayan.
+  </p>
+</div>
+
+<!-- ═══ BACK TO TOP ═══ -->
+<div class="back-top">
+  <a href="#top">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-7 7m7-7l7 7" stroke="currentColor" stroke-width="2"/></svg>
+    Retour en haut
+  </a>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="footer">
+  <p>Guide C — Exam Rank 02 | 42 Lausanne | Mars 2026</p>
+  <p style="margin-top:4px;opacity:0.6;">Fait avec soin pour Rayan. Tu vas gerer.</p>
+</div>
+
+</div><!-- end main -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ─── READING PROGRESS BAR ─────────────────────── */
+const progressBar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  progressBar.style.width = scrollPercent + '%';
+});
+
+/* ─── SCROLL ANIMATIONS ───────────────────────── */
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in-view');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.bcard, .anim-el, .section-label, .tldr-banner').forEach(el => {
+  scrollObserver.observe(el);
+});
+
+/* ─── STAGGER ANIMATION ──────────────────────── */
+document.querySelectorAll('.bento').forEach(bento => {
+  const cards = bento.querySelectorAll('.bcard');
+  cards.forEach((card, idx) => {
+    card.style.transitionDelay = (idx * 0.06) + 's';
+  });
+});
+
+/* ─── ACTIVE NAV PILL ─────────────────────────── */
+const sections = document.querySelectorAll('[id^="ch"]');
+const navPills = document.querySelectorAll('.nav-pill');
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navPills.forEach(pill => {
+        pill.classList.toggle('active', pill.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.1, rootMargin: '-80px 0px -70% 0px' });
+
+sections.forEach(sec => navObserver.observe(sec));
+
+/* ─── SMOOTH SCROLL ──────────────────────────── */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
