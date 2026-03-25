@@ -222,6 +222,85 @@
     font-size: 11px;
     color: #555;
   }
+
+  /* ===== Desktop (768px+) ===== */
+  @media (min-width: 768px) {
+    body {
+      max-width: 900px;
+      padding: 24px;
+      background: #080808;
+    }
+    .header {
+      border-radius: 20px;
+      padding: 48px 40px 36px;
+    }
+    .header h1 {
+      font-size: 32px;
+    }
+    .header .meta { font-size: 16px; }
+    .header .stats { font-size: 14px; gap: 24px; }
+
+    .content {
+      padding: 32px 8px;
+    }
+
+    .tldr {
+      font-size: 17px;
+      padding: 24px 28px;
+    }
+
+    /* 2-column layout for sections */
+    .sections-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .sections-grid .section {
+      background: #141414;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 0;
+    }
+
+    .section-header h2 { font-size: 19px; }
+    .section p, .section li { font-size: 15px; }
+
+    .result-card {
+      padding: 32px;
+      border-radius: 20px;
+    }
+    .result-card .score { font-size: 48px; }
+    .result-card .detail { font-size: 15px; }
+
+    .change-item {
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+
+    .use-cases {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .use-case {
+      padding: 16px;
+      font-size: 14px;
+    }
+    .use-case .emoji { font-size: 28px; }
+
+    .takeaway {
+      padding: 32px;
+    }
+    .takeaway p { font-size: 17px; }
+
+    .footer { font-size: 12px; }
+  }
+
+  /* ===== Large Desktop (1200px+) ===== */
+  @media (min-width: 1200px) {
+    body { max-width: 1100px; }
+    .header h1 { font-size: 36px; }
+    .header { padding: 56px 48px 40px; }
+  }
 </style>
 </head>
 <body>
@@ -249,6 +328,8 @@
   <div class="tldr">
     <strong>TL;DR</strong> — Tes skills Claude fail ~30% du temps sans que tu le remarques. Ole a adapté la méthode "autoresearch" de Karpathy pour auto-améliorer n'importe quel skill en boucle, sans intervention manuelle.
   </div>
+
+  <div class="sections-grid">
 
   <!-- Concept -->
   <div class="section">
@@ -295,6 +376,8 @@
       <li>S'arrête à 95%+ ou quand tu le stop</li>
     </ul>
   </div>
+
+  </div><!-- /sections-grid -->
 
   <!-- Result -->
   <div class="result-card">
