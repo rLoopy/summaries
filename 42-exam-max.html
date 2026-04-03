@@ -3,143 +3,450 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fiche Révision — max</title>
+<title>Fiche Révision — max · Exam Rank 02</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0a0a12;--bg2:#0e0e18;--card:#12121e;--card2:#161625;
-  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);
-  --text:#e5e7eb;--muted:#9ca3af;--dim:#6b7280;
-  --cyan:#06b6d4;--cyan2:#22d3ee;--cyan-bg:rgba(6,182,212,.08);--cyan-border:rgba(6,182,212,.25);
-  --purple:#8b5cf6;--purple-bg:rgba(139,92,246,.08);--purple-border:rgba(139,92,246,.25);
-  --green:#22c55e;--green-l:#86efac;--green-bg:rgba(34,197,94,.08);--green-border:rgba(34,197,94,.25);
-  --red:#ef4444;--red-l:#fca5a5;--red-bg:rgba(239,68,68,.06);--red-border:rgba(239,68,68,.2);
-  --orange:#fb923c;--orange-bg:rgba(251,146,60,.08);--orange-border:rgba(251,146,60,.25);
-  --yellow:#fbbf24;
-  --radius:12px;--radius-lg:16px;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FFFAF5;
+  --primary: #D4552A;
+  --primary-d: #A83E1A;
+  --primary-l: #FAE8E0;
+  --green: #2B6B4F;
+  --green-l: #E8F5EF;
+  --gold: #E8A838;
+  --gold-l: #FEF7E6;
+  --purple: #6C5CE7;
+  --purple-l: #F0EEFF;
+  --blue: #2B7B8C;
+  --blue-l: #E6F4F7;
+  --dark: #1A1A2E;
+  --mid: #5A4A40;
+  --muted: #9A8A80;
+  --card1: #FFF5EB;
+  --card2: #F0F7F4;
+  --card3: #FFF0E6;
+  --card4: #F5F0FF;
+  --border: #EAD8CC;
+  --gap: 16px;
+  --radius: 20px;
 }
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding:32px 20px 80px}
-code,pre,.mono{font-family:'JetBrains Mono',monospace}
-.container{max-width:720px;margin:0 auto}
 
-/* Header */
-.header{text-align:center;margin-bottom:40px;padding:32px 0}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:var(--cyan-bg);border:1px solid var(--cyan-border);font-size:11px;font-weight:700;color:var(--cyan2);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
-.title{font-size:36px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,var(--cyan2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{font-size:14px;color:var(--dim);margin-top:6px}
-.meta{display:flex;justify-content:center;gap:20px;margin-top:16px}
-.meta-item{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
-.meta-dot{width:6px;height:6px;border-radius:50%}
+html { scroll-behavior: smooth; }
 
-/* Sections */
-.section{margin-bottom:28px}
-.section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:16px;font-weight:700}
-.section-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
 
-/* Code block */
-.code-block{border-radius:10px;overflow:hidden;border:1px solid var(--border);margin:14px 0;background:#08080f}
-.code-header{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
-.code-dot{width:8px;height:8px;border-radius:50%}
-.code-filename{margin-left:8px;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace}
-.code-block pre{margin:0;padding:14px 18px;overflow-x:auto;font-size:12.5px;line-height:1.7;font-family:'JetBrains Mono',monospace;color:#d1d5db;tab-size:4}
-.kw{color:#c084fc}.fn{color:#22d3ee}.tp{color:#fb923c}.cm{color:#6b7280}.str{color:#86efac}.num{color:#fbbf24}.op{color:#f472b6}
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
-/* Error cards */
-.error-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;transition:border-color .2s}
-.error-card:hover{border-color:var(--border2)}
-.error-num{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:1px;margin-bottom:8px}
-.error-wrong{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
-.error-right{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
-.error-label-bad{font-size:11px;font-weight:700;color:var(--red);flex-shrink:0}
-.error-label-good{font-size:11px;font-weight:700;color:var(--green);flex-shrink:0}
-.error-code{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);background:#08080f;padding:3px 8px;border-radius:5px}
-.error-rule{font-size:13px;color:var(--muted);line-height:1.6;padding:10px 14px;background:var(--cyan-bg);border:1px solid var(--cyan-border);border-radius:8px}
-.error-rule strong{color:var(--cyan2)}
-.error-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px}
-.tag-loop{background:var(--purple-bg);border:1px solid var(--purple-border);color:var(--purple)}
-.tag-logic{background:var(--orange-bg);border:1px solid var(--orange-border);color:var(--orange)}
-.tag-init{background:var(--cyan-bg);border:1px solid var(--cyan-border);color:var(--cyan2)}
-.tag-type{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
-.tag-safety{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--gold), #F4886A);
+  z-index: 9999; transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
 
-/* Pattern */
-.pattern-box{background:var(--card);border:1px solid var(--purple-border);border-radius:var(--radius);padding:22px;margin:14px 0}
-.pattern-title{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.pattern-steps{list-style:none;counter-reset:step}
-.pattern-steps li{counter-increment:step;position:relative;padding:6px 0 6px 36px;font-size:13px;color:var(--muted);line-height:1.6}
-.pattern-steps li::before{content:counter(step);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+/* ─── HERO ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 70svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+  background: var(--dark);
+}
 
-/* Checklist */
-.checklist{list-style:none}
-.checklist li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border)}
-.checklist li:last-child{border-bottom:none}
-.check-box{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:var(--green)}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(212,85,42,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(232,168,56,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(108,92,231,0.15) 0%, transparent 60%),
+    #1A1A2E;
+  animation: heroShift 12s ease-in-out infinite alternate;
+}
 
-/* Subject box */
-.subject-box{background:#08080f;border:1px solid var(--cyan-border);border-radius:var(--radius);padding:18px 22px;margin:14px 0}
-.subject-label{font-size:11px;font-weight:700;color:var(--cyan);letter-spacing:1.5px;margin-bottom:10px;font-family:'JetBrains Mono',monospace}
-.subject-text{font-size:12.5px;line-height:1.7;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:pre-wrap}
+@keyframes heroShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(8deg) brightness(1.05); }
+  100% { filter: hue-rotate(-5deg) brightness(1.02); }
+}
 
-/* Footer */
-.footer{text-align:center;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);font-size:11px;color:var(--dim)}
+.hero-shape {
+  position: absolute; border-radius: 50%; opacity: 0.12;
+  animation: floatShape 8s ease-in-out infinite; pointer-events: none;
+}
+.hero-shape-1 { width:300px;height:300px;background:var(--primary);top:-80px;right:-80px }
+.hero-shape-2 { width:200px;height:200px;background:var(--gold);bottom:-40px;left:-40px;animation-delay:-3s }
+.hero-shape-3 { width:120px;height:120px;background:var(--purple);top:30%;left:8%;opacity:0.08;animation-delay:-5s }
 
-@media(max-width:600px){
-  body{padding:16px 12px 60px}
-  .title{font-size:26px}
-  .meta{flex-direction:column;gap:8px;align-items:center}
-  .error-wrong,.error-right{flex-direction:column;gap:4px}
+@keyframes floatShape {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(8deg); }
+}
+
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px; pointer-events: none;
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 700px; }
+
+.hero-tag {
+  display: inline-block;
+  background: var(--primary); color: #fff;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 6px 18px; border-radius: 30px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(36px, 8vw, 72px);
+  color: #fff; line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, #F4886A 0%, var(--gold) 60%, #FFCBA4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,0.6);
+  margin-bottom: 32px; font-weight: 300;
+}
+
+.hero-stats {
+  display: flex; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+
+.hero-stat {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;
+}
+
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%;
+  transform: translateX(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: rgba(255,255,255,0.3); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── STICKY NAV ────────────────────────────────────────────── */
+.sticky-nav {
+  position: sticky; top: 0;
+  background: rgba(255,250,245,0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border);
+  z-index: 100; padding: 10px 20px;
+  display: flex; align-items: center; gap: 10px;
+  overflow-x: auto; white-space: nowrap;
+}
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.nav-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); flex-shrink: 0;
+}
+
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--primary-l); border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 600;
+  color: var(--primary-d); text-decoration: none; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-pill:hover { background: var(--primary); color: #fff; }
+.nav-pill .n {
+  width: 16px; height: 16px; background: var(--primary);
+  border-radius: 50%; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.nav-pill:hover .n { background: rgba(255,255,255,0.3); }
+
+/* ─── MAIN ──────────────────────────────────────────────────── */
+.main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* ─── BENTO GRID ────────────────────────────────────────────── */
+.bento {
+  display: grid; grid-template-columns: 1fr;
+  gap: var(--gap); margin-bottom: 40px;
+}
+@media (min-width: 900px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+  .bento-wide { grid-column: 1 / -1; }
+}
+
+/* ─── BENTO CARD ────────────────────────────────────────────── */
+.bcard {
+  border-radius: var(--radius); padding: 28px;
+  box-shadow: 0 2px 12px rgba(26,26,46,0.07), 0 1px 3px rgba(26,26,46,0.05);
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
+}
+.bcard.in-view { opacity: 1; transform: translateY(0); }
+.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 36px rgba(26,26,46,0.12); }
+
+.bcard-warm   { background: var(--card1); border: 1.5px solid #F0D5C0; }
+.bcard-green  { background: var(--card2); border: 1.5px solid #C5DDD4; }
+.bcard-peach  { background: var(--card3); border: 1.5px solid #F0CEB8; }
+.bcard-purple { background: var(--card4); border: 1.5px solid #D0C5F5; }
+.bcard-dark   { background: var(--dark);  border: 1.5px solid #2E2E44; }
+.bcard-gold   { background: var(--gold-l); border: 1.5px solid #F0CC80; }
+.bcard-white  { background: #fff;         border: 1.5px solid var(--border); }
+.bcard-blue   { background: var(--blue-l); border: 1.5px solid #B5D8E0; }
+
+/* ─── SECTION HEADINGS ──────────────────────────────────────── */
+.section-label {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.section-label.in-view { opacity: 1; transform: translateY(0); }
+
+.sec-num {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 900; flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.sec-num.red    { background: var(--primary); color: #fff; }
+.sec-num.green  { background: var(--green);   color: #fff; }
+.sec-num.gold   { background: var(--gold);    color: var(--dark); }
+.sec-num.purple { background: var(--purple);  color: #fff; }
+
+.sec-info h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 900;
+}
+.sec-info p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ─── CODE BLOCK ────────────────────────────────────────────── */
+.code-block {
+  border-radius: 14px; overflow: hidden;
+  border: 1.5px solid #2E2E44;
+  background: var(--dark); margin: 0;
+}
+.code-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-filename {
+  margin-left: 8px; font-size: 12px;
+  color: rgba(255,255,255,0.4); font-family: 'JetBrains Mono', monospace;
+}
+.code-block pre {
+  margin: 0; padding: 18px 22px; overflow-x: auto;
+  font-size: 13px; line-height: 1.75;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d1d5db; tab-size: 4;
+}
+.kw { color: #c084fc; } .fn { color: #22d3ee; } .tp { color: #fb923c; }
+.num { color: #fbbf24; } .op { color: #f472b6; }
+
+/* ─── ERROR CARD ────────────────────────────────────────────── */
+.err-card {
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 20px 22px; margin-bottom: 12px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.err-card:hover { border-color: var(--primary); transform: translateX(4px); }
+
+.err-tag {
+  display: inline-flex; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.tag-loop   { background: var(--purple-l); color: var(--purple); }
+.tag-logic  { background: var(--card3); color: var(--primary); }
+.tag-init   { background: var(--blue-l); color: var(--blue); }
+.tag-type   { background: var(--green-l); color: var(--green); }
+.tag-safety { background: #FEE2E2; color: #B91C1C; }
+
+.err-num {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  letter-spacing: 1px; margin-bottom: 6px;
+}
+
+.err-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; flex-wrap: wrap;
+}
+.err-bad {
+  font-size: 10px; font-weight: 800; color: var(--primary);
+  background: var(--primary-l); padding: 2px 8px; border-radius: 4px;
+}
+.err-good {
+  font-size: 10px; font-weight: 800; color: var(--green);
+  background: var(--green-l); padding: 2px 8px; border-radius: 4px;
+}
+.err-code {
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  color: var(--mid); background: #F7F0EA; padding: 4px 10px; border-radius: 6px;
+}
+
+.err-rule {
+  font-size: 13px; color: var(--mid); line-height: 1.6;
+  padding: 10px 14px; margin-top: 8px;
+  background: var(--gold-l); border: 1px solid #F0CC80;
+  border-radius: 10px;
+}
+.err-rule strong { color: var(--primary-d); }
+
+/* ─── PATTERN ───────────────────────────────────────────────── */
+.pattern-steps { list-style: none; counter-reset: step; }
+.pattern-steps li {
+  counter-increment: step; position: relative;
+  padding: 10px 0 10px 44px; font-size: 14px;
+  color: var(--mid); line-height: 1.6;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.pattern-steps li:last-child { border-bottom: none; }
+.pattern-steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #fff;
+}
+.pattern-steps code {
+  font-size: 12px; background: var(--purple-l);
+  padding: 2px 7px; border-radius: 4px; color: var(--purple);
+}
+
+/* ─── CHECKLIST ─────────────────────────────────────────────── */
+.check-list { list-style: none; }
+.check-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; font-size: 14px; color: var(--mid);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.check-list li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px;
+}
+.check-list code {
+  font-size: 11px; background: #F7F0EA;
+  padding: 2px 6px; border-radius: 4px;
+}
+
+/* ─── FOOTER ────────────────────────────────────────────────── */
+.footer {
+  text-align: center; padding: 32px 20px;
+  font-size: 12px; color: var(--muted);
+  border-top: 1.5px solid var(--border);
+}
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: 16px;
+  color: var(--dark); margin-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .bcard { padding: 20px; }
+  .sec-num { width: 40px; height: 40px; font-size: 18px; }
+  .sec-info h2 { font-size: 20px; }
 }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="badge">EXAM RANK 02 · LEVEL 2</div>
-    <div class="title">max</div>
-    <div class="subtitle">Trouver le plus grand int dans un tableau</div>
-    <div class="meta">
-      <div class="meta-item"><div class="meta-dot" style="background:var(--green)"></div> Validé</div>
-      <div class="meta-item"><div class="meta-dot" style="background:var(--orange)"></div> 4 versions</div>
-      <div class="meta-item"><div class="meta-dot" style="background:var(--purple)"></div> 03/04/2026</div>
+<div id="progress-bar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Exam Rank 02 &middot; Level 2</div>
+    <h1><span class="gradient-text">max</span></h1>
+    <p class="hero-sub">Trouver le plus grand int dans un tableau</p>
+    <div class="hero-stats">
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> 4 versions</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#22c55e" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 7 erreurs corrig&eacute;es</span>
+      <span class="hero-stat">03/04/2026</span>
     </div>
   </div>
 
-  <!-- SUJET -->
-  <div class="section">
-    <div class="section-title">
-      <div class="section-icon" style="background:var(--cyan-bg);border:1px solid var(--cyan-border);color:var(--cyan)">📋</div>
-      Sujet
-    </div>
-    <div class="subject-box">
-      <div class="subject-label">SUBJECT.EN.TXT</div>
-      <div class="subject-text">int  max(int* tab, unsigned int len);
-
-- tab = tableau d'int
-- len = nombre d'éléments
-- Retourne le plus grand nombre du tableau
-- Si le tableau est vide, retourne 0
-- Allowed functions: None</div>
-    </div>
+  <div class="scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4v12M5 11l5 5 5-5"/></svg>
+    SCROLL
   </div>
+</section>
 
-  <!-- CODE FINAL -->
-  <div class="section">
-    <div class="section-title">
-      <div class="section-icon" style="background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)">✓</div>
-      Code final
-    </div>
-    <div class="code-block">
+<!-- NAV -->
+<nav class="sticky-nav">
+  <span class="nav-label">Sections</span>
+  <a href="#code" class="nav-pill"><span class="n">1</span>Code final</a>
+  <a href="#pattern" class="nav-pill"><span class="n">2</span>Pattern</a>
+  <a href="#erreurs" class="nav-pill"><span class="n">3</span>Erreurs</a>
+  <a href="#checklist" class="nav-pill"><span class="n">4</span>Checklist</a>
+</nav>
+
+<div class="main">
+
+<!-- 1 CODE FINAL -->
+<div id="code" class="section-label">
+  <div class="sec-num green">1</div>
+  <div class="sec-info">
+    <h2>Code final</h2>
+    <p>Version valid&eacute;e &mdash; compile avec -Wall -Wextra -Werror, tous tests OK</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide">
+    <div class="code-block" style="border:none;margin:0">
       <div class="code-header">
         <div class="code-dot" style="background:#ef4444"></div>
         <div class="code-dot" style="background:#fbbf24"></div>
         <div class="code-dot" style="background:#22c55e"></div>
-        <div class="code-filename">max.c</div>
+        <span class="code-filename">max.c</span>
       </div>
 <pre><span class="tp">int</span>  <span class="fn">max</span>(<span class="tp">int</span>* tab, <span class="tp">unsigned int</span> len)
 {
@@ -147,9 +454,9 @@ code,pre,.mono{font-family:'JetBrains Mono',monospace}
     <span class="kw">if</span> (len == <span class="num">0</span>)
         <span class="kw">return</span> <span class="num">0</span>;
     <span class="tp">int</span> max = tab[i];
-    <span class="kw">while</span> (i < len)
+    <span class="kw">while</span> (i &lt; len)
     {
-        <span class="kw">if</span> (tab[i] > max)
+        <span class="kw">if</span> (tab[i] &gt; max)
             max = tab[i];
         i++;
     }
@@ -158,111 +465,161 @@ code,pre,.mono{font-family:'JetBrains Mono',monospace}
     </div>
   </div>
 
-  <!-- PATTERN -->
-  <div class="section">
-    <div class="section-title">
-      <div class="section-icon" style="background:var(--purple-bg);border:1px solid var(--purple-border);color:var(--purple)">◆</div>
-      Pattern réutilisable
-    </div>
-    <div class="pattern-box">
-      <div class="pattern-title">🔄 Parcours de tableau avec accumulateur</div>
-      <p style="font-size:12px;color:var(--dim);margin-bottom:14px">Ce pattern revient dans : min, max, sum, search, count...</p>
-      <ol class="pattern-steps">
-        <li>Gérer le cas vide <code style="font-size:11px;color:var(--cyan)">(len == 0)</code> en premier</li>
-        <li>Initialiser l'accumulateur avec <code style="font-size:11px;color:var(--cyan)">tab[0]</code></li>
-        <li>Parcourir avec <code style="font-size:11px;color:var(--cyan)">i &lt; len</code></li>
-        <li>Comparer <code style="font-size:11px;color:var(--cyan)">tab[i]</code> avec l'accumulateur (pas avec <code style="font-size:11px;color:var(--red)">tab[i+1]</code>)</li>
-        <li>Return l'accumulateur</li>
-      </ol>
+  <div class="bcard bcard-warm">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">SUJET</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--dark)">int max(int* tab, unsigned int len);</strong><br><br>
+      tab = tableau d'int<br>
+      len = nombre d'&eacute;l&eacute;ments<br>
+      Retourne le plus grand nombre<br>
+      Si vide &rarr; retourne 0<br>
+      Allowed functions: None
     </div>
   </div>
 
-  <!-- ERREURS -->
-  <div class="section">
-    <div class="section-title">
-      <div class="section-icon" style="background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)">✕</div>
-      Mes erreurs
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-loop">BOUCLE</div>
-      <div class="error-num">ERREUR #1</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">while (tab[i])</code></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">while (i < len)</code></div>
-      <div class="error-rule"><strong>Règle :</strong> un tableau d'int ≠ une string. Pas de <code>\0</code> à la fin. Pour un tableau → toujours <code>i &lt; len</code>. Le <code>while(str[i])</code> c'est UNIQUEMENT pour les strings.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-loop">BOUCLE</div>
-      <div class="error-num">ERREUR #2</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">while (tab[i] < len)</code></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">while (i < len)</code></div>
-      <div class="error-rule"><strong>Règle :</strong> <code>tab[i]</code> = la valeur dans la case. <code>i</code> = quelle case. On compare l'INDEX à la taille, pas la VALEUR.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-logic">LOGIQUE</div>
-      <div class="error-num">ERREUR #3</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">max = tab[i];</code> <span style="font-size:11px;color:var(--dim)">(sans condition)</span></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">if (tab[i] > max) max = tab[i];</code></div>
-      <div class="error-rule"><strong>Règle :</strong> on update l'accumulateur SEULEMENT si le nouveau est meilleur. Sinon on écrase tout à chaque tour.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-logic">LOGIQUE</div>
-      <div class="error-num">ERREUR #4</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">if (tab[i] < tab[i+1])</code></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">if (tab[i] > max)</code></div>
-      <div class="error-rule"><strong>Règle :</strong> toujours comparer avec l'accumulateur <code>max</code>, jamais entre éléments adjacents. En plus, <code>tab[i+1]</code> déborde quand <code>i</code> est au dernier élément.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-init">INITIALISATION</div>
-      <div class="error-num">ERREUR #5</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">int max = 0;</code></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">int max = tab[0];</code></div>
-      <div class="error-rule"><strong>Règle :</strong> avec <code>{-5, -3, -1}</code> et max=0, on retourne 0 qui n'est pas dans le tableau. Toujours initialiser avec le premier élément.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-safety">SÉCURITÉ</div>
-      <div class="error-num">ERREUR #6</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">int max = tab[i];  // avant le check len==0</code></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">if (len == 0) return 0;  // PUIS int max = tab[i];</code></div>
-      <div class="error-rule"><strong>Règle :</strong> toujours vérifier les cas limites AVANT d'accéder aux données. Sinon crash sur tableau vide.</div>
-    </div>
-
-    <div class="error-card">
-      <div class="error-tag tag-type">TYPE</div>
-      <div class="error-num">ERREUR #7</div>
-      <div class="error-wrong"><span class="error-label-bad">✕</span><code class="error-code">int i = 0;</code> <span style="font-size:11px;color:var(--dim)">comparé à unsigned int len</span></div>
-      <div class="error-right"><span class="error-label-good">✓</span><code class="error-code">unsigned int i = 0;</code></div>
-      <div class="error-rule"><strong>Règle :</strong> <code>-Wsign-compare</code> + <code>-Werror</code> = ça compile pas. Si <code>len</code> est unsigned, le compteur aussi. Mais l'accumulateur reste <code>int</code>.</div>
+  <div class="bcard bcard-green">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">TESTS</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2">
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68, -1}</span> &rarr; <strong style="color:var(--green)">0 &#10003;</strong><br>
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68}</span> &rarr; <strong style="color:var(--green)">0 &#10003;</strong><br>
+      <span style="color:var(--muted)">{7, 42, 0, -5}</span> &rarr; <strong style="color:var(--green)">42 &#10003;</strong>
     </div>
   </div>
+</div>
 
-  <!-- CHECKLIST -->
-  <div class="section">
-    <div class="section-title">
-      <div class="section-icon" style="background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)">☑</div>
-      Checklist avant de rendre
-    </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px">
-      <ul class="checklist">
-        <li><div class="check-box">☐</div> Cas limites gérés EN PREMIER (len == 0, argc != X...)</li>
-        <li><div class="check-box">☐</div> Boucle : index vs len, PAS valeur vs len</li>
-        <li><div class="check-box">☐</div> Accumulateur initialisé avec une vraie valeur (pas 0)</li>
-        <li><div class="check-box">☐</div> Compile avec <code style="font-size:11px">gcc -Wall -Wextra -Werror</code></li>
-        <li><div class="check-box">☐</div> Types cohérents (signed vs unsigned)</li>
-        <li><div class="check-box">☐</div> Pas d'accès hors tableau (<code style="font-size:11px">tab[i+1]</code> interdit)</li>
-      </ul>
-    </div>
+<!-- 2 PATTERN -->
+<div id="pattern" class="section-label">
+  <div class="sec-num purple">2</div>
+  <div class="sec-info">
+    <h2>Pattern r&eacute;utilisable</h2>
+    <p>Parcours de tableau avec accumulateur &mdash; revient dans min, max, sum, search, count...</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-purple bento-wide">
+    <ol class="pattern-steps">
+      <li>G&eacute;rer le cas vide <code>len == 0</code> <strong>en premier</strong></li>
+      <li>Initialiser l'accumulateur avec <code>tab[0]</code> &mdash; jamais avec 0</li>
+      <li>Parcourir avec <code>i &lt; len</code> &mdash; l'index, pas la valeur</li>
+      <li>Comparer <code>tab[i]</code> avec l'accumulateur &mdash; pas avec <code>tab[i+1]</code></li>
+      <li>Return l'accumulateur</li>
+    </ol>
+  </div>
+</div>
+
+<!-- 3 ERREURS -->
+<div id="erreurs" class="section-label">
+  <div class="sec-num red">3</div>
+  <div class="sec-info">
+    <h2>Mes erreurs</h2>
+    <p>7 erreurs corrig&eacute;es &mdash; chaque carte = une le&ccedil;on &agrave; retenir</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-loop">BOUCLE</span>
+    <div class="err-num">ERREUR #1</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">while (tab[i])</code></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">while (i &lt; len)</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> un tableau d'int &ne; une string. Pas de <code>\0</code> &agrave; la fin. <code>while(str[i])</code> = strings uniquement. Tableau &rarr; toujours <code>i &lt; len</code>.</div>
   </div>
 
-  <div class="footer">
-    42 Prof · Exam Rank 02 · Fiche générée le 03/04/2026
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-loop">BOUCLE</span>
+    <div class="err-num">ERREUR #2</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">while (tab[i] &lt; len)</code></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">while (i &lt; len)</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> <code>tab[i]</code> = la valeur dans la case. <code>i</code> = quelle case. On compare l'INDEX &agrave; la taille, pas la VALEUR.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-logic">LOGIQUE</span>
+    <div class="err-num">ERREUR #3</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">max = tab[i];</code> <span style="font-size:11px;color:var(--muted)">(sans condition)</span></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (tab[i] &gt; max) max = tab[i];</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> on update l'accumulateur SEULEMENT si le nouveau est meilleur. Sinon on &eacute;crase tout &agrave; chaque tour.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-logic">LOGIQUE</span>
+    <div class="err-num">ERREUR #4</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">if (tab[i] &lt; tab[i+1])</code></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (tab[i] &gt; max)</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> toujours comparer avec l'accumulateur <code>max</code>, jamais entre &eacute;l&eacute;ments adjacents. <code>tab[i+1]</code> d&eacute;borde au dernier &eacute;l&eacute;ment.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-init">INITIALISATION</span>
+    <div class="err-num">ERREUR #5</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int max = 0;</code></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">int max = tab[0];</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> avec <code>{-5, -3, -1}</code> et max=0, on retourne 0 qui n'est pas dans le tableau. Toujours initialiser avec le premier &eacute;l&eacute;ment.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="err-tag tag-safety">S&Eacute;CURIT&Eacute;</span>
+    <div class="err-num">ERREUR #6</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int max = tab[i]; // avant check</code></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (len == 0) return 0; // PUIS tab[i]</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> toujours v&eacute;rifier les cas limites AVANT d'acc&eacute;der aux donn&eacute;es. Lire <code>tab[0]</code> sur un tableau vide = crash.</div>
+  </div>
+
+  <div class="bcard bcard-white bento-wide">
+    <span class="err-tag tag-type">TYPE</span>
+    <div class="err-num">ERREUR #7</div>
+    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int i = 0;</code> <span style="font-size:11px;color:var(--muted)">compar&eacute; &agrave; unsigned int len</span></div>
+    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">unsigned int i = 0;</code></div>
+    <div class="err-rule"><strong>R&egrave;gle :</strong> <code>-Wsign-compare</code> + <code>-Werror</code> = compile pas. Si <code>len</code> est unsigned, le compteur aussi. Mais l'accumulateur reste <code>int</code> (pour les n&eacute;gatifs).</div>
   </div>
 
 </div>
+
+<!-- 4 CHECKLIST -->
+<div id="checklist" class="section-label">
+  <div class="sec-num gold">4</div>
+  <div class="sec-info">
+    <h2>Checklist avant de rendre</h2>
+    <p>V&eacute;rifie ces points &agrave; chaque exo</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-gold bento-wide">
+    <ul class="check-list">
+      <li><span class="check-icon">&#9744;</span> Cas limites g&eacute;r&eacute;s <strong>en premier</strong> (len == 0, argc != X...)</li>
+      <li><span class="check-icon">&#9744;</span> Boucle : <strong>index</strong> vs len, PAS valeur vs len</li>
+      <li><span class="check-icon">&#9744;</span> Accumulateur initialis&eacute; avec une <strong>vraie valeur</strong> (pas 0)</li>
+      <li><span class="check-icon">&#9744;</span> Compile avec <code>gcc -Wall -Wextra -Werror</code></li>
+      <li><span class="check-icon">&#9744;</span> Types coh&eacute;rents (<strong>signed vs unsigned</strong>)</li>
+      <li><span class="check-icon">&#9744;</span> Pas d'acc&egrave;s hors tableau (<code>tab[i+1]</code> interdit)</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">42 Prof</div>
+  Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 03/04/2026
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.bcard, .section-label').forEach(el => obs.observe(el));
+</script>
+
 </body>
 </html>
