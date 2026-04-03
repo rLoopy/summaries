@@ -12,28 +12,44 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #FFFAF5;
-  --primary: #D4552A;
-  --primary-d: #A83E1A;
-  --primary-l: #FAE8E0;
-  --green: #2B6B4F;
-  --green-l: #E8F5EF;
-  --gold: #E8A838;
-  --gold-l: #FEF7E6;
-  --purple: #6C5CE7;
-  --purple-l: #F0EEFF;
-  --blue: #2B7B8C;
-  --blue-l: #E6F4F7;
-  --dark: #1A1A2E;
-  --mid: #5A4A40;
-  --muted: #9A8A80;
-  --card1: #FFF5EB;
-  --card2: #F0F7F4;
-  --card3: #FFF0E6;
-  --card4: #F5F0FF;
-  --border: #EAD8CC;
+  --bg: #0C0C14;
+  --bg2: #111119;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #E2E4E9;
+  --mid: #A0A4B0;
+  --muted: #6B6F7E;
+  --dim: #4A4D5A;
+  --cyan: #06D6A0;
+  --cyan2: #34EDBC;
+  --cyan-bg: rgba(6,214,160,0.08);
+  --cyan-border: rgba(6,214,160,0.22);
+  --purple: #A78BFA;
+  --purple2: #C4B5FD;
+  --purple-bg: rgba(167,139,250,0.08);
+  --purple-border: rgba(167,139,250,0.22);
+  --orange: #FB923C;
+  --orange2: #FDBA74;
+  --orange-bg: rgba(251,146,60,0.08);
+  --orange-border: rgba(251,146,60,0.22);
+  --red: #F87171;
+  --red2: #FCA5A5;
+  --red-bg: rgba(248,113,113,0.06);
+  --red-border: rgba(248,113,113,0.18);
+  --green: #34D399;
+  --green2: #6EE7B7;
+  --green-bg: rgba(52,211,153,0.08);
+  --green-border: rgba(52,211,153,0.22);
+  --gold: #FBBF24;
+  --gold-bg: rgba(251,191,36,0.08);
+  --gold-border: rgba(251,191,36,0.22);
+  --blue: #38BDF8;
+  --blue-bg: rgba(56,189,248,0.08);
+  --blue-border: rgba(56,189,248,0.22);
   --gap: 16px;
-  --radius: 20px;
+  --radius: 18px;
 }
 
 html { scroll-behavior: smooth; }
@@ -41,7 +57,7 @@ html { scroll-behavior: smooth; }
 body {
   font-family: 'Inter', -apple-system, sans-serif;
   background: var(--bg);
-  color: var(--dark);
+  color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -49,10 +65,14 @@ body {
 
 code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
 #progress-bar {
   position: fixed; top: 0; left: 0;
   height: 3px; width: 0%;
-  background: linear-gradient(90deg, var(--primary), var(--gold), #F4886A);
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--orange));
   z-index: 9999; transition: width 0.1s linear;
   border-radius: 0 2px 2px 0;
 }
@@ -66,32 +86,32 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   text-align: center;
   padding: 80px 24px 60px;
   overflow: hidden;
-  background: var(--dark);
+  background: var(--bg);
 }
 
 .hero-bg {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(212,85,42,0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(232,168,56,0.25) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(108,92,231,0.15) 0%, transparent 60%),
-    #1A1A2E;
-  animation: heroShift 12s ease-in-out infinite alternate;
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(6,214,160,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(167,139,250,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(251,146,60,0.08) 0%, transparent 50%),
+    var(--bg);
+  animation: heroShift 14s ease-in-out infinite alternate;
 }
 
 @keyframes heroShift {
   0%   { filter: hue-rotate(0deg) brightness(1); }
-  50%  { filter: hue-rotate(8deg) brightness(1.05); }
-  100% { filter: hue-rotate(-5deg) brightness(1.02); }
+  50%  { filter: hue-rotate(6deg) brightness(1.03); }
+  100% { filter: hue-rotate(-4deg) brightness(0.98); }
 }
 
 .hero-shape {
-  position: absolute; border-radius: 50%; opacity: 0.12;
+  position: absolute; border-radius: 50%; opacity: 0.08;
   animation: floatShape 8s ease-in-out infinite; pointer-events: none;
 }
-.hero-shape-1 { width:300px;height:300px;background:var(--primary);top:-80px;right:-80px }
-.hero-shape-2 { width:200px;height:200px;background:var(--gold);bottom:-40px;left:-40px;animation-delay:-3s }
-.hero-shape-3 { width:120px;height:120px;background:var(--purple);top:30%;left:8%;opacity:0.08;animation-delay:-5s }
+.hero-shape-1 { width:350px;height:350px;background:var(--cyan);top:-100px;right:-80px }
+.hero-shape-2 { width:220px;height:220px;background:var(--purple);bottom:-60px;left:-60px;animation-delay:-3s }
+.hero-shape-3 { width:140px;height:140px;background:var(--orange);top:35%;left:6%;opacity:0.05;animation-delay:-5s }
 
 @keyframes floatShape {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -100,16 +120,37 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
 .hero-dots {
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 28px 28px; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+
+/* glow lines */
+.hero-glow {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.15; top: 40%; left: -50%;
+  animation: glowSlide 6s linear infinite;
+}
+.hero-glow-2 {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  opacity: 0.1; top: 60%; left: -50%;
+  animation: glowSlide 8s linear infinite reverse;
+}
+@keyframes glowSlide {
+  0% { transform: translateX(-25%); }
+  100% { transform: translateX(25%); }
 }
 
 .hero-content { position: relative; z-index: 2; max-width: 700px; }
 
 .hero-tag {
   display: inline-block;
-  background: var(--primary); color: #fff;
-  font-size: 10px; font-weight: 700;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  color: #0C0C14;
+  font-size: 10px; font-weight: 800;
   letter-spacing: 2px; text-transform: uppercase;
   padding: 6px 18px; border-radius: 30px;
   margin-bottom: 24px;
@@ -118,20 +159,20 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .hero h1 {
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(36px, 8vw, 72px);
-  color: #fff; line-height: 1.1;
+  font-size: clamp(40px, 9vw, 80px);
+  color: #fff; line-height: 1.05;
   margin-bottom: 16px;
 }
 
 .hero h1 .gradient-text {
-  background: linear-gradient(135deg, #F4886A 0%, var(--gold) 60%, #FFCBA4 100%);
+  background: linear-gradient(135deg, var(--cyan2) 0%, var(--purple2) 50%, var(--orange2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero-sub {
-  font-size: 16px; color: rgba(255,255,255,0.6);
-  margin-bottom: 32px; font-weight: 300;
+  font-size: 16px; color: var(--muted);
+  margin-bottom: 28px; font-weight: 300;
 }
 
 .hero-stats {
@@ -141,33 +182,32 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
 .hero-stat {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
   border-radius: 20px; padding: 5px 14px;
-  font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;
+  font-size: 12px; color: var(--muted); font-weight: 500;
 }
 
-/* mantra in hero */
 .hero-mantra {
   margin-top: 28px;
   padding: 14px 28px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
   border-radius: 14px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
-  color: rgba(255,255,255,0.85);
+  color: var(--mid);
   letter-spacing: 0.3px;
   line-height: 1.6;
-  max-width: 560px;
+  max-width: 600px;
 }
-.hero-mantra strong { color: #F4886A; }
+.hero-mantra strong { color: var(--cyan2); }
 
 .scroll-hint {
   position: absolute; bottom: 28px; left: 50%;
   transform: translateX(-50%); z-index: 3;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  color: rgba(255,255,255,0.3); font-size: 10px;
+  color: var(--dim); font-size: 10px;
   letter-spacing: 1.5px; text-transform: uppercase;
   animation: scrollBounce 2s ease-in-out infinite;
 }
@@ -179,11 +219,11 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 /* ─── STICKY NAV ────────────────────────────────────────────── */
 .sticky-nav {
   position: sticky; top: 0;
-  background: rgba(255,250,245,0.92);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1.5px solid var(--border);
+  background: rgba(12,12,20,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
   z-index: 100; padding: 10px 20px;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   overflow-x: auto; white-space: nowrap;
 }
 .sticky-nav::-webkit-scrollbar { display: none; }
@@ -191,24 +231,27 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .nav-label {
   font-size: 9px; font-weight: 700;
   letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--muted); flex-shrink: 0;
+  color: var(--dim); flex-shrink: 0;
 }
 
 .nav-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  background: var(--primary-l); border-radius: 20px;
+  background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  border-radius: 20px;
   padding: 4px 12px; font-size: 11px; font-weight: 600;
-  color: var(--primary-d); text-decoration: none; flex-shrink: 0;
+  color: var(--cyan); text-decoration: none; flex-shrink: 0;
   transition: all 0.2s;
 }
-.nav-pill:hover { background: var(--primary); color: #fff; }
+.nav-pill:hover { background: var(--cyan); color: var(--bg); }
 .nav-pill .n {
-  width: 16px; height: 16px; background: var(--primary);
-  border-radius: 50%; color: #fff;
+  width: 16px; height: 16px;
+  background: var(--cyan);
+  border-radius: 50%; color: var(--bg);
   display: flex; align-items: center; justify-content: center;
   font-size: 9px; font-weight: 800;
 }
-.nav-pill:hover .n { background: rgba(255,255,255,0.3); }
+.nav-pill:hover .n { background: rgba(0,0,0,0.3); color: var(--cyan2); }
 
 /* ─── MAIN ──────────────────────────────────────────────────── */
 .main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
@@ -226,22 +269,22 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 /* ─── BENTO CARD ────────────────────────────────────────────── */
 .bcard {
   border-radius: var(--radius); padding: 28px;
-  box-shadow: 0 2px 12px rgba(26,26,46,0.07), 0 1px 3px rgba(26,26,46,0.05);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
   position: relative; overflow: hidden;
   opacity: 0; transform: translateY(28px);
   transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
 }
 .bcard.in-view { opacity: 1; transform: translateY(0); }
-.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 36px rgba(26,26,46,0.12); }
+.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
 
-.bcard-warm   { background: var(--card1); border: 1.5px solid #F0D5C0; }
-.bcard-green  { background: var(--card2); border: 1.5px solid #C5DDD4; }
-.bcard-peach  { background: var(--card3); border: 1.5px solid #F0CEB8; }
-.bcard-purple { background: var(--card4); border: 1.5px solid #D0C5F5; }
-.bcard-dark   { background: var(--dark);  border: 1.5px solid #2E2E44; }
-.bcard-gold   { background: var(--gold-l); border: 1.5px solid #F0CC80; }
-.bcard-white  { background: #fff;         border: 1.5px solid var(--border); }
-.bcard-blue   { background: var(--blue-l); border: 1.5px solid #B5D8E0; }
+.bcard-dark   { background: var(--card); border: 1px solid var(--border); }
+.bcard-cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); }
+.bcard-purple { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+.bcard-orange { background: var(--orange-bg); border: 1px solid var(--orange-border); }
+.bcard-green  { background: var(--green-bg); border: 1px solid var(--green-border); }
+.bcard-gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); }
+.bcard-blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+.bcard-glass  { background: rgba(255,255,255,0.02); border: 1px solid var(--border2); }
 
 /* ─── SECTION HEADINGS ──────────────────────────────────────── */
 .section-label {
@@ -253,17 +296,18 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .section-label.in-view { opacity: 1; transform: translateY(0); }
 
 .sec-num {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 48px; height: 48px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   font-family: 'Playfair Display', serif;
-  font-size: 22px; font-weight: 900; flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  font-size: 20px; font-weight: 900; flex-shrink: 0;
 }
-.sec-num.red    { background: var(--primary); color: #fff; }
-.sec-num.green  { background: var(--green);   color: #fff; }
-.sec-num.gold   { background: var(--gold);    color: var(--dark); }
-.sec-num.purple { background: var(--purple);  color: #fff; }
-.sec-num.teal   { background: var(--blue);    color: #fff; }
+.sec-num.cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan2); }
+.sec-num.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple2); }
+.sec-num.orange { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange2); }
+.sec-num.red    { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red2); }
+.sec-num.green  { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green2); }
+.sec-num.gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); color: var(--gold); }
+.sec-num.blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
 
 .sec-info h2 {
   font-family: 'Playfair Display', serif;
@@ -274,124 +318,123 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 /* ─── CODE BLOCK ────────────────────────────────────────────── */
 .code-block {
   border-radius: 14px; overflow: hidden;
-  border: 1.5px solid #2E2E44;
-  background: var(--dark); margin: 0;
+  border: 1px solid var(--border2);
+  background: #0A0A10; margin: 0;
 }
 .code-header {
   display: flex; align-items: center; gap: 6px;
   padding: 10px 16px;
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
 }
 .code-dot { width: 10px; height: 10px; border-radius: 50%; }
 .code-filename {
   margin-left: 8px; font-size: 12px;
-  color: rgba(255,255,255,0.4); font-family: 'JetBrains Mono', monospace;
+  color: var(--dim); font-family: 'JetBrains Mono', monospace;
 }
 .code-block pre {
   margin: 0; padding: 18px 22px; overflow-x: auto;
-  font-size: 13px; line-height: 1.75;
+  font-size: 13.5px; line-height: 1.8;
   font-family: 'JetBrains Mono', monospace;
   color: #d1d5db; tab-size: 4;
 }
-.kw { color: #c084fc; } .fn { color: #22d3ee; } .tp { color: #fb923c; }
-.num { color: #fbbf24; } .op { color: #f472b6; }
+.kw { color: var(--purple2); } .fn { color: var(--cyan2); } .tp { color: var(--orange2); }
+.num { color: var(--gold); } .op { color: #F472B6; }
 
 /* ─── FLASHCARD ─────────────────────────────────────────────── */
 .flashcard {
-  background: #fff; border: 1.5px solid var(--border);
+  background: var(--card); border: 1px solid var(--border2);
   border-radius: 14px; padding: 0; margin-bottom: 12px;
   overflow: hidden; cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.flashcard:hover { border-color: var(--purple); box-shadow: 0 4px 16px rgba(108,92,231,0.12); }
+.flashcard:hover { border-color: var(--purple); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
 
 .flash-q {
   padding: 18px 22px;
   display: flex; align-items: center; gap: 12px;
-  font-size: 14px; font-weight: 500; color: var(--dark);
+  font-size: 14px; font-weight: 500; color: var(--text);
 }
 .flash-icon {
   width: 32px; height: 32px; border-radius: 8px;
-  background: var(--purple-l); border: 1px solid #D0C5F5;
+  background: var(--purple-bg); border: 1px solid var(--purple-border);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
+  font-size: 14px; flex-shrink: 0; color: var(--purple);
   transition: all 0.3s;
 }
-.flashcard.open .flash-icon { background: var(--purple); color: #fff; transform: rotate(45deg); }
+.flashcard.open .flash-icon { background: var(--purple); color: var(--bg); transform: rotate(45deg); }
 .flash-q-text { flex: 1; }
-.flash-hint { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 400; }
+.flash-hint { font-size: 11px; color: var(--dim); margin-top: 2px; font-weight: 400; }
 
 .flash-a {
   max-height: 0; overflow: hidden;
   transition: max-height 0.4s ease, padding 0.3s ease;
   padding: 0 22px;
-  background: var(--purple-l);
+  background: var(--purple-bg);
   border-top: 1px solid transparent;
 }
 .flashcard.open .flash-a {
   max-height: 300px;
   padding: 16px 22px;
-  border-top-color: #D0C5F5;
+  border-top-color: var(--purple-border);
 }
-.flash-a p {
-  font-size: 13px; color: var(--mid); line-height: 1.7;
-}
+.flash-a p { font-size: 13px; color: var(--mid); line-height: 1.7; }
 .flash-a code {
-  font-size: 12px; background: #fff;
-  padding: 2px 7px; border-radius: 4px; color: var(--purple);
+  font-size: 12px; background: rgba(167,139,250,0.15);
+  padding: 2px 7px; border-radius: 4px; color: var(--purple2);
 }
 
-/* ─── PIÈGE CARD ────────────────────────────────────────────── */
+/* ─── PIEGE CARD ────────────────────────────────────────────── */
 .trap-card {
-  background: #fff; border: 1.5px solid var(--border);
+  background: var(--card); border: 1px solid var(--border2);
   border-radius: 14px; padding: 20px 22px;
   transition: border-color 0.2s, transform 0.2s;
 }
-.trap-card:hover { border-color: var(--primary); transform: translateX(4px); }
+.trap-card:hover { border-color: var(--orange); transform: translateX(4px); }
 
 .trap-tag {
   display: inline-flex; padding: 3px 10px; border-radius: 6px;
   font-size: 10px; font-weight: 700; letter-spacing: .5px;
   margin-bottom: 8px;
 }
-.tag-loop   { background: var(--purple-l); color: var(--purple); }
-.tag-logic  { background: var(--card3); color: var(--primary); }
-.tag-init   { background: var(--blue-l); color: var(--blue); }
-.tag-type   { background: var(--green-l); color: var(--green); }
-.tag-safety { background: #FEE2E2; color: #B91C1C; }
+.tag-loop   { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+.tag-logic  { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange); }
+.tag-init   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+.tag-type   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+.tag-safety { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
 
 .trap-label {
-  font-size: 10px; font-weight: 700; color: var(--muted);
+  font-size: 10px; font-weight: 700; color: var(--dim);
   letter-spacing: 1px; margin-bottom: 8px;
-  display: flex; align-items: center; gap: 6px;
 }
-.trap-label svg { opacity: 0.5; }
 
 .trap-row {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 6px; flex-wrap: wrap;
 }
 .trap-bad {
-  font-size: 10px; font-weight: 800; color: var(--primary);
-  background: var(--primary-l); padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 800; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  padding: 2px 8px; border-radius: 4px;
 }
 .trap-good {
   font-size: 10px; font-weight: 800; color: var(--green);
-  background: var(--green-l); padding: 2px 8px; border-radius: 4px;
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  padding: 2px 8px; border-radius: 4px;
 }
 .trap-code {
   font-size: 12px; font-family: 'JetBrains Mono', monospace;
-  color: var(--mid); background: #F7F0EA; padding: 4px 10px; border-radius: 6px;
+  color: var(--mid); background: rgba(255,255,255,0.04);
+  padding: 4px 10px; border-radius: 6px;
 }
 
 .trap-rule {
   font-size: 13px; color: var(--mid); line-height: 1.6;
   padding: 10px 14px; margin-top: 8px;
-  background: var(--gold-l); border: 1px solid #F0CC80;
+  background: var(--gold-bg); border: 1px solid var(--gold-border);
   border-radius: 10px;
 }
-.trap-rule strong { color: var(--primary-d); }
+.trap-rule strong { color: var(--gold); }
 
 /* ─── PATTERN ───────────────────────────────────────────────── */
 .pattern-steps { list-style: none; counter-reset: step; }
@@ -399,105 +442,49 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   counter-increment: step; position: relative;
   padding: 10px 0 10px 44px; font-size: 14px;
   color: var(--mid); line-height: 1.6;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid var(--border);
 }
 .pattern-steps li:last-child { border-bottom: none; }
 .pattern-steps li::before {
   content: counter(step);
   position: absolute; left: 0; top: 10px;
   width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--purple), var(--blue));
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; color: #fff;
+  font-size: 12px; font-weight: 800; color: #0C0C14;
 }
 .pattern-steps code {
-  font-size: 12px; background: var(--purple-l);
-  padding: 2px 7px; border-radius: 4px; color: var(--purple);
+  font-size: 12px; background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  padding: 2px 7px; border-radius: 4px; color: var(--cyan2);
 }
 
-/* ─── TRANSFER EXERCISE ─────────────────────────────────────── */
-.transfer-box {
-  background: var(--dark); border-radius: 14px;
-  padding: 28px; position: relative; overflow: hidden;
-}
-.transfer-box::before {
-  content: ''; position: absolute; top: 0; left: 0;
-  width: 5px; height: 100%;
-  background: linear-gradient(180deg, var(--gold), var(--primary));
-}
-.transfer-tag {
-  display: inline-block; background: var(--gold);
-  color: var(--dark); font-size: 10px; font-weight: 800;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
-}
-.transfer-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 20px; font-weight: 900; color: #fff;
-  margin-bottom: 12px;
-}
-.transfer-desc {
-  font-size: 14px; color: rgba(255,255,255,0.6);
-  line-height: 1.7; margin-bottom: 16px;
-}
-.transfer-proto {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; color: #22d3ee;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px; padding: 12px 16px;
-  margin-bottom: 12px;
-}
-.transfer-hint {
-  font-size: 12px; color: rgba(255,255,255,0.35);
-  font-style: italic;
-}
-
-/* ─── CHECKLIST ─────────────────────────────────────────────── */
-.check-list { list-style: none; }
-.check-list li {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 0; font-size: 14px; color: var(--mid);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-.check-list li:last-child { border-bottom: none; }
-.check-icon {
-  width: 22px; height: 22px; border-radius: 6px;
-  border: 2px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; font-size: 11px;
-}
-.check-list code {
-  font-size: 11px; background: #F7F0EA;
-  padding: 2px 6px; border-radius: 4px;
-}
-
-/* ─── EVOLUTION ─────────────────────────────────────────────── */
+/* ─── EVOLUTION TIMELINE ────────────────────────────────────── */
 .evo-timeline { position: relative; padding-left: 24px; }
 .evo-timeline::before {
   content: ''; position: absolute;
   left: 7px; top: 0; bottom: 0; width: 2px;
-  background: linear-gradient(180deg, var(--primary), var(--gold), var(--green));
+  background: linear-gradient(180deg, var(--red), var(--orange), var(--gold), var(--green));
   border-radius: 1px;
 }
 .evo-step {
   position: relative; margin-bottom: 20px;
   padding: 14px 18px;
-  background: #fff; border: 1px solid var(--border);
+  background: var(--card2); border: 1px solid var(--border);
   border-radius: 12px;
 }
 .evo-step::before {
   content: ''; position: absolute;
   left: -21px; top: 18px;
   width: 12px; height: 12px; border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--bg);
 }
-.evo-step:nth-child(1)::before { background: var(--primary); }
-.evo-step:nth-child(2)::before { background: var(--gold); }
-.evo-step:nth-child(3)::before { background: var(--gold); }
-.evo-step:nth-child(4)::before { background: var(--green); }
+.evo-step:nth-child(1)::before { background: var(--red); box-shadow: 0 0 8px rgba(248,113,113,0.4); }
+.evo-step:nth-child(2)::before { background: var(--orange); box-shadow: 0 0 8px rgba(251,146,60,0.4); }
+.evo-step:nth-child(3)::before { background: var(--gold); box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+.evo-step:nth-child(4)::before { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
 .evo-version {
-  font-size: 10px; font-weight: 700; color: var(--muted);
+  font-size: 10px; font-weight: 700; color: var(--dim);
   letter-spacing: 1px; margin-bottom: 4px;
 }
 .evo-code {
@@ -507,27 +494,88 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 }
 .evo-fix {
   display: inline-flex; align-items: center; gap: 4px;
-  margin-top: 6px; padding: 3px 10px; border-radius: 6px;
+  margin-top: 6px; margin-right: 4px; padding: 3px 10px; border-radius: 6px;
   font-size: 10px; font-weight: 600;
 }
-.fix-bad  { background: var(--primary-l); color: var(--primary); }
-.fix-good { background: var(--green-l); color: var(--green); }
+.fix-bad  { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+.fix-good { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+
+/* ─── TRANSFER ──────────────────────────────────────────────── */
+.transfer-box {
+  background: var(--card2); border-radius: 14px;
+  padding: 28px; position: relative; overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.transfer-box::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, var(--gold), var(--orange));
+}
+.transfer-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: var(--bg); font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.transfer-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; color: var(--text);
+  margin-bottom: 10px;
+}
+.transfer-desc {
+  font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px;
+}
+.transfer-desc strong { color: var(--orange2); }
+.transfer-proto {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--cyan2);
+  background: rgba(6,214,160,0.06);
+  border: 1px solid var(--cyan-border);
+  border-radius: 8px; padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.transfer-hint {
+  font-size: 12px; color: var(--dim); font-style: italic;
+}
+
+/* ─── CHECKLIST ─────────────────────────────────────────────── */
+.check-list { list-style: none; }
+.check-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; font-size: 14px; color: var(--mid);
+  border-bottom: 1px solid var(--border);
+}
+.check-list li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px; color: var(--dim);
+}
+.check-list code {
+  font-size: 11px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+}
 
 /* ─── FOOTER ────────────────────────────────────────────────── */
 .footer {
   text-align: center; padding: 32px 20px;
-  font-size: 12px; color: var(--muted);
-  border-top: 1.5px solid var(--border);
+  font-size: 12px; color: var(--dim);
+  border-top: 1px solid var(--border);
 }
 .footer-brand {
   font-family: 'Playfair Display', serif;
   font-weight: 900; font-size: 16px;
-  color: var(--dark); margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
 }
 
 @media (max-width: 600px) {
   .bcard { padding: 20px; }
-  .sec-num { width: 40px; height: 40px; font-size: 18px; }
+  .sec-num { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
   .sec-info h2 { font-size: 20px; }
   .hero-mantra { font-size: 11px; padding: 12px 16px; }
 }
@@ -537,13 +585,15 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
 <div id="progress-bar"></div>
 
-<!-- ═══ HERO + MANTRA ═══ -->
+<!-- HERO -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-dots"></div>
   <div class="hero-shape hero-shape-1"></div>
   <div class="hero-shape hero-shape-2"></div>
   <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
 
   <div class="hero-content">
     <div class="hero-tag">Exam Rank 02 &middot; Level 2</div>
@@ -551,8 +601,8 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
     <p class="hero-sub">Trouver le plus grand int dans un tableau</p>
     <div class="hero-stats">
       <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> 4 versions</span>
-      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#22c55e" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
-      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 7 pi&egrave;ges d&eacute;jou&eacute;s</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#34D399" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 7 pi&egrave;ges</span>
       <span class="hero-stat">03/04/2026</span>
     </div>
     <div class="hero-mantra">
@@ -566,7 +616,7 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   </div>
 </section>
 
-<!-- ═══ NAV ═══ -->
+<!-- NAV -->
 <nav class="sticky-nav">
   <span class="nav-label">Fiche</span>
   <a href="#code" class="nav-pill"><span class="n">1</span>Code</a>
@@ -580,22 +630,22 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
 <div class="main">
 
-<!-- ═══ 1 &middot; CODE FINAL ═══ -->
+<!-- 1 CODE FINAL -->
 <div id="code" class="section-label">
   <div class="sec-num green">1</div>
   <div class="sec-info">
     <h2>Code final</h2>
-    <p>Version valid&eacute;e &mdash; compile avec -Wall -Wextra -Werror, tous tests OK</p>
+    <p>Compile avec -Wall -Wextra -Werror, tous tests OK</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
-  <div class="bcard bcard-dark bento-wide">
-    <div class="code-block" style="border:none;margin:0">
+  <div class="bcard bcard-dark bento-wide" style="padding:0">
+    <div class="code-block" style="border:none">
       <div class="code-header">
-        <div class="code-dot" style="background:#ef4444"></div>
-        <div class="code-dot" style="background:#fbbf24"></div>
-        <div class="code-dot" style="background:#22c55e"></div>
+        <div class="code-dot" style="background:var(--red)"></div>
+        <div class="code-dot" style="background:var(--gold)"></div>
+        <div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">max.c</span>
       </div>
 <pre><span class="tp">int</span>  <span class="fn">max</span>(<span class="tp">int</span>* tab, <span class="tp">unsigned int</span> len)
@@ -615,10 +665,10 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
     </div>
   </div>
 
-  <div class="bcard bcard-warm">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">SUJET</div>
+  <div class="bcard bcard-cyan">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">SUJET</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid);line-height:1.8">
-      <strong style="color:var(--dark)">int max(int* tab, unsigned int len);</strong><br><br>
+      <strong style="color:var(--text)">int max(int* tab, unsigned int len);</strong><br><br>
       tab = tableau d'int<br>
       len = nombre d'&eacute;l&eacute;ments<br>
       Retourne le plus grand nombre<br>
@@ -628,167 +678,147 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <div class="bcard bcard-green">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">TESTS PASS&Eacute;S</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">TESTS</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
-      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68, -1}</span><br>&rarr; <strong style="color:var(--green)">0 &#10003;</strong><br><br>
-      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68}</span><br>&rarr; <strong style="color:var(--green)">0 &#10003;</strong><br><br>
-      <span style="color:var(--muted)">{7, 42, 0, -5}</span><br>&rarr; <strong style="color:var(--green)">42 &#10003;</strong>
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68, -1}</span><br>&rarr; <strong style="color:var(--green2)">0 &#10003;</strong><br><br>
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68}</span><br>&rarr; <strong style="color:var(--green2)">0 &#10003;</strong><br><br>
+      <span style="color:var(--muted)">{7, 42, 0, -5}</span><br>&rarr; <strong style="color:var(--green2)">42 &#10003;</strong>
     </div>
   </div>
 </div>
 
-<!-- ═══ 2 &middot; FLASHCARDS (Active Recall) ═══ -->
+<!-- 2 FLASHCARDS -->
 <div id="flashcards" class="section-label">
   <div class="sec-num purple">2</div>
   <div class="sec-info">
     <h2>Flashcards</h2>
-    <p>Clique pour r&eacute;v&eacute;ler &mdash; essaie de r&eacute;pondre dans ta t&ecirc;te AVANT</p>
+    <p>R&eacute;ponds dans ta t&ecirc;te AVANT de cliquer</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
-  <div class="bcard bcard-white bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
 
     <div class="flashcard" onclick="this.classList.toggle('open')">
       <div class="flash-q">
         <div class="flash-icon">+</div>
-        <div>
-          <div class="flash-q-text">Pourquoi <code style="font-size:12px">int max = 0</code> est dangereux ?</div>
-          <div class="flash-hint">Pense aux nombres n&eacute;gatifs...</div>
-        </div>
+        <div><div class="flash-q-text">Pourquoi <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">int max = 0</code> est dangereux ?</div>
+        <div class="flash-hint">Pense aux nombres n&eacute;gatifs...</div></div>
       </div>
-      <div class="flash-a">
-        <p>Si le tableau contient uniquement des n&eacute;gatifs <code>{-5, -3, -1}</code>, aucun &eacute;l&eacute;ment ne sera &gt; 0, donc on retourne 0 &mdash; qui n'est pas dans le tableau. Il faut initialiser avec <code>tab[0]</code>.</p>
-      </div>
+      <div class="flash-a"><p>Si le tableau contient uniquement des n&eacute;gatifs <code>{-5, -3, -1}</code>, aucun &eacute;l&eacute;ment ne sera &gt; 0, donc on retourne 0 qui n'est pas dans le tableau. Init avec <code>tab[0]</code>.</p></div>
     </div>
 
     <div class="flashcard" onclick="this.classList.toggle('open')">
       <div class="flash-q">
         <div class="flash-icon">+</div>
-        <div>
-          <div class="flash-q-text">Quelle diff&eacute;rence entre <code style="font-size:12px">while(tab[i])</code> et <code style="font-size:12px">while(i &lt; len)</code> ?</div>
-          <div class="flash-hint">String vs tableau d'int...</div>
-        </div>
+        <div><div class="flash-q-text">Quelle diff entre <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">while(tab[i])</code> et <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">while(i &lt; len)</code> ?</div>
+        <div class="flash-hint">String vs tableau d'int...</div></div>
       </div>
-      <div class="flash-a">
-        <p><code>while(tab[i])</code> s'arr&ecirc;te quand la valeur vaut 0 &mdash; c'est pour les strings (termin&eacute;es par <code>\0</code>). Un tableau d'int peut contenir des 0 l&eacute;gitimes. Il faut utiliser l'index <code>i &lt; len</code> pour contr&ocirc;ler la boucle.</p>
-      </div>
+      <div class="flash-a"><p><code>while(tab[i])</code> s'arr&ecirc;te quand la valeur vaut 0 &mdash; pour les strings termin&eacute;es par <code>\0</code>. Un tableau d'int peut contenir des 0 l&eacute;gitimes. Utilise <code>i &lt; len</code>.</p></div>
     </div>
 
     <div class="flashcard" onclick="this.classList.toggle('open')">
       <div class="flash-q">
         <div class="flash-icon">+</div>
-        <div>
-          <div class="flash-q-text">Pourquoi comparer avec <code style="font-size:12px">max</code> et pas avec <code style="font-size:12px">tab[i+1]</code> ?</div>
-          <div class="flash-hint">Deux raisons...</div>
-        </div>
+        <div><div class="flash-q-text">Pourquoi comparer avec <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">max</code> et pas <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">tab[i+1]</code> ?</div>
+        <div class="flash-hint">Deux raisons...</div></div>
       </div>
-      <div class="flash-a">
-        <p><strong>1)</strong> <code>tab[i+1]</code> d&eacute;borde quand <code>i</code> est au dernier &eacute;l&eacute;ment (undefined behavior). <strong>2)</strong> Comparer des voisins ne garde pas trace du maximum global &mdash; on perd l'info des &eacute;l&eacute;ments pr&eacute;c&eacute;dents.</p>
-      </div>
+      <div class="flash-a"><p><strong>1)</strong> <code>tab[i+1]</code> d&eacute;borde au dernier &eacute;l&eacute;ment (undefined behavior). <strong>2)</strong> Comparer des voisins ne garde pas trace du maximum global.</p></div>
     </div>
 
     <div class="flashcard" onclick="this.classList.toggle('open')">
       <div class="flash-q">
         <div class="flash-icon">+</div>
-        <div>
-          <div class="flash-q-text">Pourquoi <code style="font-size:12px">unsigned int i</code> et pas <code style="font-size:12px">int i</code> ?</div>
-          <div class="flash-hint">Le compilateur te le dit...</div>
-        </div>
+        <div><div class="flash-q-text">Pourquoi <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">unsigned int i</code> et pas <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">int i</code> ?</div>
+        <div class="flash-hint">Le compilateur te le dit...</div></div>
       </div>
-      <div class="flash-a">
-        <p>Comparer un <code>int</code> (sign&eacute;) avec un <code>unsigned int</code> (non-sign&eacute;) g&eacute;n&egrave;re un warning <code>-Wsign-compare</code>. Avec <code>-Werror</code>, &ccedil;a compile pas. Le compteur doit matcher le type de <code>len</code>.</p>
-      </div>
+      <div class="flash-a"><p><code>-Wsign-compare</code> + <code>-Werror</code> = compile pas. Le compteur doit matcher le type de <code>len</code> (unsigned).</p></div>
     </div>
 
     <div class="flashcard" onclick="this.classList.toggle('open')">
       <div class="flash-q">
         <div class="flash-icon">+</div>
-        <div>
-          <div class="flash-q-text">Que se passe-t-il si on lit <code style="font-size:12px">tab[0]</code> avant de v&eacute;rifier <code style="font-size:12px">len == 0</code> ?</div>
-          <div class="flash-hint">Tableau vide...</div>
-        </div>
+        <div><div class="flash-q-text">Que se passe-t-il si on lit <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">tab[0]</code> avant de check <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">len == 0</code> ?</div>
+        <div class="flash-hint">Tableau vide...</div></div>
       </div>
-      <div class="flash-a">
-        <p>Si le tableau est vide (ou NULL), acc&eacute;der &agrave; <code>tab[0]</code> = lecture d'une adresse invalide = <strong>segfault</strong> ou undefined behavior. Toujours v&eacute;rifier les cas limites AVANT d'acc&eacute;der aux donn&eacute;es.</p>
-      </div>
+      <div class="flash-a"><p>Tableau vide + <code>tab[0]</code> = lecture d'adresse invalide = <strong>segfault</strong>. Toujours v&eacute;rifier les cas limites AVANT d'acc&eacute;der aux donn&eacute;es.</p></div>
     </div>
 
   </div>
 </div>
 
-<!-- ═══ 3 &middot; PI&Egrave;GES ═══ -->
+<!-- 3 PIEGES -->
 <div id="pieges" class="section-label">
-  <div class="sec-num red">3</div>
+  <div class="sec-num orange">3</div>
   <div class="sec-info">
     <h2>Pi&egrave;ges d&eacute;jou&eacute;s</h2>
-    <p>7 pi&egrave;ges rencontr&eacute;s &mdash; chaque carte = une le&ccedil;on grav&eacute;e</p>
+    <p>7 pi&egrave;ges &mdash; chaque carte = une le&ccedil;on grav&eacute;e</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
 
-  <div class="bcard bcard-white">
+  <div class="bcard bcard-glass">
     <span class="trap-tag tag-loop">BOUCLE</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #1</div>
+    <div class="trap-label">PI&Egrave;GE #1</div>
     <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (tab[i])</code></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (i &lt; len)</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> confondre string (termin&eacute;e par \0) et tableau d'int (termin&eacute; par len). <code>while(str[i])</code> = strings uniquement.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> confondre string (\0) et tableau d'int (len). <code>while(str[i])</code> = strings uniquement.</div>
   </div>
 
-  <div class="bcard bcard-white">
+  <div class="bcard bcard-glass">
     <span class="trap-tag tag-loop">BOUCLE</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #2</div>
+    <div class="trap-label">PI&Egrave;GE #2</div>
     <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (tab[i] &lt; len)</code></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (i &lt; len)</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> confondre <em>valeur</em> et <em>index</em>. <code>tab[i]</code> = ce qu'il y a dans la case. <code>i</code> = quelle case tu regardes.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> confondre <em>valeur</em> et <em>index</em>. <code>tab[i]</code> = contenu. <code>i</code> = position.</div>
   </div>
 
-  <div class="bcard bcard-white">
+  <div class="bcard bcard-glass">
     <span class="trap-tag tag-logic">LOGIQUE</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #3</div>
-    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">max = tab[i];</code> <span style="font-size:11px;color:var(--muted)">(sans if)</span></div>
+    <div class="trap-label">PI&Egrave;GE #3</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">max = tab[i];</code> <span style="font-size:11px;color:var(--dim)">(sans if)</span></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (tab[i] &gt; max) max = tab[i];</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> &eacute;craser l'accumulateur &agrave; chaque tour. On update SEULEMENT quand le nouveau est meilleur.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> &eacute;craser l'accumulateur &agrave; chaque tour sans condition.</div>
   </div>
 
-  <div class="bcard bcard-white">
+  <div class="bcard bcard-glass">
     <span class="trap-tag tag-logic">LOGIQUE</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #4</div>
+    <div class="trap-label">PI&Egrave;GE #4</div>
     <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">if (tab[i] &lt; tab[i+1])</code></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (tab[i] &gt; max)</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> comparer des voisins au lieu de l'accumulateur. <code>tab[i+1]</code> = acc&egrave;s hors tableau au dernier &eacute;l&eacute;ment.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> comparer des voisins au lieu de l'accumulateur. <code>tab[i+1]</code> d&eacute;borde au dernier &eacute;l&eacute;ment.</div>
   </div>
 
-  <div class="bcard bcard-white">
-    <span class="trap-tag tag-init">INITIALISATION</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #5</div>
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-init">INIT</span>
+    <div class="trap-label">PI&Egrave;GE #5</div>
     <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int max = 0;</code></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">int max = tab[0];</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> 0 n'est pas neutre pour un max. Avec <code>{-5, -3}</code> on retourne 0 qui n'est pas dans le tableau. Toujours init avec un vrai &eacute;l&eacute;ment.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> 0 bat tous les n&eacute;gatifs. Toujours init avec un vrai &eacute;l&eacute;ment du tableau.</div>
   </div>
 
-  <div class="bcard bcard-white">
+  <div class="bcard bcard-glass">
     <span class="trap-tag tag-safety">S&Eacute;CURIT&Eacute;</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #6</div>
+    <div class="trap-label">PI&Egrave;GE #6</div>
     <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int max = tab[i]; // avant check</code></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (len == 0) return 0; // PUIS tab[i]</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> acc&eacute;der aux donn&eacute;es avant de v&eacute;rifier qu'elles existent. Tableau vide + <code>tab[0]</code> = crash.</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> acc&eacute;der aux donn&eacute;es avant de v&eacute;rifier qu'elles existent. Tableau vide = crash.</div>
   </div>
 
-  <div class="bcard bcard-white bento-wide">
+  <div class="bcard bcard-glass bento-wide">
     <span class="trap-tag tag-type">TYPE</span>
-    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #7</div>
-    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int i = 0;</code> <span style="font-size:11px;color:var(--muted)">compar&eacute; &agrave; unsigned int len</span></div>
+    <div class="trap-label">PI&Egrave;GE #7</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int i = 0;</code> <span style="font-size:11px;color:var(--dim)">vs unsigned int len</span></div>
     <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">unsigned int i = 0;</code></div>
-    <div class="trap-rule"><strong>Le piège :</strong> <code>-Wsign-compare</code> + <code>-Werror</code> = &ccedil;a compile pas. Le compteur doit matcher le type de <code>len</code>. Mais l'accumulateur reste <code>int</code> (pour les n&eacute;gatifs).</div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> <code>-Wsign-compare</code> + <code>-Werror</code>. Le compteur matche le type de <code>len</code>. L'accumulateur reste <code>int</code>.</div>
   </div>
 
 </div>
 
-<!-- ═══ 4 &middot; PATTERN ═══ -->
+<!-- 4 PATTERN -->
 <div id="pattern" class="section-label">
-  <div class="sec-num teal">4</div>
+  <div class="sec-num cyan">4</div>
   <div class="sec-info">
     <h2>Pattern r&eacute;utilisable</h2>
     <p>Parcours + accumulateur &mdash; min, max, sum, search, count...</p>
@@ -798,16 +828,16 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 <div class="bento" style="margin-bottom:48px">
   <div class="bcard bcard-purple bento-wide">
     <ol class="pattern-steps">
-      <li>G&eacute;rer le cas vide <code>len == 0</code> <strong>en premier</strong></li>
-      <li>Initialiser l'accumulateur avec <code>tab[0]</code> &mdash; jamais avec une valeur arbitraire</li>
+      <li>G&eacute;rer le cas vide <code>len == 0</code> <strong style="color:var(--text)">en premier</strong></li>
+      <li>Initialiser l'accumulateur avec <code>tab[0]</code> &mdash; jamais une valeur arbitraire</li>
       <li>Parcourir avec <code>i &lt; len</code> &mdash; l'index, pas la valeur</li>
-      <li>Comparer <code>tab[i]</code> avec l'accumulateur &mdash; jamais avec <code>tab[i+1]</code></li>
+      <li>Comparer <code>tab[i]</code> avec l'accumulateur &mdash; jamais <code>tab[i+1]</code></li>
       <li>Return l'accumulateur</li>
     </ol>
   </div>
 </div>
 
-<!-- ═══ 5 &middot; &Eacute;VOLUTION ═══ -->
+<!-- 5 EVOLUTION -->
 <div id="evolution" class="section-label">
   <div class="sec-num gold">5</div>
   <div class="sec-info">
@@ -817,7 +847,7 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 </div>
 
 <div class="bento" style="margin-bottom:48px">
-  <div class="bcard bcard-white bento-wide">
+  <div class="bcard bcard-dark bento-wide">
     <div class="evo-timeline">
 
       <div class="evo-step">
@@ -858,7 +888,7 @@ while (i &lt; len)
 }</div>
         <div><span class="evo-fix fix-good">i &lt; len &#10003;</span></div>
         <div><span class="evo-fix fix-good">compare avec max &#10003;</span></div>
-        <div><span class="evo-fix fix-bad">max = 0 &rarr; casse les n&eacute;gatifs</span></div>
+        <div><span class="evo-fix fix-bad">max = 0 casse les n&eacute;gatifs</span></div>
       </div>
 
       <div class="evo-step">
@@ -882,30 +912,30 @@ return (max);</div>
   </div>
 </div>
 
-<!-- ═══ 6 &middot; TRANSFERT ═══ -->
+<!-- 6 TRANSFERT -->
 <div id="transfert" class="section-label">
   <div class="sec-num red">6</div>
   <div class="sec-info">
-    <h2>Exercice de transfert</h2>
+    <h2>Exercices de transfert</h2>
     <p>M&ecirc;me pattern, exo diff&eacute;rent &mdash; solidifie l'apprentissage</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
-  <div class="bcard bcard-white bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
 
     <div class="transfer-box" style="margin-bottom:16px">
       <div class="transfer-tag">CHALLENGE 1</div>
       <div class="transfer-title">min</div>
-      <div class="transfer-desc">&Eacute;cris une fonction qui retourne le plus <strong style="color:#F4886A">petit</strong> int du tableau. M&ecirc;me pattern &mdash; combien de caract&egrave;res changent ?</div>
+      <div class="transfer-desc">Retourne le plus <strong>petit</strong> int du tableau. Combien de caract&egrave;res changent par rapport &agrave; max ?</div>
       <div class="transfer-proto">int  min(int* tab, unsigned int len);</div>
-      <div class="transfer-hint">Indice : un seul op&eacute;rateur change dans le code.</div>
+      <div class="transfer-hint">Indice : un seul op&eacute;rateur change.</div>
     </div>
 
     <div class="transfer-box">
       <div class="transfer-tag">CHALLENGE 2</div>
       <div class="transfer-title">sum</div>
-      <div class="transfer-desc">Retourne la <strong style="color:#F4886A">somme</strong> de tous les &eacute;l&eacute;ments. L'accumulateur d&eacute;marre &agrave; combien cette fois ?</div>
+      <div class="transfer-desc">Retourne la <strong>somme</strong> de tous les &eacute;l&eacute;ments. L'accumulateur d&eacute;marre &agrave; combien ?</div>
       <div class="transfer-proto">int  sum(int* tab, unsigned int len);</div>
       <div class="transfer-hint">Indice : pour une somme, 0 est le bon point de d&eacute;part (contrairement au max).</div>
     </div>
@@ -913,46 +943,44 @@ return (max);</div>
   </div>
 </div>
 
-<!-- ═══ 7 &middot; CHECKLIST ═══ -->
+<!-- 7 CHECKLIST -->
 <div id="checklist" class="section-label">
   <div class="sec-num gold">7</div>
   <div class="sec-info">
     <h2>Checklist exam</h2>
-    <p>V&eacute;rifie &agrave; chaque exo avant de submit</p>
+    <p>V&eacute;rifie avant chaque submit</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
   <div class="bcard bcard-gold bento-wide">
     <ul class="check-list">
-      <li><span class="check-icon">&#9744;</span> Cas limites g&eacute;r&eacute;s <strong>en premier</strong> (len == 0, argc != X...)</li>
-      <li><span class="check-icon">&#9744;</span> Boucle : <strong>index</strong> vs len, PAS valeur vs len</li>
-      <li><span class="check-icon">&#9744;</span> Accumulateur initialis&eacute; avec une <strong>vraie valeur</strong> du tableau</li>
-      <li><span class="check-icon">&#9744;</span> Compare avec l'accumulateur, <strong>jamais tab[i+1]</strong></li>
+      <li><span class="check-icon">&#9744;</span> Cas limites g&eacute;r&eacute;s <strong style="color:var(--text)">en premier</strong></li>
+      <li><span class="check-icon">&#9744;</span> Boucle : <strong style="color:var(--text)">index</strong> vs len, PAS valeur vs len</li>
+      <li><span class="check-icon">&#9744;</span> Accumulateur init avec une <strong style="color:var(--text)">vraie valeur</strong> du tableau</li>
+      <li><span class="check-icon">&#9744;</span> Compare avec l'accumulateur, <strong style="color:var(--text)">jamais tab[i+1]</strong></li>
       <li><span class="check-icon">&#9744;</span> Compile avec <code>gcc -Wall -Wextra -Werror</code></li>
-      <li><span class="check-icon">&#9744;</span> Types coh&eacute;rents (<strong>signed vs unsigned</strong>)</li>
-      <li><span class="check-icon">&#9744;</span> <strong>return</strong> pr&eacute;sent &agrave; la fin de la fonction</li>
+      <li><span class="check-icon">&#9744;</span> Types coh&eacute;rents (<strong style="color:var(--text)">signed vs unsigned</strong>)</li>
+      <li><span class="check-icon">&#9744;</span> <strong style="color:var(--text)">return</strong> pr&eacute;sent &agrave; la fin</li>
     </ul>
   </div>
 </div>
 
 </div>
 
-<!-- ═══ FOOTER ═══ -->
+<!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">42 Prof</div>
   Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 03/04/2026
 </div>
 
 <script>
-// Progress bar
 window.addEventListener('scroll', () => {
   const h = document.documentElement;
   const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
   document.getElementById('progress-bar').style.width = pct + '%';
 });
 
-// Scroll-reveal
 const obs = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
 }, { threshold: 0.1 });
