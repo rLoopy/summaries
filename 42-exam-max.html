@@ -147,6 +147,22 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;
 }
 
+/* mantra in hero */
+.hero-mantra {
+  margin-top: 28px;
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  max-width: 560px;
+}
+.hero-mantra strong { color: #F4886A; }
+
 .scroll-hint {
   position: absolute; bottom: 28px; left: 50%;
   transform: translateX(-50%); z-index: 3;
@@ -247,6 +263,7 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .sec-num.green  { background: var(--green);   color: #fff; }
 .sec-num.gold   { background: var(--gold);    color: var(--dark); }
 .sec-num.purple { background: var(--purple);  color: #fff; }
+.sec-num.teal   { background: var(--blue);    color: #fff; }
 
 .sec-info h2 {
   font-family: 'Playfair Display', serif;
@@ -280,15 +297,60 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .kw { color: #c084fc; } .fn { color: #22d3ee; } .tp { color: #fb923c; }
 .num { color: #fbbf24; } .op { color: #f472b6; }
 
-/* ─── ERROR CARD ────────────────────────────────────────────── */
-.err-card {
+/* ─── FLASHCARD ─────────────────────────────────────────────── */
+.flashcard {
   background: #fff; border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 20px 22px; margin-bottom: 12px;
+  border-radius: 14px; padding: 0; margin-bottom: 12px;
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.flashcard:hover { border-color: var(--purple); box-shadow: 0 4px 16px rgba(108,92,231,0.12); }
+
+.flash-q {
+  padding: 18px 22px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; font-weight: 500; color: var(--dark);
+}
+.flash-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--purple-l); border: 1px solid #D0C5F5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  transition: all 0.3s;
+}
+.flashcard.open .flash-icon { background: var(--purple); color: #fff; transform: rotate(45deg); }
+.flash-q-text { flex: 1; }
+.flash-hint { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 400; }
+
+.flash-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 22px;
+  background: var(--purple-l);
+  border-top: 1px solid transparent;
+}
+.flashcard.open .flash-a {
+  max-height: 300px;
+  padding: 16px 22px;
+  border-top-color: #D0C5F5;
+}
+.flash-a p {
+  font-size: 13px; color: var(--mid); line-height: 1.7;
+}
+.flash-a code {
+  font-size: 12px; background: #fff;
+  padding: 2px 7px; border-radius: 4px; color: var(--purple);
+}
+
+/* ─── PIÈGE CARD ────────────────────────────────────────────── */
+.trap-card {
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 20px 22px;
   transition: border-color 0.2s, transform 0.2s;
 }
-.err-card:hover { border-color: var(--primary); transform: translateX(4px); }
+.trap-card:hover { border-color: var(--primary); transform: translateX(4px); }
 
-.err-tag {
+.trap-tag {
   display: inline-flex; padding: 3px 10px; border-radius: 6px;
   font-size: 10px; font-weight: 700; letter-spacing: .5px;
   margin-bottom: 8px;
@@ -299,35 +361,37 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 .tag-type   { background: var(--green-l); color: var(--green); }
 .tag-safety { background: #FEE2E2; color: #B91C1C; }
 
-.err-num {
+.trap-label {
   font-size: 10px; font-weight: 700; color: var(--muted);
-  letter-spacing: 1px; margin-bottom: 6px;
+  letter-spacing: 1px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
 }
+.trap-label svg { opacity: 0.5; }
 
-.err-row {
+.trap-row {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 6px; flex-wrap: wrap;
 }
-.err-bad {
+.trap-bad {
   font-size: 10px; font-weight: 800; color: var(--primary);
   background: var(--primary-l); padding: 2px 8px; border-radius: 4px;
 }
-.err-good {
+.trap-good {
   font-size: 10px; font-weight: 800; color: var(--green);
   background: var(--green-l); padding: 2px 8px; border-radius: 4px;
 }
-.err-code {
+.trap-code {
   font-size: 12px; font-family: 'JetBrains Mono', monospace;
   color: var(--mid); background: #F7F0EA; padding: 4px 10px; border-radius: 6px;
 }
 
-.err-rule {
+.trap-rule {
   font-size: 13px; color: var(--mid); line-height: 1.6;
   padding: 10px 14px; margin-top: 8px;
   background: var(--gold-l); border: 1px solid #F0CC80;
   border-radius: 10px;
 }
-.err-rule strong { color: var(--primary-d); }
+.trap-rule strong { color: var(--primary-d); }
 
 /* ─── PATTERN ───────────────────────────────────────────────── */
 .pattern-steps { list-style: none; counter-reset: step; }
@@ -351,6 +415,44 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   padding: 2px 7px; border-radius: 4px; color: var(--purple);
 }
 
+/* ─── TRANSFER EXERCISE ─────────────────────────────────────── */
+.transfer-box {
+  background: var(--dark); border-radius: 14px;
+  padding: 28px; position: relative; overflow: hidden;
+}
+.transfer-box::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 5px; height: 100%;
+  background: linear-gradient(180deg, var(--gold), var(--primary));
+}
+.transfer-tag {
+  display: inline-block; background: var(--gold);
+  color: var(--dark); font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.transfer-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; color: #fff;
+  margin-bottom: 12px;
+}
+.transfer-desc {
+  font-size: 14px; color: rgba(255,255,255,0.6);
+  line-height: 1.7; margin-bottom: 16px;
+}
+.transfer-proto {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: #22d3ee;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.transfer-hint {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  font-style: italic;
+}
+
 /* ─── CHECKLIST ─────────────────────────────────────────────── */
 .check-list { list-style: none; }
 .check-list li {
@@ -370,6 +472,47 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   padding: 2px 6px; border-radius: 4px;
 }
 
+/* ─── EVOLUTION ─────────────────────────────────────────────── */
+.evo-timeline { position: relative; padding-left: 24px; }
+.evo-timeline::before {
+  content: ''; position: absolute;
+  left: 7px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, var(--primary), var(--gold), var(--green));
+  border-radius: 1px;
+}
+.evo-step {
+  position: relative; margin-bottom: 20px;
+  padding: 14px 18px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.evo-step::before {
+  content: ''; position: absolute;
+  left: -21px; top: 18px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid #fff;
+}
+.evo-step:nth-child(1)::before { background: var(--primary); }
+.evo-step:nth-child(2)::before { background: var(--gold); }
+.evo-step:nth-child(3)::before { background: var(--gold); }
+.evo-step:nth-child(4)::before { background: var(--green); }
+.evo-version {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.evo-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: var(--mid); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.evo-fix {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 6px; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+}
+.fix-bad  { background: var(--primary-l); color: var(--primary); }
+.fix-good { background: var(--green-l); color: var(--green); }
+
 /* ─── FOOTER ────────────────────────────────────────────────── */
 .footer {
   text-align: center; padding: 32px 20px;
@@ -386,6 +529,7 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   .bcard { padding: 20px; }
   .sec-num { width: 40px; height: 40px; font-size: 18px; }
   .sec-info h2 { font-size: 20px; }
+  .hero-mantra { font-size: 11px; padding: 12px 16px; }
 }
 </style>
 </head>
@@ -393,7 +537,7 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
 
 <div id="progress-bar"></div>
 
-<!-- HERO -->
+<!-- ═══ HERO + MANTRA ═══ -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-dots"></div>
@@ -408,8 +552,11 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
     <div class="hero-stats">
       <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> 4 versions</span>
       <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#22c55e" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
-      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 7 erreurs corrig&eacute;es</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 7 pi&egrave;ges d&eacute;jou&eacute;s</span>
       <span class="hero-stat">03/04/2026</span>
+    </div>
+    <div class="hero-mantra">
+      <strong>Mantra &rarr;</strong> Cas vide d'abord &middot; init avec <strong>tab[0]</strong> &middot; boucle <strong>i &lt; len</strong> &middot; compare avec <strong>max</strong>, pas le voisin
     </div>
   </div>
 
@@ -419,18 +566,21 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   </div>
 </section>
 
-<!-- NAV -->
+<!-- ═══ NAV ═══ -->
 <nav class="sticky-nav">
-  <span class="nav-label">Sections</span>
-  <a href="#code" class="nav-pill"><span class="n">1</span>Code final</a>
-  <a href="#pattern" class="nav-pill"><span class="n">2</span>Pattern</a>
-  <a href="#erreurs" class="nav-pill"><span class="n">3</span>Erreurs</a>
-  <a href="#checklist" class="nav-pill"><span class="n">4</span>Checklist</a>
+  <span class="nav-label">Fiche</span>
+  <a href="#code" class="nav-pill"><span class="n">1</span>Code</a>
+  <a href="#flashcards" class="nav-pill"><span class="n">2</span>Flashcards</a>
+  <a href="#pieges" class="nav-pill"><span class="n">3</span>Pi&egrave;ges</a>
+  <a href="#pattern" class="nav-pill"><span class="n">4</span>Pattern</a>
+  <a href="#evolution" class="nav-pill"><span class="n">5</span>&Eacute;volution</a>
+  <a href="#transfert" class="nav-pill"><span class="n">6</span>Transfert</a>
+  <a href="#checklist" class="nav-pill"><span class="n">7</span>Checklist</a>
 </nav>
 
 <div class="main">
 
-<!-- 1 CODE FINAL -->
+<!-- ═══ 1 &middot; CODE FINAL ═══ -->
 <div id="code" class="section-label">
   <div class="sec-num green">1</div>
   <div class="sec-info">
@@ -478,21 +628,170 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <div class="bcard bcard-green">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">TESTS</div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2">
-      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68, -1}</span> &rarr; <strong style="color:var(--green)">0 &#10003;</strong><br>
-      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68}</span> &rarr; <strong style="color:var(--green)">0 &#10003;</strong><br>
-      <span style="color:var(--muted)">{7, 42, 0, -5}</span> &rarr; <strong style="color:var(--green)">42 &#10003;</strong>
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">TESTS PASS&Eacute;S</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68, -1}</span><br>&rarr; <strong style="color:var(--green)">0 &#10003;</strong><br><br>
+      <span style="color:var(--muted)">{-42, 0, -5, -64, -2, -68}</span><br>&rarr; <strong style="color:var(--green)">0 &#10003;</strong><br><br>
+      <span style="color:var(--muted)">{7, 42, 0, -5}</span><br>&rarr; <strong style="color:var(--green)">42 &#10003;</strong>
     </div>
   </div>
 </div>
 
-<!-- 2 PATTERN -->
-<div id="pattern" class="section-label">
+<!-- ═══ 2 &middot; FLASHCARDS (Active Recall) ═══ -->
+<div id="flashcards" class="section-label">
   <div class="sec-num purple">2</div>
   <div class="sec-info">
+    <h2>Flashcards</h2>
+    <p>Clique pour r&eacute;v&eacute;ler &mdash; essaie de r&eacute;pondre dans ta t&ecirc;te AVANT</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-white bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div>
+          <div class="flash-q-text">Pourquoi <code style="font-size:12px">int max = 0</code> est dangereux ?</div>
+          <div class="flash-hint">Pense aux nombres n&eacute;gatifs...</div>
+        </div>
+      </div>
+      <div class="flash-a">
+        <p>Si le tableau contient uniquement des n&eacute;gatifs <code>{-5, -3, -1}</code>, aucun &eacute;l&eacute;ment ne sera &gt; 0, donc on retourne 0 &mdash; qui n'est pas dans le tableau. Il faut initialiser avec <code>tab[0]</code>.</p>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div>
+          <div class="flash-q-text">Quelle diff&eacute;rence entre <code style="font-size:12px">while(tab[i])</code> et <code style="font-size:12px">while(i &lt; len)</code> ?</div>
+          <div class="flash-hint">String vs tableau d'int...</div>
+        </div>
+      </div>
+      <div class="flash-a">
+        <p><code>while(tab[i])</code> s'arr&ecirc;te quand la valeur vaut 0 &mdash; c'est pour les strings (termin&eacute;es par <code>\0</code>). Un tableau d'int peut contenir des 0 l&eacute;gitimes. Il faut utiliser l'index <code>i &lt; len</code> pour contr&ocirc;ler la boucle.</p>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div>
+          <div class="flash-q-text">Pourquoi comparer avec <code style="font-size:12px">max</code> et pas avec <code style="font-size:12px">tab[i+1]</code> ?</div>
+          <div class="flash-hint">Deux raisons...</div>
+        </div>
+      </div>
+      <div class="flash-a">
+        <p><strong>1)</strong> <code>tab[i+1]</code> d&eacute;borde quand <code>i</code> est au dernier &eacute;l&eacute;ment (undefined behavior). <strong>2)</strong> Comparer des voisins ne garde pas trace du maximum global &mdash; on perd l'info des &eacute;l&eacute;ments pr&eacute;c&eacute;dents.</p>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div>
+          <div class="flash-q-text">Pourquoi <code style="font-size:12px">unsigned int i</code> et pas <code style="font-size:12px">int i</code> ?</div>
+          <div class="flash-hint">Le compilateur te le dit...</div>
+        </div>
+      </div>
+      <div class="flash-a">
+        <p>Comparer un <code>int</code> (sign&eacute;) avec un <code>unsigned int</code> (non-sign&eacute;) g&eacute;n&egrave;re un warning <code>-Wsign-compare</code>. Avec <code>-Werror</code>, &ccedil;a compile pas. Le compteur doit matcher le type de <code>len</code>.</p>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div>
+          <div class="flash-q-text">Que se passe-t-il si on lit <code style="font-size:12px">tab[0]</code> avant de v&eacute;rifier <code style="font-size:12px">len == 0</code> ?</div>
+          <div class="flash-hint">Tableau vide...</div>
+        </div>
+      </div>
+      <div class="flash-a">
+        <p>Si le tableau est vide (ou NULL), acc&eacute;der &agrave; <code>tab[0]</code> = lecture d'une adresse invalide = <strong>segfault</strong> ou undefined behavior. Toujours v&eacute;rifier les cas limites AVANT d'acc&eacute;der aux donn&eacute;es.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ 3 &middot; PI&Egrave;GES ═══ -->
+<div id="pieges" class="section-label">
+  <div class="sec-num red">3</div>
+  <div class="sec-info">
+    <h2>Pi&egrave;ges d&eacute;jou&eacute;s</h2>
+    <p>7 pi&egrave;ges rencontr&eacute;s &mdash; chaque carte = une le&ccedil;on grav&eacute;e</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-loop">BOUCLE</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #1</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (tab[i])</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (i &lt; len)</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> confondre string (termin&eacute;e par \0) et tableau d'int (termin&eacute; par len). <code>while(str[i])</code> = strings uniquement.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-loop">BOUCLE</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #2</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (tab[i] &lt; len)</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (i &lt; len)</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> confondre <em>valeur</em> et <em>index</em>. <code>tab[i]</code> = ce qu'il y a dans la case. <code>i</code> = quelle case tu regardes.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-logic">LOGIQUE</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #3</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">max = tab[i];</code> <span style="font-size:11px;color:var(--muted)">(sans if)</span></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (tab[i] &gt; max) max = tab[i];</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> &eacute;craser l'accumulateur &agrave; chaque tour. On update SEULEMENT quand le nouveau est meilleur.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-logic">LOGIQUE</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #4</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">if (tab[i] &lt; tab[i+1])</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (tab[i] &gt; max)</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> comparer des voisins au lieu de l'accumulateur. <code>tab[i+1]</code> = acc&egrave;s hors tableau au dernier &eacute;l&eacute;ment.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-init">INITIALISATION</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #5</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int max = 0;</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">int max = tab[0];</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> 0 n'est pas neutre pour un max. Avec <code>{-5, -3}</code> on retourne 0 qui n'est pas dans le tableau. Toujours init avec un vrai &eacute;l&eacute;ment.</div>
+  </div>
+
+  <div class="bcard bcard-white">
+    <span class="trap-tag tag-safety">S&Eacute;CURIT&Eacute;</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #6</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int max = tab[i]; // avant check</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (len == 0) return 0; // PUIS tab[i]</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> acc&eacute;der aux donn&eacute;es avant de v&eacute;rifier qu'elles existent. Tableau vide + <code>tab[0]</code> = crash.</div>
+  </div>
+
+  <div class="bcard bcard-white bento-wide">
+    <span class="trap-tag tag-type">TYPE</span>
+    <div class="trap-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6l5 5 5-5"/></svg> PI&Egrave;GE #7</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">int i = 0;</code> <span style="font-size:11px;color:var(--muted)">compar&eacute; &agrave; unsigned int len</span></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">unsigned int i = 0;</code></div>
+    <div class="trap-rule"><strong>Le piège :</strong> <code>-Wsign-compare</code> + <code>-Werror</code> = &ccedil;a compile pas. Le compteur doit matcher le type de <code>len</code>. Mais l'accumulateur reste <code>int</code> (pour les n&eacute;gatifs).</div>
+  </div>
+
+</div>
+
+<!-- ═══ 4 &middot; PATTERN ═══ -->
+<div id="pattern" class="section-label">
+  <div class="sec-num teal">4</div>
+  <div class="sec-info">
     <h2>Pattern r&eacute;utilisable</h2>
-    <p>Parcours de tableau avec accumulateur &mdash; revient dans min, max, sum, search, count...</p>
+    <p>Parcours + accumulateur &mdash; min, max, sum, search, count...</p>
   </div>
 </div>
 
@@ -500,89 +799,126 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
   <div class="bcard bcard-purple bento-wide">
     <ol class="pattern-steps">
       <li>G&eacute;rer le cas vide <code>len == 0</code> <strong>en premier</strong></li>
-      <li>Initialiser l'accumulateur avec <code>tab[0]</code> &mdash; jamais avec 0</li>
+      <li>Initialiser l'accumulateur avec <code>tab[0]</code> &mdash; jamais avec une valeur arbitraire</li>
       <li>Parcourir avec <code>i &lt; len</code> &mdash; l'index, pas la valeur</li>
-      <li>Comparer <code>tab[i]</code> avec l'accumulateur &mdash; pas avec <code>tab[i+1]</code></li>
+      <li>Comparer <code>tab[i]</code> avec l'accumulateur &mdash; jamais avec <code>tab[i+1]</code></li>
       <li>Return l'accumulateur</li>
     </ol>
   </div>
 </div>
 
-<!-- 3 ERREURS -->
-<div id="erreurs" class="section-label">
-  <div class="sec-num red">3</div>
+<!-- ═══ 5 &middot; &Eacute;VOLUTION ═══ -->
+<div id="evolution" class="section-label">
+  <div class="sec-num gold">5</div>
   <div class="sec-info">
-    <h2>Mes erreurs</h2>
-    <p>7 erreurs corrig&eacute;es &mdash; chaque carte = une le&ccedil;on &agrave; retenir</p>
+    <h2>&Eacute;volution du code</h2>
+    <p>4 versions &mdash; la trajectoire de ta r&eacute;flexion</p>
   </div>
 </div>
 
 <div class="bento" style="margin-bottom:48px">
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-loop">BOUCLE</span>
-    <div class="err-num">ERREUR #1</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">while (tab[i])</code></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">while (i &lt; len)</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> un tableau d'int &ne; une string. Pas de <code>\0</code> &agrave; la fin. <code>while(str[i])</code> = strings uniquement. Tableau &rarr; toujours <code>i &lt; len</code>.</div>
-  </div>
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-loop">BOUCLE</span>
-    <div class="err-num">ERREUR #2</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">while (tab[i] &lt; len)</code></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">while (i &lt; len)</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> <code>tab[i]</code> = la valeur dans la case. <code>i</code> = quelle case. On compare l'INDEX &agrave; la taille, pas la VALEUR.</div>
-  </div>
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-logic">LOGIQUE</span>
-    <div class="err-num">ERREUR #3</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">max = tab[i];</code> <span style="font-size:11px;color:var(--muted)">(sans condition)</span></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (tab[i] &gt; max) max = tab[i];</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> on update l'accumulateur SEULEMENT si le nouveau est meilleur. Sinon on &eacute;crase tout &agrave; chaque tour.</div>
-  </div>
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-logic">LOGIQUE</span>
-    <div class="err-num">ERREUR #4</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">if (tab[i] &lt; tab[i+1])</code></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (tab[i] &gt; max)</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> toujours comparer avec l'accumulateur <code>max</code>, jamais entre &eacute;l&eacute;ments adjacents. <code>tab[i+1]</code> d&eacute;borde au dernier &eacute;l&eacute;ment.</div>
-  </div>
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-init">INITIALISATION</span>
-    <div class="err-num">ERREUR #5</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int max = 0;</code></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">int max = tab[0];</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> avec <code>{-5, -3, -1}</code> et max=0, on retourne 0 qui n'est pas dans le tableau. Toujours initialiser avec le premier &eacute;l&eacute;ment.</div>
-  </div>
-
-  <div class="bcard bcard-white">
-    <span class="err-tag tag-safety">S&Eacute;CURIT&Eacute;</span>
-    <div class="err-num">ERREUR #6</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int max = tab[i]; // avant check</code></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">if (len == 0) return 0; // PUIS tab[i]</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> toujours v&eacute;rifier les cas limites AVANT d'acc&eacute;der aux donn&eacute;es. Lire <code>tab[0]</code> sur un tableau vide = crash.</div>
-  </div>
-
   <div class="bcard bcard-white bento-wide">
-    <span class="err-tag tag-type">TYPE</span>
-    <div class="err-num">ERREUR #7</div>
-    <div class="err-row"><span class="err-bad">&#10005;</span><code class="err-code">int i = 0;</code> <span style="font-size:11px;color:var(--muted)">compar&eacute; &agrave; unsigned int len</span></div>
-    <div class="err-row"><span class="err-good">&#10003;</span><code class="err-code">unsigned int i = 0;</code></div>
-    <div class="err-rule"><strong>R&egrave;gle :</strong> <code>-Wsign-compare</code> + <code>-Werror</code> = compile pas. Si <code>len</code> est unsigned, le compteur aussi. Mais l'accumulateur reste <code>int</code> (pour les n&eacute;gatifs).</div>
-  </div>
+    <div class="evo-timeline">
 
+      <div class="evo-step">
+        <div class="evo-version">VERSION 1</div>
+        <div class="evo-code">while (tab[i])
+{
+    max = tab[i];
+    if (tab[i] &lt; tab[i+1])
+        max = tab[i+1];
+    i++;
+}</div>
+        <div><span class="evo-fix fix-bad">while(tab[i]) au lieu de i &lt; len</span></div>
+        <div><span class="evo-fix fix-bad">max &eacute;cras&eacute; sans condition</span></div>
+        <div><span class="evo-fix fix-bad">tab[i+1] hors tableau</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 2</div>
+        <div class="evo-code">int max = tab[i];
+while (tab[i] &lt; len)
+{
+    if (tab[i] &lt; tab[i+1])
+        max = tab[i+1];
+    i++;
+}</div>
+        <div><span class="evo-fix fix-good">init avec tab[i] &#10003;</span></div>
+        <div><span class="evo-fix fix-bad">tab[i] &lt; len &rarr; valeur vs index</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 3</div>
+        <div class="evo-code">int max = 0;
+while (i &lt; len)
+{
+    if (tab[i] &gt; max)
+        max = tab[i];
+    i++;
+}</div>
+        <div><span class="evo-fix fix-good">i &lt; len &#10003;</span></div>
+        <div><span class="evo-fix fix-good">compare avec max &#10003;</span></div>
+        <div><span class="evo-fix fix-bad">max = 0 &rarr; casse les n&eacute;gatifs</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION FINALE &#10003;</div>
+        <div class="evo-code">unsigned int i = 0;
+if (len == 0) return 0;
+int max = tab[i];
+while (i &lt; len)
+{
+    if (tab[i] &gt; max)
+        max = tab[i];
+    i++;
+}
+return (max);</div>
+        <div><span class="evo-fix fix-good">cas vide en premier &#10003;</span></div>
+        <div><span class="evo-fix fix-good">init tab[0] &#10003;</span></div>
+        <div><span class="evo-fix fix-good">unsigned int i &#10003;</span></div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-<!-- 4 CHECKLIST -->
-<div id="checklist" class="section-label">
-  <div class="sec-num gold">4</div>
+<!-- ═══ 6 &middot; TRANSFERT ═══ -->
+<div id="transfert" class="section-label">
+  <div class="sec-num red">6</div>
   <div class="sec-info">
-    <h2>Checklist avant de rendre</h2>
-    <p>V&eacute;rifie ces points &agrave; chaque exo</p>
+    <h2>Exercice de transfert</h2>
+    <p>M&ecirc;me pattern, exo diff&eacute;rent &mdash; solidifie l'apprentissage</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-white bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 1</div>
+      <div class="transfer-title">min</div>
+      <div class="transfer-desc">&Eacute;cris une fonction qui retourne le plus <strong style="color:#F4886A">petit</strong> int du tableau. M&ecirc;me pattern &mdash; combien de caract&egrave;res changent ?</div>
+      <div class="transfer-proto">int  min(int* tab, unsigned int len);</div>
+      <div class="transfer-hint">Indice : un seul op&eacute;rateur change dans le code.</div>
+    </div>
+
+    <div class="transfer-box">
+      <div class="transfer-tag">CHALLENGE 2</div>
+      <div class="transfer-title">sum</div>
+      <div class="transfer-desc">Retourne la <strong style="color:#F4886A">somme</strong> de tous les &eacute;l&eacute;ments. L'accumulateur d&eacute;marre &agrave; combien cette fois ?</div>
+      <div class="transfer-proto">int  sum(int* tab, unsigned int len);</div>
+      <div class="transfer-hint">Indice : pour une somme, 0 est le bon point de d&eacute;part (contrairement au max).</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ 7 &middot; CHECKLIST ═══ -->
+<div id="checklist" class="section-label">
+  <div class="sec-num gold">7</div>
+  <div class="sec-info">
+    <h2>Checklist exam</h2>
+    <p>V&eacute;rifie &agrave; chaque exo avant de submit</p>
   </div>
 </div>
 
@@ -591,29 +927,32 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
     <ul class="check-list">
       <li><span class="check-icon">&#9744;</span> Cas limites g&eacute;r&eacute;s <strong>en premier</strong> (len == 0, argc != X...)</li>
       <li><span class="check-icon">&#9744;</span> Boucle : <strong>index</strong> vs len, PAS valeur vs len</li>
-      <li><span class="check-icon">&#9744;</span> Accumulateur initialis&eacute; avec une <strong>vraie valeur</strong> (pas 0)</li>
+      <li><span class="check-icon">&#9744;</span> Accumulateur initialis&eacute; avec une <strong>vraie valeur</strong> du tableau</li>
+      <li><span class="check-icon">&#9744;</span> Compare avec l'accumulateur, <strong>jamais tab[i+1]</strong></li>
       <li><span class="check-icon">&#9744;</span> Compile avec <code>gcc -Wall -Wextra -Werror</code></li>
       <li><span class="check-icon">&#9744;</span> Types coh&eacute;rents (<strong>signed vs unsigned</strong>)</li>
-      <li><span class="check-icon">&#9744;</span> Pas d'acc&egrave;s hors tableau (<code>tab[i+1]</code> interdit)</li>
+      <li><span class="check-icon">&#9744;</span> <strong>return</strong> pr&eacute;sent &agrave; la fin de la fonction</li>
     </ul>
   </div>
 </div>
 
 </div>
 
-<!-- FOOTER -->
+<!-- ═══ FOOTER ═══ -->
 <div class="footer">
   <div class="footer-brand">42 Prof</div>
   Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 03/04/2026
 </div>
 
 <script>
+// Progress bar
 window.addEventListener('scroll', () => {
   const h = document.documentElement;
   const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
   document.getElementById('progress-bar').style.width = pct + '%';
 });
 
+// Scroll-reveal
 const obs = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
 }, { threshold: 0.1 });
