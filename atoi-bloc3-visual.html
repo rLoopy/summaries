@@ -470,6 +470,193 @@ section h2 .icon {
   color: var(--cyan2);
 }
 
+/* Walkthrough */
+.walkthrough {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.walk-phase {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+.walk-phase.tour {
+  border-color: var(--blue-border);
+}
+.walk-phase-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.tour-title { color: var(--blue); border-color: var(--blue-border) !important; }
+.exit-title { color: var(--orange); border-color: var(--orange-border) !important; }
+.exit-phase { border-color: var(--orange-border); }
+
+.walk-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+.walk-line {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.walk-line .ln {
+  color: var(--muted);
+  font-size: 0.75rem;
+  width: 20px;
+  text-align: right;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.walk-line .kw { color: var(--purple); }
+.walk-line .op { color: var(--orange); }
+.walk-line .val { color: var(--cyan2); }
+.walk-line .st { color: var(--green); }
+.walk-line.hl-line {
+  background: rgba(56,189,248,0.06);
+}
+.walk-line.main-line {
+  background: rgba(167,139,250,0.1);
+  border-left: 3px solid var(--purple);
+  padding-left: 0.75rem;
+}
+.walk-line.exit-line {
+  background: rgba(251,146,60,0.06);
+}
+
+.walk-comment {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  margin-left: auto;
+}
+.walk-check {
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+.walk-cross {
+  color: var(--orange);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.walk-expand {
+  margin: 0.75rem 0 0.75rem 2.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg2);
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.walk-expand-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+.walk-expand-label {
+  color: var(--muted);
+  min-width: 100px;
+  text-align: right;
+}
+.walk-expand-calc {
+  color: var(--mid);
+}
+.walk-expand-calc strong {
+  color: var(--text);
+}
+.walk-expand-row.final {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.walk-result-num {
+  color: var(--cyan2) !important;
+  font-size: 1.1rem;
+}
+.hl-old { color: var(--purple2); font-weight: 600; }
+.hl-ten { color: var(--gold); font-weight: 600; }
+.hl-ascii { color: var(--cyan2); }
+.walk-hint {
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.walk-state {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.walk-var {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+.walk-var.changed {
+  border-color: var(--cyan-border);
+  background: var(--cyan-bg);
+}
+.walk-var-name {
+  color: var(--muted);
+}
+.walk-var-val {
+  color: var(--cyan2);
+  font-weight: 700;
+}
+
+.walk-final-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(6,214,160,0.05));
+  border: 2px solid var(--green);
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(52,211,153,0.12);
+}
+.walk-final-label {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.walk-final-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--green);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .hero h1 { font-size: 1.8rem; }
@@ -560,6 +747,173 @@ section h2 .icon {
           40 + 2 = <strong>42</strong>. Le chiffre est posé au bon endroit.
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- CODE WALKTHROUGH -->
+  <section>
+    <h2><span class="icon" style="background: var(--blue-bg); color: var(--blue);">🖥️</span> Le code en action — str = "427"</h2>
+    <div class="walkthrough">
+
+      <!-- Init -->
+      <div class="walk-phase">
+        <div class="walk-phase-title">Initialisation</div>
+        <div class="walk-code">
+          <div class="walk-line">
+            <span class="ln">1</span>
+            <span class="kw">int</span> res <span class="op">=</span> <span class="val">0</span>;
+          </div>
+          <div class="walk-line">
+            <span class="ln">2</span>
+            <span class="kw">int</span> i <span class="op">=</span> <span class="val">0</span>;
+            <span class="walk-comment">// (après les blocs 1 et 2)</span>
+          </div>
+        </div>
+        <div class="walk-state">
+          <div class="walk-var"><span class="walk-var-name">res</span><span class="walk-var-val">0</span></div>
+          <div class="walk-var"><span class="walk-var-name">i</span><span class="walk-var-val">0</span></div>
+          <div class="walk-var"><span class="walk-var-name">str</span><span class="walk-var-val">"427\0"</span></div>
+        </div>
+      </div>
+
+      <!-- Tour 1 -->
+      <div class="walk-phase tour">
+        <div class="walk-phase-title tour-title">Tour 1 — str[0] = '4'</div>
+        <div class="walk-code">
+          <div class="walk-line hl-line">
+            <span class="ln">3</span>
+            <span class="kw">while</span> (str[<span class="val">0</span>] >= <span class="st">'0'</span> && str[<span class="val">0</span>] <= <span class="st">'9'</span>)
+            <span class="walk-check">✓ '4' est un chiffre</span>
+          </div>
+          <div class="walk-line hl-line main-line">
+            <span class="ln">4</span>
+            res = <span class="hl-old">0</span> * <span class="hl-ten">10</span> + (str[<span class="val">0</span>] - <span class="st">'0'</span>);
+          </div>
+          <div class="walk-expand">
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">str[0] - '0'</span>
+              <span class="walk-expand-calc"><span class="hl-ascii">'4'</span> (52) - <span class="hl-ascii">'0'</span> (48) = <strong>4</strong></span>
+            </div>
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">res * 10</span>
+              <span class="walk-expand-calc"><span class="hl-old">0</span> × 10 = <strong>0</strong></span>
+            </div>
+            <div class="walk-expand-row final">
+              <span class="walk-expand-label">res =</span>
+              <span class="walk-expand-calc">0 + 4 = <strong class="walk-result-num">4</strong></span>
+            </div>
+          </div>
+          <div class="walk-line">
+            <span class="ln">5</span>
+            i<span class="op">++</span>;
+            <span class="walk-comment">// i = 1</span>
+          </div>
+        </div>
+        <div class="walk-state">
+          <div class="walk-var changed"><span class="walk-var-name">res</span><span class="walk-var-val">4</span></div>
+          <div class="walk-var changed"><span class="walk-var-name">i</span><span class="walk-var-val">1</span></div>
+        </div>
+      </div>
+
+      <!-- Tour 2 -->
+      <div class="walk-phase tour">
+        <div class="walk-phase-title tour-title">Tour 2 — str[1] = '2'</div>
+        <div class="walk-code">
+          <div class="walk-line hl-line">
+            <span class="ln">3</span>
+            <span class="kw">while</span> (str[<span class="val">1</span>] >= <span class="st">'0'</span> && str[<span class="val">1</span>] <= <span class="st">'9'</span>)
+            <span class="walk-check">✓ '2' est un chiffre</span>
+          </div>
+          <div class="walk-line hl-line main-line">
+            <span class="ln">4</span>
+            res = <span class="hl-old">4</span> * <span class="hl-ten">10</span> + (str[<span class="val">1</span>] - <span class="st">'0'</span>);
+          </div>
+          <div class="walk-expand">
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">str[1] - '0'</span>
+              <span class="walk-expand-calc"><span class="hl-ascii">'2'</span> (50) - <span class="hl-ascii">'0'</span> (48) = <strong>2</strong></span>
+            </div>
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">res * 10</span>
+              <span class="walk-expand-calc"><span class="hl-old">4</span> × 10 = <strong>40</strong> <span class="walk-hint">← le 4 "glisse" vers les dizaines</span></span>
+            </div>
+            <div class="walk-expand-row final">
+              <span class="walk-expand-label">res =</span>
+              <span class="walk-expand-calc">40 + 2 = <strong class="walk-result-num">42</strong></span>
+            </div>
+          </div>
+          <div class="walk-line">
+            <span class="ln">5</span>
+            i<span class="op">++</span>;
+            <span class="walk-comment">// i = 2</span>
+          </div>
+        </div>
+        <div class="walk-state">
+          <div class="walk-var changed"><span class="walk-var-name">res</span><span class="walk-var-val">42</span></div>
+          <div class="walk-var changed"><span class="walk-var-name">i</span><span class="walk-var-val">2</span></div>
+        </div>
+      </div>
+
+      <!-- Tour 3 -->
+      <div class="walk-phase tour">
+        <div class="walk-phase-title tour-title">Tour 3 — str[2] = '7'</div>
+        <div class="walk-code">
+          <div class="walk-line hl-line">
+            <span class="ln">3</span>
+            <span class="kw">while</span> (str[<span class="val">2</span>] >= <span class="st">'0'</span> && str[<span class="val">2</span>] <= <span class="st">'9'</span>)
+            <span class="walk-check">✓ '7' est un chiffre</span>
+          </div>
+          <div class="walk-line hl-line main-line">
+            <span class="ln">4</span>
+            res = <span class="hl-old">42</span> * <span class="hl-ten">10</span> + (str[<span class="val">2</span>] - <span class="st">'0'</span>);
+          </div>
+          <div class="walk-expand">
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">str[2] - '0'</span>
+              <span class="walk-expand-calc"><span class="hl-ascii">'7'</span> (55) - <span class="hl-ascii">'0'</span> (48) = <strong>7</strong></span>
+            </div>
+            <div class="walk-expand-row">
+              <span class="walk-expand-label">res * 10</span>
+              <span class="walk-expand-calc"><span class="hl-old">42</span> × 10 = <strong>420</strong> <span class="walk-hint">← tout glisse encore</span></span>
+            </div>
+            <div class="walk-expand-row final">
+              <span class="walk-expand-label">res =</span>
+              <span class="walk-expand-calc">420 + 7 = <strong class="walk-result-num">427</strong></span>
+            </div>
+          </div>
+          <div class="walk-line">
+            <span class="ln">5</span>
+            i<span class="op">++</span>;
+            <span class="walk-comment">// i = 3</span>
+          </div>
+        </div>
+        <div class="walk-state">
+          <div class="walk-var changed"><span class="walk-var-name">res</span><span class="walk-var-val">427</span></div>
+          <div class="walk-var changed"><span class="walk-var-name">i</span><span class="walk-var-val">3</span></div>
+        </div>
+      </div>
+
+      <!-- Sortie -->
+      <div class="walk-phase exit-phase">
+        <div class="walk-phase-title exit-title">Sortie de boucle — str[3] = '\0'</div>
+        <div class="walk-code">
+          <div class="walk-line exit-line">
+            <span class="ln">3</span>
+            <span class="kw">while</span> (str[<span class="val">3</span>] >= <span class="st">'0'</span> && str[<span class="val">3</span>] <= <span class="st">'9'</span>)
+            <span class="walk-cross">✗ '\0' (0) < '0' (48) → STOP</span>
+          </div>
+          <div class="walk-line hl-line main-line" style="margin-top: 0.75rem;">
+            <span class="ln">6</span>
+            <span class="kw">return</span> (res * signe);
+            <span class="walk-comment">// 427 * 1 = 427</span>
+          </div>
+        </div>
+        <div class="walk-final-result">
+          <span class="walk-final-label">Résultat</span>
+          <span class="walk-final-val">427</span>
+        </div>
+      </div>
+
     </div>
   </section>
 
