@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ft_atoi — Bloc 3 : Construire le nombre</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0C0C14;
+  --bg2: #111119;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07);
+  --text: #E2E4E9;
+  --mid: #A0A4B0;
+  --muted: #6B6F7E;
+  --cyan: #06D6A0;
+  --cyan2: #34EDBC;
+  --cyan-bg: rgba(6,214,160,0.08);
+  --cyan-border: rgba(6,214,160,0.22);
+  --purple: #A78BFA;
+  --purple2: #C4B5FD;
+  --purple-bg: rgba(167,139,250,0.08);
+  --purple-border: rgba(167,139,250,0.22);
+  --orange: #FB923C;
+  --orange2: #FDBA74;
+  --orange-bg: rgba(251,146,60,0.08);
+  --orange-border: rgba(251,146,60,0.22);
+  --green: #34D399;
+  --gold: #FBBF24;
+  --gold-bg: rgba(251,191,36,0.08);
+  --gold-border: rgba(251,191,36,0.22);
+  --blue: #38BDF8;
+  --blue-bg: rgba(56,189,248,0.08);
+  --blue-border: rgba(56,189,248,0.22);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.7;
+  font-variant-ligatures: none;
+  overflow-x: hidden;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 4rem 2rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 60%, rgba(167,139,250,0.12) 0%, transparent 50%),
+              radial-gradient(circle at 30% 40%, rgba(6,214,160,0.08) 0%, transparent 40%);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+@keyframes heroGlow {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  position: relative;
+  background: linear-gradient(135deg, var(--purple2), var(--cyan2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+.hero .subtitle {
+  font-size: 1.1rem;
+  color: var(--mid);
+  position: relative;
+}
+
+/* Code block */
+.code-hero {
+  background: var(--card);
+  border: 1px solid var(--purple-border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  color: var(--cyan2);
+  text-align: left;
+  position: relative;
+  box-shadow: 0 0 30px rgba(167,139,250,0.08);
+}
+.code-hero .keyword { color: var(--purple); }
+.code-hero .op { color: var(--orange); }
+.code-hero .str { color: var(--green); }
+.code-hero .comment { color: var(--muted); font-style: italic; }
+
+/* Section */
+section {
+  margin: 3rem 0;
+}
+section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+section h2 .icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Analogie card */
+.analogy-card {
+  background: var(--card);
+  border: 1px solid var(--gold-border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+.analogy-card h3 {
+  color: var(--gold);
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+}
+.analogy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.analogy-side {
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+}
+.analogy-side h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.analogy-side .big {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+/* Simulator */
+.simulator {
+  background: var(--card);
+  border: 1px solid var(--cyan-border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+
+.sim-input-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.sim-input-row label {
+  color: var(--mid);
+  font-weight: 600;
+}
+.sim-input {
+  background: var(--bg);
+  border: 2px solid var(--cyan-border);
+  border-radius: 8px;
+  color: var(--cyan2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.3rem;
+  padding: 0.6rem 1rem;
+  width: 200px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sim-input:focus { border-color: var(--cyan); }
+.sim-btn {
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.sim-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(6,214,160,0.3); }
+.sim-btn:active { transform: translateY(0); }
+
+/* String display */
+.string-display {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+.char-box {
+  width: 52px; height: 64px;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.4s ease;
+  position: relative;
+}
+.char-box .char {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.char-box .ascii {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.char-box.active {
+  border-color: var(--cyan);
+  background: var(--cyan-bg);
+  box-shadow: 0 0 20px rgba(6,214,160,0.25);
+  transform: scale(1.1);
+}
+.char-box.done {
+  border-color: var(--purple-border);
+  background: var(--purple-bg);
+}
+.char-box.pointer::after {
+  content: 'str[i]';
+  position: absolute;
+  bottom: -24px;
+  font-size: 0.7rem;
+  color: var(--cyan);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Steps */
+.steps-container {
+  margin-top: 1.5rem;
+}
+.step {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.3;
+  transform: translateX(-10px);
+  transition: all 0.5s ease;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+.step.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.step.active-step {
+  border-color: var(--cyan-border);
+  background: var(--cyan-bg);
+  box-shadow: 0 0 15px rgba(6,214,160,0.1);
+}
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 2px solid var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.step.active-step .step-num {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: var(--cyan-bg);
+}
+.step-formula {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.step-formula .hl-purple { color: var(--purple2); font-weight: 600; }
+.step-formula .hl-cyan { color: var(--cyan2); font-weight: 600; }
+.step-formula .hl-orange { color: var(--orange2); font-weight: 600; }
+.step-formula .hl-gold { color: var(--gold); font-weight: 600; }
+.step-result {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Result display */
+.result-display {
+  text-align: center;
+  margin: 2rem 0 1rem;
+  padding: 1.5rem;
+  background: var(--card);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.5s;
+}
+.result-display.show {
+  border-color: var(--green);
+  box-shadow: 0 0 30px rgba(52,211,153,0.15);
+}
+.result-display .label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+.result-display .value {
+  font-size: 3rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--green);
+  transition: all 0.3s;
+}
+
+/* Breakdown section */
+.breakdown {
+  background: var(--card);
+  border: 1px solid var(--orange-border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+.breakdown h3 {
+  color: var(--orange);
+  font-size: 1.15rem;
+  margin-bottom: 1.5rem;
+}
+.op-explain {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+.op-code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+.op-code.c1 { color: var(--cyan2); border-color: var(--cyan-border); }
+.op-code.c2 { color: var(--purple2); border-color: var(--purple-border); }
+.op-code.c3 { color: var(--orange2); border-color: var(--orange-border); }
+.op-text {
+  color: var(--mid);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding-top: 0.3rem;
+}
+.op-text strong { color: var(--text); }
+
+/* Controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+.ctrl-btn {
+  background: var(--card2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ctrl-btn:hover { border-color: var(--cyan-border); color: var(--cyan); }
+.ctrl-btn.primary {
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  border: none;
+  color: #fff;
+}
+.ctrl-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(6,214,160,0.25); }
+.ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Recap */
+.recap {
+  background: var(--card);
+  border: 1px solid var(--green);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 0 25px rgba(52,211,153,0.08);
+}
+.recap h3 {
+  color: var(--green);
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+}
+.recap ol {
+  list-style: none;
+  counter-reset: recap-counter;
+}
+.recap ol li {
+  counter-increment: recap-counter;
+  padding: 0.5rem 0;
+  color: var(--mid);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.recap ol li::before {
+  content: counter(recap-counter);
+  background: rgba(52,211,153,0.15);
+  color: var(--green);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.recap code {
+  background: var(--bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--cyan2);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.8rem; }
+  .analogy-grid { grid-template-columns: 1fr; }
+  .char-box { width: 42px; height: 54px; }
+  .char-box .char { font-size: 1.1rem; }
+  .step { grid-template-columns: auto 1fr; }
+  .step-result { grid-column: 1 / -1; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>res = res * 10 + (str[i] - '0')</h1>
+    <p class="subtitle">La ligne magique de ft_atoi — décortiquée visuellement</p>
+  </div>
+
+  <!-- CODE -->
+  <div class="code-hero">
+    <span class="keyword">while</span> (str[i] >= <span class="str">'0'</span> && str[i] <= <span class="str">'9'</span>)<br>
+    {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;res <span class="op">=</span> res <span class="op">*</span> <span class="str">10</span> <span class="op">+</span> (str[i] <span class="op">-</span> <span class="str">'0'</span>);<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+    }<br>
+    <span class="keyword">return</span> (res <span class="op">*</span> signe);
+  </div>
+
+  <!-- ANALOGIE -->
+  <section>
+    <h2><span class="icon" style="background: var(--gold-bg); color: var(--gold);">💡</span> L'analogie</h2>
+    <div class="analogy-card">
+      <h3>C'est comme écrire un nombre à la main, chiffre par chiffre</h3>
+      <p style="color: var(--mid); margin-bottom: 1.5rem;">
+        Quand quelqu'un te dicte <strong style="color:var(--text);">"quatre... deux... sept"</strong>, tu fais quoi dans ta tête ?
+      </p>
+      <div class="analogy-grid">
+        <div class="analogy-side">
+          <h4>🧠 Dans ta tête</h4>
+          <div style="font-size: 0.95rem; color: var(--mid); line-height: 2;">
+            <div>"quatre" → <strong style="color: var(--cyan2);">4</strong></div>
+            <div>"deux" → <strong style="color: var(--cyan2);">4</strong> je décale, j'ajoute 2 → <strong style="color: var(--cyan2);">42</strong></div>
+            <div>"sept" → <strong style="color: var(--cyan2);">42</strong> je décale, j'ajoute 7 → <strong style="color: var(--cyan2);">427</strong></div>
+          </div>
+        </div>
+        <div class="analogy-side">
+          <h4>💻 En C</h4>
+          <div style="font-size: 0.95rem; color: var(--mid); line-height: 2; font-family: 'JetBrains Mono', monospace;">
+            <div>res = <span style="color:var(--purple2)">0</span> * 10 + <span style="color:var(--cyan2)">4</span> = <strong style="color:var(--orange2)">4</strong></div>
+            <div>res = <span style="color:var(--purple2)">4</span> * 10 + <span style="color:var(--cyan2)">2</span> = <strong style="color:var(--orange2)">42</strong></div>
+            <div>res = <span style="color:var(--purple2)">42</span> * 10 + <span style="color:var(--cyan2)">7</span> = <strong style="color:var(--orange2)">427</strong></div>
+          </div>
+        </div>
+      </div>
+      <p style="color: var(--gold); margin-top: 1.5rem; font-weight: 600; text-align: center; font-size: 1.05rem;">
+        "Décaler" = × 10 &nbsp;&nbsp;|&nbsp;&nbsp; "Ajouter" = + le nouveau chiffre
+      </p>
+    </div>
+  </section>
+
+  <!-- DECOMPOSITION -->
+  <section>
+    <h2><span class="icon" style="background: var(--orange-bg); color: var(--orange);">🔬</span> Décomposition de la formule</h2>
+    <div class="breakdown">
+      <h3>res = res * 10 + (str[i] - '0')</h3>
+      <div class="op-explain">
+        <div class="op-code c1">str[i] - '0'</div>
+        <div class="op-text">
+          Transforme un <strong>char</strong> en <strong>int</strong>.<br>
+          Le char <code style="color:var(--cyan2)">'4'</code> vaut <strong>52</strong> en ASCII.
+          Le char <code style="color:var(--cyan2)">'0'</code> vaut <strong>48</strong>.<br>
+          <code style="color:var(--cyan2)">'4' - '0'</code> = 52 - 48 = <strong style="color:var(--cyan)">4</strong> → le vrai chiffre.
+        </div>
+
+        <div class="op-code c2">res * 10</div>
+        <div class="op-text">
+          <strong>Décale</strong> tous les chiffres existants d'une position vers la gauche.<br>
+          Si res = <strong>4</strong>, alors 4 × 10 = <strong>40</strong>. Les unités deviennent dizaines.<br>
+          C'est comme "faire de la place" pour le prochain chiffre.
+        </div>
+
+        <div class="op-code c3">+ (...)</div>
+        <div class="op-text">
+          <strong>Ajoute</strong> le nouveau chiffre dans la place libérée (les unités).<br>
+          40 + 2 = <strong>42</strong>. Le chiffre est posé au bon endroit.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATEUR INTERACTIF -->
+  <section>
+    <h2><span class="icon" style="background: var(--cyan-bg); color: var(--cyan);">▶️</span> Simulateur interactif</h2>
+    <div class="simulator">
+      <div class="sim-input-row">
+        <label>String à convertir :</label>
+        <input type="text" class="sim-input" id="simInput" value="427" maxlength="8" placeholder="ex: 427">
+        <button class="sim-btn" onclick="startSim()">Lancer</button>
+      </div>
+
+      <div class="string-display" id="stringDisplay"></div>
+
+      <div class="controls">
+        <button class="ctrl-btn" id="btnPrev" onclick="prevStep()" disabled>← Précédent</button>
+        <button class="ctrl-btn primary" id="btnNext" onclick="nextStep()" disabled>Suivant →</button>
+        <button class="ctrl-btn" id="btnAuto" onclick="autoPlay()">▶ Auto</button>
+      </div>
+
+      <div class="steps-container" id="stepsContainer"></div>
+
+      <div class="result-display" id="resultDisplay">
+        <div class="label">Résultat final (res)</div>
+        <div class="value" id="resultValue">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECAP -->
+  <section>
+    <h2><span class="icon" style="background: rgba(52,211,153,0.15); color: var(--green);">✅</span> Récap — à retenir</h2>
+    <div class="recap">
+      <h3>3 choses, c'est tout</h3>
+      <ol>
+        <li><code>str[i] - '0'</code> transforme un <strong style="color:var(--text)">char</strong> en <strong style="color:var(--text)">int</strong> (le vrai chiffre)</li>
+        <li><code>res * 10</code> <strong style="color:var(--text)">décale</strong> ce qu'on a déjà (fait de la place à droite)</li>
+        <li><code>+ (...)</code> <strong style="color:var(--text)">pose</strong> le nouveau chiffre à droite</li>
+      </ol>
+      <p style="color: var(--gold); margin-top: 1.5rem; font-weight: 700; font-size: 1.05rem; text-align: center; padding: 1rem; background: var(--gold-bg); border-radius: 8px; border: 1px solid var(--gold-border);">
+        Mantra : "je décale, je pose, je décale, je pose"
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+let steps = [];
+let currentStep = -1;
+let digits = [];
+let autoInterval = null;
+
+function startSim() {
+  clearInterval(autoInterval);
+  autoInterval = null;
+  const raw = document.getElementById('simInput').value.replace(/[^0-9]/g, '');
+  if (!raw) return;
+  digits = raw.split('');
+  currentStep = -1;
+  steps = [];
+
+  // Build steps
+  let res = 0;
+  digits.forEach((d, idx) => {
+    const oldRes = res;
+    const digit = parseInt(d);
+    const newRes = oldRes * 10 + digit;
+    steps.push({ idx, char: d, ascii: d.charCodeAt(0), oldRes, digit, newRes });
+    res = newRes;
+  });
+
+  // Render string
+  const display = document.getElementById('stringDisplay');
+  display.innerHTML = '';
+  digits.forEach((d, i) => {
+    const box = document.createElement('div');
+    box.className = 'char-box';
+    box.id = 'char-' + i;
+    box.innerHTML = `<span class="char">'${d}'</span><span class="ascii">${d.charCodeAt(0)}</span>`;
+    display.appendChild(box);
+  });
+  // Add \0
+  const nul = document.createElement('div');
+  nul.className = 'char-box';
+  nul.style.opacity = '0.4';
+  nul.innerHTML = `<span class="char">\\0</span><span class="ascii">0</span>`;
+  display.appendChild(nul);
+
+  // Render step placeholders
+  const container = document.getElementById('stepsContainer');
+  container.innerHTML = '';
+  steps.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    div.id = 'step-' + i;
+    div.innerHTML = `
+      <div class="step-num">${i + 1}</div>
+      <div class="step-formula">
+        str[${s.idx}] = <span class="hl-cyan">'${s.char}'</span> (ASCII ${s.ascii})<br>
+        res = <span class="hl-purple">${s.oldRes}</span> × <span class="hl-gold">10</span> + (<span class="hl-cyan">${s.ascii}</span> - <span class="hl-cyan">48</span>)<br>
+        res = <span class="hl-purple">${s.oldRes * 10}</span> + <span class="hl-orange">${s.digit}</span>
+      </div>
+      <div class="step-result" style="color: var(--cyan2);">${s.newRes}</div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Reset result
+  const resultDisplay = document.getElementById('resultDisplay');
+  resultDisplay.classList.remove('show');
+  document.getElementById('resultValue').textContent = '0';
+
+  // Enable buttons
+  document.getElementById('btnNext').disabled = false;
+  document.getElementById('btnPrev').disabled = true;
+}
+
+function showStep(idx) {
+  // Update char boxes
+  document.querySelectorAll('.char-box').forEach((box, i) => {
+    box.classList.remove('active', 'done', 'pointer');
+    if (i < idx) box.classList.add('done');
+    if (i === idx && idx < digits.length) {
+      box.classList.add('active', 'pointer');
+    }
+  });
+
+  // Update steps
+  document.querySelectorAll('.step').forEach((step, i) => {
+    step.classList.remove('visible', 'active-step');
+    if (i <= idx) step.classList.add('visible');
+    if (i === idx) step.classList.add('active-step');
+  });
+
+  // Update result
+  const resultDisplay = document.getElementById('resultDisplay');
+  if (idx >= 0 && idx < steps.length) {
+    document.getElementById('resultValue').textContent = steps[idx].newRes;
+  }
+  if (idx === steps.length - 1) {
+    resultDisplay.classList.add('show');
+  } else {
+    resultDisplay.classList.remove('show');
+  }
+
+  // Button state
+  document.getElementById('btnPrev').disabled = idx <= 0;
+  document.getElementById('btnNext').disabled = idx >= steps.length - 1;
+}
+
+function nextStep() {
+  if (currentStep < steps.length - 1) {
+    currentStep++;
+    showStep(currentStep);
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    showStep(currentStep);
+  }
+}
+
+function autoPlay() {
+  if (autoInterval) {
+    clearInterval(autoInterval);
+    autoInterval = null;
+    document.getElementById('btnAuto').textContent = '▶ Auto';
+    return;
+  }
+  if (currentStep >= steps.length - 1) {
+    currentStep = -1;
+    // Reset visuals
+    document.querySelectorAll('.char-box').forEach(b => b.classList.remove('active', 'done', 'pointer'));
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('visible', 'active-step'));
+    document.getElementById('resultDisplay').classList.remove('show');
+    document.getElementById('resultValue').textContent = '0';
+  }
+  document.getElementById('btnAuto').textContent = '⏸ Pause';
+  autoInterval = setInterval(() => {
+    if (currentStep >= steps.length - 1) {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      document.getElementById('btnAuto').textContent = '▶ Auto';
+      return;
+    }
+    nextStep();
+  }, 1200);
+}
+
+// Auto-start with default value
+window.addEventListener('load', () => {
+  startSim();
+});
+</script>
+
+</body>
+</html>
