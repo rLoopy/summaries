@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche R&eacute;vision &mdash; is_power_of_2 &middot; Exam Rank 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0C0C14;
+  --bg2: #111119;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #E2E4E9;
+  --mid: #A0A4B0;
+  --muted: #6B6F7E;
+  --dim: #4A4D5A;
+  --cyan: #06D6A0;
+  --cyan2: #34EDBC;
+  --cyan-bg: rgba(6,214,160,0.08);
+  --cyan-border: rgba(6,214,160,0.22);
+  --purple: #A78BFA;
+  --purple2: #C4B5FD;
+  --purple-bg: rgba(167,139,250,0.08);
+  --purple-border: rgba(167,139,250,0.22);
+  --orange: #FB923C;
+  --orange2: #FDBA74;
+  --orange-bg: rgba(251,146,60,0.08);
+  --orange-border: rgba(251,146,60,0.22);
+  --red: #F87171;
+  --red2: #FCA5A5;
+  --red-bg: rgba(248,113,113,0.06);
+  --red-border: rgba(248,113,113,0.18);
+  --green: #34D399;
+  --green2: #6EE7B7;
+  --green-bg: rgba(52,211,153,0.08);
+  --green-border: rgba(52,211,153,0.22);
+  --gold: #FBBF24;
+  --gold-bg: rgba(251,191,36,0.08);
+  --gold-border: rgba(251,191,36,0.22);
+  --blue: #38BDF8;
+  --blue-bg: rgba(56,189,248,0.08);
+  --blue-border: rgba(56,189,248,0.22);
+  --gap: 16px;
+  --radius: 18px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatures: none; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--orange));
+  z-index: 9999; transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── HERO ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 70svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(6,214,160,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(167,139,250,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(251,146,60,0.08) 0%, transparent 50%),
+    var(--bg);
+  animation: heroShift 14s ease-in-out infinite alternate;
+}
+
+@keyframes heroShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(6deg) brightness(1.03); }
+  100% { filter: hue-rotate(-4deg) brightness(0.98); }
+}
+
+.hero-shape {
+  position: absolute; border-radius: 50%; opacity: 0.08;
+  animation: floatShape 8s ease-in-out infinite; pointer-events: none;
+}
+.hero-shape-1 { width:350px;height:350px;background:var(--cyan);top:-100px;right:-80px }
+.hero-shape-2 { width:220px;height:220px;background:var(--purple);bottom:-60px;left:-60px;animation-delay:-3s }
+.hero-shape-3 { width:140px;height:140px;background:var(--orange);top:35%;left:6%;opacity:0.05;animation-delay:-5s }
+
+@keyframes floatShape {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(8deg); }
+}
+
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+
+/* glow lines */
+.hero-glow {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.15; top: 40%; left: -50%;
+  animation: glowSlide 6s linear infinite;
+}
+.hero-glow-2 {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  opacity: 0.1; top: 60%; left: -50%;
+  animation: glowSlide 8s linear infinite reverse;
+}
+@keyframes glowSlide {
+  0% { transform: translateX(-25%); }
+  100% { transform: translateX(25%); }
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 700px; }
+
+.hero-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  color: #0C0C14;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 6px 18px; border-radius: 30px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(32px, 7vw, 64px);
+  color: #fff; line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--cyan2) 0%, var(--purple2) 50%, var(--orange2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 16px; color: var(--muted);
+  margin-bottom: 28px; font-weight: 300;
+}
+
+.hero-stats {
+  display: flex; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+
+.hero-stat {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+
+.hero-mantra {
+  margin-top: 28px;
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--mid);
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  max-width: 600px;
+}
+.hero-mantra strong { color: var(--cyan2); }
+
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%;
+  transform: translateX(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--dim); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── STICKY NAV ────────────────────────────────────────────── */
+.sticky-nav {
+  position: sticky; top: 0;
+  background: rgba(12,12,20,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100; padding: 10px 20px;
+  display: flex; align-items: center; gap: 8px;
+  overflow-x: auto; white-space: nowrap;
+}
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.nav-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); flex-shrink: 0;
+}
+
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 600;
+  color: var(--cyan); text-decoration: none; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-pill:hover { background: var(--cyan); color: var(--bg); }
+.nav-pill .n {
+  width: 16px; height: 16px;
+  background: var(--cyan);
+  border-radius: 50%; color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.nav-pill:hover .n { background: rgba(0,0,0,0.3); color: var(--cyan2); }
+
+/* ─── MAIN ──────────────────────────────────────────────────── */
+.main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* ─── BENTO GRID ────────────────────────────────────────────── */
+.bento {
+  display: grid; grid-template-columns: 1fr;
+  gap: var(--gap); margin-bottom: 40px;
+}
+@media (min-width: 900px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+  .bento-wide { grid-column: 1 / -1; }
+}
+
+/* ─── BENTO CARD ────────────────────────────────────────────── */
+.bcard {
+  border-radius: var(--radius); padding: 28px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
+}
+.bcard.in-view { opacity: 1; transform: translateY(0); }
+.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+.bcard-dark   { background: var(--card); border: 1px solid var(--border); }
+.bcard-cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); }
+.bcard-purple { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+.bcard-orange { background: var(--orange-bg); border: 1px solid var(--orange-border); }
+.bcard-green  { background: var(--green-bg); border: 1px solid var(--green-border); }
+.bcard-gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); }
+.bcard-blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+.bcard-glass  { background: rgba(255,255,255,0.02); border: 1px solid var(--border2); }
+
+/* ─── SECTION HEADINGS ──────────────────────────────────────── */
+.section-label {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.section-label.in-view { opacity: 1; transform: translateY(0); }
+
+.sec-num {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; flex-shrink: 0;
+}
+.sec-num.cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan2); }
+.sec-num.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple2); }
+.sec-num.orange { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange2); }
+.sec-num.red    { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red2); }
+.sec-num.green  { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green2); }
+.sec-num.gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); color: var(--gold); }
+.sec-num.blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+
+.sec-info h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 900;
+}
+.sec-info p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ─── CODE BLOCK ────────────────────────────────────────────── */
+.code-block {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--border2);
+  background: #0A0A10; margin: 0;
+}
+.code-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-filename {
+  margin-left: 8px; font-size: 12px;
+  color: var(--dim); font-family: 'JetBrains Mono', monospace;
+}
+.code-block pre {
+  margin: 0; padding: 18px 22px; overflow-x: auto;
+  font-size: 13.5px; line-height: 1.8;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d1d5db; tab-size: 4;
+}
+.kw { color: var(--purple2); } .fn { color: var(--cyan2); } .tp { color: var(--orange2); }
+.num { color: var(--gold); } .op { color: #F472B6; }
+
+/* ─── FLASHCARD ─────────────────────────────────────────────── */
+.flashcard {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 0; margin-bottom: 12px;
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.flashcard:hover { border-color: var(--purple); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
+
+.flash-q {
+  padding: 18px 22px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.flash-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--purple-bg); border: 1px solid var(--purple-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; color: var(--purple);
+  transition: all 0.3s;
+}
+.flashcard.open .flash-icon { background: var(--purple); color: var(--bg); transform: rotate(45deg); }
+.flash-q-text { flex: 1; }
+.flash-hint { font-size: 11px; color: var(--dim); margin-top: 2px; font-weight: 400; }
+
+.flash-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 22px;
+  background: var(--purple-bg);
+  border-top: 1px solid transparent;
+}
+.flashcard.open .flash-a {
+  max-height: 300px;
+  padding: 16px 22px;
+  border-top-color: var(--purple-border);
+}
+.flash-a p { font-size: 13px; color: var(--mid); line-height: 1.7; }
+.flash-a code {
+  font-size: 12px; background: rgba(167,139,250,0.15);
+  padding: 2px 7px; border-radius: 4px; color: var(--purple2);
+}
+
+/* ─── PIEGE CARD ────────────────────────────────────────────── */
+.trap-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 20px 22px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.trap-card:hover { border-color: var(--orange); transform: translateX(4px); }
+
+.trap-tag {
+  display: inline-flex; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.tag-loop   { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+.tag-logic  { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange); }
+.tag-init   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+.tag-type   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+.tag-safety { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+
+.trap-label {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+
+.trap-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; flex-wrap: wrap;
+}
+.trap-bad {
+  font-size: 10px; font-weight: 800; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-good {
+  font-size: 10px; font-weight: 800; color: var(--green);
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-code {
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  color: var(--mid); background: rgba(255,255,255,0.04);
+  padding: 4px 10px; border-radius: 6px;
+}
+
+.trap-rule {
+  font-size: 13px; color: var(--mid); line-height: 1.6;
+  padding: 10px 14px; margin-top: 8px;
+  background: var(--gold-bg); border: 1px solid var(--gold-border);
+  border-radius: 10px;
+}
+.trap-rule strong { color: var(--gold); }
+
+/* ─── PATTERN ───────────────────────────────────────────────── */
+.pattern-steps { list-style: none; counter-reset: step; }
+.pattern-steps li {
+  counter-increment: step; position: relative;
+  padding: 10px 0 10px 44px; font-size: 14px;
+  color: var(--mid); line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+.pattern-steps li:last-child { border-bottom: none; }
+.pattern-steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #0C0C14;
+}
+.pattern-steps code {
+  font-size: 12px; background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  padding: 2px 7px; border-radius: 4px; color: var(--cyan2);
+}
+
+/* ─── EVOLUTION TIMELINE ────────────────────────────────────── */
+.evo-timeline { position: relative; padding-left: 24px; }
+.evo-timeline::before {
+  content: ''; position: absolute;
+  left: 7px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, var(--red), var(--orange), var(--gold), var(--green));
+  border-radius: 1px;
+}
+.evo-step {
+  position: relative; margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.evo-step::before {
+  content: ''; position: absolute;
+  left: -21px; top: 18px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.evo-step:nth-child(1)::before { background: var(--red); box-shadow: 0 0 8px rgba(248,113,113,0.4); }
+.evo-step:nth-child(2)::before { background: var(--orange); box-shadow: 0 0 8px rgba(251,146,60,0.4); }
+.evo-step:nth-child(3)::before { background: var(--gold); box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+.evo-step:nth-child(4)::before { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+.evo-version {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.evo-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: var(--mid); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.evo-fix {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 6px; margin-right: 4px; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+}
+.fix-bad  { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+.fix-good { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+
+/* ─── TRANSFER ──────────────────────────────────────────────── */
+.transfer-box {
+  background: var(--card2); border-radius: 14px;
+  padding: 28px; position: relative; overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.transfer-box::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, var(--gold), var(--orange));
+}
+.transfer-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: var(--bg); font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.transfer-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; color: var(--text);
+  margin-bottom: 10px;
+}
+.transfer-desc {
+  font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px;
+}
+.transfer-desc strong { color: var(--orange2); }
+.transfer-proto {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--cyan2);
+  background: rgba(6,214,160,0.06);
+  border: 1px solid var(--cyan-border);
+  border-radius: 8px; padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.transfer-hint {
+  font-size: 12px; color: var(--dim); font-style: italic;
+}
+
+/* ─── CHECKLIST ─────────────────────────────────────────────── */
+.check-list { list-style: none; }
+.check-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; font-size: 14px; color: var(--mid);
+  border-bottom: 1px solid var(--border);
+}
+.check-list li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px; color: var(--dim);
+}
+.check-list code {
+  font-size: 11px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+}
+
+/* ─── PAS A PAS (walkthrough) ──────────────────────────────── */
+.walk-example {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.walk-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 900;
+  margin-bottom: 16px;
+}
+.walk-title.success { color: var(--green2); }
+.walk-title.fail    { color: var(--red2); }
+.walk-title.special { color: var(--blue); }
+
+.walk-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--mid);
+  transition: background 0.2s;
+}
+.walk-step:hover { background: rgba(255,255,255,0.03); }
+
+.walk-step .step-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-icon.ok   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+.step-icon.fail { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+.step-icon.info { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+.step-icon.calc { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+
+.walk-step .step-text { flex: 1; }
+.walk-step .step-text strong { color: var(--text); }
+.walk-step .step-text .val { color: var(--cyan2); font-weight: 600; }
+.walk-step .step-text .no  { color: var(--red2); font-weight: 600; }
+.walk-step .step-text .yes { color: var(--green2); font-weight: 600; }
+
+.walk-result {
+  margin-top: 12px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.walk-result.ok   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green2); }
+.walk-result.fail { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red2); }
+
+/* ─── INTUITION BOX ────────────────────────────────────────── */
+.intuition-box {
+  background: linear-gradient(135deg, rgba(6,214,160,0.06), rgba(167,139,250,0.06));
+  border: 2px solid var(--cyan-border);
+  border-radius: var(--radius);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.intuition-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--cyan));
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.intuition-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 900;
+  color: var(--cyan2);
+  margin-bottom: 20px;
+}
+.intuition-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.intuition-step:last-child { border-bottom: none; }
+.intuition-num {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; color: #0C0C14;
+  flex-shrink: 0;
+}
+.intuition-step strong { color: var(--cyan2); }
+
+/* ─── FOOTER ────────────────────────────────────────────────── */
+.footer {
+  text-align: center; padding: 32px 20px;
+  font-size: 12px; color: var(--dim);
+  border-top: 1px solid var(--border);
+}
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: 16px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .bcard { padding: 20px; }
+  .sec-num { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+  .sec-info h2 { font-size: 20px; }
+  .hero-mantra { font-size: 11px; padding: 12px 16px; }
+  .walk-step { font-size: 11px; padding: 8px 10px; }
+  .intuition-step { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Exam Rank 02 &middot; Level 2</div>
+    <h1><span class="gradient-text">is_power_of_2</span></h1>
+    <p class="hero-sub">V&eacute;rifier si un unsigned int est une puissance de 2</p>
+    <div class="hero-stats">
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> 4 versions</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#34D399" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 4 pi&egrave;ges</span>
+      <span class="hero-stat">12/04/2026</span>
+    </div>
+    <div class="hero-mantra">
+      <strong>Mantra &rarr;</strong> Divise par 2, si tu arrives &agrave; <strong>1</strong> sans reste, c'est une puissance de 2
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4v12M5 11l5 5 5-5"/></svg>
+    SCROLL
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <span class="nav-label">Fiche</span>
+  <a href="#intuition" class="nav-pill"><span class="n">1</span>Intuition</a>
+  <a href="#code" class="nav-pill"><span class="n">2</span>Code</a>
+  <a href="#pasapas" class="nav-pill"><span class="n">3</span>Pas &agrave; pas</a>
+  <a href="#flashcards" class="nav-pill"><span class="n">4</span>Flashcards</a>
+  <a href="#pieges" class="nav-pill"><span class="n">5</span>Pi&egrave;ges</a>
+  <a href="#pattern" class="nav-pill"><span class="n">6</span>Pattern</a>
+  <a href="#evolution" class="nav-pill"><span class="n">7</span>&Eacute;volution</a>
+  <a href="#transfert" class="nav-pill"><span class="n">8</span>Transfert</a>
+  <a href="#checklist" class="nav-pill"><span class="n">9</span>Checklist</a>
+</nav>
+
+<div class="main">
+
+<!-- 1 INTUITION -->
+<div id="intuition" class="section-label">
+  <div class="sec-num cyan">1</div>
+  <div class="sec-info">
+    <h2>L'intuition en 3 phrases</h2>
+    <p>Comprends &ccedil;a et tu peux reconstruire tout le code de t&ecirc;te</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+    <div class="intuition-box">
+      <div class="intuition-title">Pourquoi ce code marche</div>
+
+      <div class="intuition-step">
+        <div class="intuition-num">1</div>
+        <div>Une puissance de 2, c'est un nombre que tu obtiens en <strong>multipliant 2 par lui-m&ecirc;me</strong> : 1, 2, 4, 8, 16, 32, 64...</div>
+      </div>
+
+      <div class="intuition-step">
+        <div class="intuition-num">2</div>
+        <div>Donc si tu fais le <strong>chemin inverse</strong> &mdash; diviser par 2 &mdash; tu dois arriver <strong>pile &agrave; 1</strong></div>
+      </div>
+
+      <div class="intuition-step">
+        <div class="intuition-num">3</div>
+        <div>Si &agrave; un moment la division <strong>tombe pas juste</strong> (reste != 0), c'est <strong>PAS</strong> une puissance de 2</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2 CODE FINAL -->
+<div id="code" class="section-label">
+  <div class="sec-num green">2</div>
+  <div class="sec-info">
+    <h2>Code final</h2>
+    <p>Compile avec -Wall -Wextra -Werror, tous tests OK</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide" style="padding:0">
+    <div class="code-block" style="border:none">
+      <div class="code-header">
+        <div class="code-dot" style="background:var(--red)"></div>
+        <div class="code-dot" style="background:var(--gold)"></div>
+        <div class="code-dot" style="background:var(--green)"></div>
+        <span class="code-filename">is_power_of_2.c</span>
+      </div>
+<pre><span class="tp">int</span>	<span class="fn">is_power_of_2</span>(<span class="tp">unsigned int</span> n)
+{
+	<span class="kw">if</span> (n == <span class="num">0</span>)
+		<span class="kw">return</span> (<span class="num">0</span>);
+	<span class="kw">while</span> (n &gt; <span class="num">1</span>)
+	{
+		<span class="kw">if</span> (n <span class="op">%</span> <span class="num">2</span> != <span class="num">0</span>)
+			<span class="kw">return</span> (<span class="num">0</span>);
+		n = n <span class="op">/</span> <span class="num">2</span>;
+	}
+	<span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+    </div>
+  </div>
+
+  <div class="bcard bcard-cyan">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">SUJET</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--text)">int is_power_of_2(unsigned int n);</strong><br><br>
+      n = nombre entier non sign&eacute;<br>
+      Retourne 1 si puissance de 2<br>
+      Retourne 0 sinon<br>
+      Allowed functions: None
+    </div>
+  </div>
+
+  <div class="bcard bcard-green">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">TESTS</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
+      <span style="color:var(--muted)">is_power_of_2(0)</span> &rarr; <strong style="color:var(--green2)">0 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(1)</span> &rarr; <strong style="color:var(--green2)">1 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(2)</span> &rarr; <strong style="color:var(--green2)">1 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(3)</span> &rarr; <strong style="color:var(--green2)">0 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(4)</span> &rarr; <strong style="color:var(--green2)">1 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(6)</span> &rarr; <strong style="color:var(--green2)">0 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(8)</span> &rarr; <strong style="color:var(--green2)">1 &#10003;</strong><br>
+      <span style="color:var(--muted)">is_power_of_2(1024)</span> &rarr; <strong style="color:var(--green2)">1 &#10003;</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 3 PAS A PAS -->
+<div id="pasapas" class="section-label">
+  <div class="sec-num blue">3</div>
+  <div class="sec-info">
+    <h2>Comprendre la logique pas &agrave; pas</h2>
+    <p>LA section cl&eacute; &mdash; suis chaque &eacute;tape avec un crayon si besoin</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <!-- Example 1: n = 8 -->
+    <div class="walk-example">
+      <div class="walk-title success">Exemple 1 &mdash; n = 8 (EST une puissance de 2)</div>
+
+      <div class="walk-step">
+        <div class="step-icon info">n</div>
+        <div class="step-text">D&eacute;but : n = <span class="val">8</span> &mdash; on entre dans la boucle car 8 &gt; 1</div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon calc">%</div>
+        <div class="step-text"><span class="val">8</span> % 2 == 0 ? <span class="yes">Oui</span> (8 est pair) &rarr; n = 8 / 2 = <span class="val">4</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon calc">%</div>
+        <div class="step-text"><span class="val">4</span> % 2 == 0 ? <span class="yes">Oui</span> (4 est pair) &rarr; n = 4 / 2 = <span class="val">2</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon calc">%</div>
+        <div class="step-text"><span class="val">2</span> % 2 == 0 ? <span class="yes">Oui</span> (2 est pair) &rarr; n = 2 / 2 = <span class="val">1</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon ok">!</div>
+        <div class="step-text">n == <span class="val">1</span> &rarr; La boucle s'arr&ecirc;te (1 &gt; 1 est <strong>faux</strong>)</div>
+      </div>
+
+      <div class="walk-result ok">return (1) &mdash; 8 est bien 2&sup3;</div>
+    </div>
+
+    <!-- Example 2: n = 6 -->
+    <div class="walk-example">
+      <div class="walk-title fail">Exemple 2 &mdash; n = 6 (PAS une puissance de 2)</div>
+
+      <div class="walk-step">
+        <div class="step-icon info">n</div>
+        <div class="step-text">D&eacute;but : n = <span class="val">6</span> &mdash; on entre dans la boucle car 6 &gt; 1</div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon calc">%</div>
+        <div class="step-text"><span class="val">6</span> % 2 == 0 ? <span class="yes">Oui</span> (6 est pair) &rarr; n = 6 / 2 = <span class="val">3</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon fail">!</div>
+        <div class="step-text"><span class="val">3</span> % 2 == 0 ? <span class="no">Non</span> (reste = 1, 3 est impair) &rarr; <strong>STOP</strong></div>
+      </div>
+
+      <div class="walk-result fail">return (0) &mdash; 6 n'est pas une puissance de 2</div>
+    </div>
+
+    <!-- Example 3: n = 0 -->
+    <div class="walk-example">
+      <div class="walk-title special">Exemple 3 &mdash; n = 0 (cas sp&eacute;cial)</div>
+
+      <div class="walk-step">
+        <div class="step-icon info">n</div>
+        <div class="step-text">D&eacute;but : n = <span class="val">0</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon fail">!</div>
+        <div class="step-text">n == 0 &rarr; On entre dans le <code>if</code> tout de suite, <strong>avant la boucle</strong></div>
+      </div>
+
+      <div class="walk-result fail">return (0) directement &mdash; 0 n'est jamais une puissance de 2</div>
+    </div>
+
+    <!-- Example 4: n = 1 -->
+    <div class="walk-example">
+      <div class="walk-title success">Exemple 4 &mdash; n = 1 (cas sp&eacute;cial : 2&sup0; = 1)</div>
+
+      <div class="walk-step">
+        <div class="step-icon info">n</div>
+        <div class="step-text">D&eacute;but : n = <span class="val">1</span></div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon ok">?</div>
+        <div class="step-text">n == 0 ? <span class="yes">Non</span>, 1 != 0 &rarr; on passe au while</div>
+      </div>
+
+      <div class="walk-step">
+        <div class="step-icon ok">!</div>
+        <div class="step-text">while (1 &gt; 1) &rarr; <strong>faux</strong>, on n'entre pas dans la boucle</div>
+      </div>
+
+      <div class="walk-result ok">return (1) &mdash; car 2&sup0; = 1, donc 1 est une puissance de 2</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 4 FLASHCARDS -->
+<div id="flashcards" class="section-label">
+  <div class="sec-num purple">4</div>
+  <div class="sec-info">
+    <h2>Flashcards</h2>
+    <p>R&eacute;ponds dans ta t&ecirc;te AVANT de cliquer</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Qu'est-ce qu'une puissance de 2 ?</div>
+        <div class="flash-hint">Pense &agrave; la s&eacute;rie 1, 2, 4, 8...</div></div>
+      </div>
+      <div class="flash-a"><p>Un nombre obtenu en multipliant 2 par lui-m&ecirc;me : <code>1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024...</code> C'est 2 &agrave; la puissance n (2<sup>0</sup>=1, 2<sup>1</sup>=2, 2<sup>2</sup>=4, etc.)</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Comment v&eacute;rifier qu'un nombre est une puissance de 2 avec une boucle ?</div>
+        <div class="flash-hint">Pense au chemin inverse de la multiplication...</div></div>
+      </div>
+      <div class="flash-a"><p>Diviser par 2 tant que c'est pair (<code>n%2==0</code>). Si on arrive &agrave; <code>1</code> &rarr; oui, c'est une puissance de 2. Si on tombe sur un nombre <strong>impair</strong> avant &rarr; non.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi traiter <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">n == 0</code> &agrave; part ?</div>
+        <div class="flash-hint">Que ferait la boucle si n vaut 0 ?</div></div>
+      </div>
+      <div class="flash-a"><p>0 n'est <strong>pas</strong> une puissance de 2, mais la boucle <code>while(n&gt;1)</code> ne s'ex&eacute;cuterait pas (0&gt;1 est faux) et on retournerait <code>1</code> par erreur. Le <code>if (n == 0) return 0;</code> emp&ecirc;che ce faux positif.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Que vaut 2<sup>0</sup> ?</div>
+        <div class="flash-hint">Tout nombre &agrave; la puissance 0...</div></div>
+      </div>
+      <div class="flash-a"><p><strong>1.</strong> Donc <code>is_power_of_2(1)</code> doit retourner <code>1</code>. C'est ce qui se passe : la boucle <code>while(1&gt;1)</code> ne s'ex&eacute;cute pas, et on retourne 1 directement.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Que fait <code style="font-size:12px;background:var(--purple-bg);color:var(--purple2);padding:2px 6px;border-radius:4px">n % 2</code> ?</div>
+        <div class="flash-hint">Le modulo c'est le reste de...</div></div>
+      </div>
+      <div class="flash-a"><p>Le <strong>reste</strong> de la division par 2. Si c'est <code>0</code> &rarr; n est <strong>pair</strong>. Si c'est <code>1</code> &rarr; n est <strong>impair</strong>. On l'utilise pour v&eacute;rifier que n est divisible par 2 &agrave; chaque &eacute;tape.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Existe-t-il un one-liner bitwise ?</div>
+        <div class="flash-hint">Astuce avec &amp; ...</div></div>
+      </div>
+      <div class="flash-a"><p>Oui : <code>return (n &gt; 0 &amp;&amp; (n &amp; (n - 1)) == 0);</code> Mais la version boucle est plus <strong>intuitive</strong> et suffit largement pour l'exam. Ne l'utilise que si tu la comprends vraiment.</p></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 5 PIEGES -->
+<div id="pieges" class="section-label">
+  <div class="sec-num orange">5</div>
+  <div class="sec-info">
+    <h2>Pi&egrave;ges d&eacute;jou&eacute;s</h2>
+    <p>4 pi&egrave;ges &mdash; chaque carte = une erreur &agrave; ne plus jamais faire</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-safety">S&Eacute;CURIT&Eacute;</span>
+    <div class="trap-label">PI&Egrave;GE #1 &mdash; Oublier n == 0</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">// pas de check pour 0</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">if (n == 0) return (0);</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> Sans ce check, la boucle <code>while(n&gt;1)</code> est saut&eacute;e et on retourne 1 pour n=0. Faux positif !</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-loop">BOUCLE</span>
+    <div class="trap-label">PI&Egrave;GE #2 &mdash; n/1 au lieu de n/2</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">n = n / 1;</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">n = n / 2;</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> <code>n / 1 = n</code> &mdash; la valeur ne change jamais, boucle infinie. Bien diviser par <strong>2</strong>.</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-logic">LOGIQUE</span>
+    <div class="trap-label">PI&Egrave;GE #3 &mdash; Confondre % et /</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">n % 2 &rarr; divise la valeur ?</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">% = reste (pair/impair) &middot; / = descend la valeur</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> <code>%</code> (modulo) donne le <strong>reste</strong> &mdash; sert &agrave; checker si c'est pair. <code>/</code> (division) <strong>descend la valeur</strong> &mdash; sert &agrave; avancer vers 1. Deux r&ocirc;les diff&eacute;rents.</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-init">INIT</span>
+    <div class="trap-label">PI&Egrave;GE #4 &mdash; Oublier que 1 est 2&sup0;</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">is_power_of_2(1) &rarr; 0 (faux)</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">is_power_of_2(1) &rarr; 1 (2&sup0; = 1)</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> 1 = 2<sup>0</sup>, c'est bien une puissance de 2. La boucle <code>while(n&gt;1)</code> g&egrave;re &ccedil;a : 1 &gt; 1 est faux, donc on retourne 1.</div>
+  </div>
+
+</div>
+
+<!-- 6 PATTERN -->
+<div id="pattern" class="section-label">
+  <div class="sec-num cyan">6</div>
+  <div class="sec-info">
+    <h2>Pattern r&eacute;utilisable</h2>
+    <p>V&eacute;rification par division successive &mdash; puissance de 3, de 5, facteurs premiers...</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-purple bento-wide">
+    <ol class="pattern-steps">
+      <li>Traiter le cas <code>n == 0</code> <strong style="color:var(--text)">en premier</strong> &mdash; 0 n'est jamais une puissance de quoi que ce soit</li>
+      <li>Tant que <code>n &gt; 1</code>, v&eacute;rifier que n est <strong style="color:var(--text)">divisible</strong> par le facteur (ici 2)</li>
+      <li>Si le reste n'est pas 0 &rarr; <code>return 0</code> imm&eacute;diatement (pas la peine de continuer)</li>
+      <li>Sinon, <strong style="color:var(--text)">diviser</strong> n par le facteur pour descendre vers 1</li>
+      <li>Si on sort de la boucle &rarr; n vaut 1 &rarr; <code>return 1</code></li>
+    </ol>
+  </div>
+
+  <div class="bcard bcard-dark bento-wide">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:14px">LE SQUELETTE G&Eacute;N&Eacute;RIQUE</div>
+    <div class="code-block" style="border:none">
+<pre><span class="tp">int</span>  <span class="fn">is_power_of_X</span>(<span class="tp">unsigned int</span> n, <span class="tp">int</span> x)
+{
+    <span class="kw">if</span> (n == <span class="num">0</span>)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="kw">while</span> (n &gt; <span class="num">1</span>)
+    {
+        <span class="kw">if</span> (n <span class="op">%</span> x != <span class="num">0</span>)    <span style="color:var(--dim)">// pas divisible ?</span>
+            <span class="kw">return</span> (<span class="num">0</span>);
+        n = n <span class="op">/</span> x;             <span style="color:var(--dim)">// descend vers 1</span>
+    }
+    <span class="kw">return</span> (<span class="num">1</span>);              <span style="color:var(--dim)">// arriv&eacute; &agrave; 1 = puissance de x</span>
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 7 EVOLUTION -->
+<div id="evolution" class="section-label">
+  <div class="sec-num gold">7</div>
+  <div class="sec-info">
+    <h2>&Eacute;volution du code</h2>
+    <p>4 versions &mdash; la trajectoire de ta r&eacute;flexion</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide">
+    <div class="evo-timeline">
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 1</div>
+        <div class="evo-code">return (n &gt; 0 &amp;&amp; (n &amp; (n - 1)) == 0);</div>
+        <div><span class="evo-fix fix-bad">Tentative bitwise (n &amp; (n-1)) &mdash; pas compris</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 2 &mdash; SQUELETTE &Agrave; TROUS</div>
+        <div class="evo-code">int  is_power_of_2(unsigned int n)
+{
+    if (n == _____)       // trou 1
+        return (0);
+    while (n &gt; 1)
+    {
+        if (n % 2 ___ 0)  // trou 2
+            return (0);
+        n = n / _____;    // trou 3
+    }
+    return (1);
+}</div>
+        <div><span class="evo-fix fix-good">3 trous remplis : n==0, !=0, /2</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 3</div>
+        <div class="evo-code">n = n / 1;  // au lieu de n / 2</div>
+        <div><span class="evo-fix fix-bad">n/1 au lieu de n/2 &rarr; boucle infinie</span></div>
+        <div><span class="evo-fix fix-good">Corrig&eacute; imm&eacute;diatement</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION FINALE &#10003;</div>
+        <div class="evo-code">int  is_power_of_2(unsigned int n)
+{
+    if (n == 0)
+        return (0);
+    while (n &gt; 1)
+    {
+        if (n % 2 != 0)
+            return (0);
+        n = n / 2;
+    }
+    return (1);
+}</div>
+        <div><span class="evo-fix fix-good">Code propre &#10003;</span></div>
+        <div><span class="evo-fix fix-good">Tous tests passent &#10003;</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 8 TRANSFERT -->
+<div id="transfert" class="section-label">
+  <div class="sec-num red">8</div>
+  <div class="sec-info">
+    <h2>Exercices de transfert</h2>
+    <p>M&ecirc;me pattern, exo diff&eacute;rent &mdash; solidifie l'apprentissage</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 1</div>
+      <div class="transfer-title">is_power_of_3</div>
+      <div class="transfer-desc">M&ecirc;me logique exacte mais diviser par <strong>3</strong> au lieu de 2. Combien de caract&egrave;res changent ?</div>
+      <div class="transfer-proto">int  is_power_of_3(unsigned int n);</div>
+      <div class="transfer-hint">Indice : remplace les 2 par des 3. C'est tout.</div>
+    </div>
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 2</div>
+      <div class="transfer-title">Compter l'exposant</div>
+      <div class="transfer-desc">Compter <strong>combien de fois</strong> n est divisible par 2 (= trouver l'exposant). Ex: 8 &rarr; 3 (car 2&sup3;=8)</div>
+      <div class="transfer-proto">int  power_of_2_exponent(unsigned int n);</div>
+      <div class="transfer-hint">Indice : un compteur qui s'incr&eacute;mente &agrave; chaque division par 2.</div>
+    </div>
+
+    <div class="transfer-box">
+      <div class="transfer-tag">CHALLENGE 3</div>
+      <div class="transfer-title">Plus grande puissance de 2 &le; n</div>
+      <div class="transfer-desc">Trouver la plus grande puissance de 2 <strong>inf&eacute;rieure ou &eacute;gale</strong> &agrave; n. Ex: 10 &rarr; 8, 17 &rarr; 16</div>
+      <div class="transfer-proto">unsigned int  largest_power_of_2(unsigned int n);</div>
+      <div class="transfer-hint">Indice : commencer &agrave; 1 et multiplier par 2 tant que &le; n.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 9 CHECKLIST -->
+<div id="checklist" class="section-label">
+  <div class="sec-num gold">9</div>
+  <div class="sec-info">
+    <h2>Checklist exam</h2>
+    <p>V&eacute;rifie avant chaque submit</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-gold bento-wide">
+    <ul class="check-list">
+      <li><span class="check-icon">&#9744;</span> Prototype : <code>int is_power_of_2(unsigned int n);</code></li>
+      <li><span class="check-icon">&#9744;</span> Cas sp&eacute;cial <code>n == 0</code> &rarr; <strong style="color:var(--text)">return 0</strong></li>
+      <li><span class="check-icon">&#9744;</span> <code>while (n &gt; 1)</code> &mdash; pas <code>while (n &gt; 0)</code> !</li>
+      <li><span class="check-icon">&#9744;</span> <code>n % 2 != 0</code> &rarr; return 0 (nombre impair = pas puissance de 2)</li>
+      <li><span class="check-icon">&#9744;</span> <code>n = n / 2</code> (pas <code>n / 1</code> !)</li>
+      <li><span class="check-icon">&#9744;</span> <strong style="color:var(--text)">return 1</strong> apr&egrave;s la boucle</li>
+      <li><span class="check-icon">&#9744;</span> Tests : <code>0&rarr;0, 1&rarr;1, 2&rarr;1, 3&rarr;0, 4&rarr;1, 6&rarr;0, 8&rarr;1, 1024&rarr;1</code></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">42 Prof</div>
+  Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 12/04/2026
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.bcard, .section-label').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>
