@@ -345,11 +345,15 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatu
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">ft_strcmp.c</span>
       </div>
-<pre><span class="tp">int</span> <span class="fn">ft_strcmp</span>(<span class="tp">char</span> *s1, <span class="tp">char</span> *s2)
+<pre><span class="tp">int</span>	<span class="fn">ft_strcmp</span>(<span class="tp">char</span> *s1, <span class="tp">char</span> *s2)
 {
 	<span class="tp">int</span> i = <span class="num">0</span>;
-	<span class="kw">while</span> (s1[i] &amp;&amp; s1[i] == s2[i])
+	<span class="kw">while</span> (s1[i] &amp;&amp; s2[i])
+	{
+		<span class="kw">if</span> (s1[i] != s2[i])
+			<span class="kw">return</span> (s1[i] - s2[i]);
 		i<span class="op">++</span>;
+	}
 	<span class="kw">return</span> (s1[i] - s2[i]);
 }</pre>
     </div>
@@ -435,20 +439,28 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatu
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">do_op.c (extrait)</span>
+        <span class="code-filename">do_op.c</span>
       </div>
-<pre><span class="cm">// argc == 4 (binary + 3 args)</span>
-<span class="tp">int</span> a = <span class="fn">atoi</span>(argv[<span class="num">1</span>]);
-<span class="tp">int</span> b = <span class="fn">atoi</span>(argv[<span class="num">3</span>]);
-<span class="tp">char</span> op = argv[<span class="num">2</span>][<span class="num">0</span>];
-<span class="tp">int</span> res;
+<pre><span class="kw">#include</span> &lt;stdio.h&gt;
+<span class="kw">#include</span> &lt;stdlib.h&gt;
+<span class="kw">#include</span> &lt;unistd.h&gt;
 
-<span class="kw">if</span> (op == <span class="op">'</span>+<span class="op">'</span>)       res = a + b;
-<span class="kw">else if</span> (op == <span class="op">'</span>-<span class="op">'</span>) res = a - b;
-<span class="kw">else if</span> (op == <span class="op">'</span>*<span class="op">'</span>) res = a * b;
-<span class="kw">else if</span> (op == <span class="op">'</span>/<span class="op">'</span>) res = a / b;
-<span class="kw">else</span>               res = a % b;
-<span class="fn">printf</span>(<span class="str">"%d\n"</span>, res);</pre>
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="kw">if</span> (argc != <span class="num">4</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+	<span class="tp">int</span> a = <span class="fn">atoi</span>(argv[<span class="num">1</span>]);
+	<span class="tp">int</span> b = <span class="fn">atoi</span>(argv[<span class="num">3</span>]);
+	<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="op">'</span>+<span class="op">'</span>) <span class="fn">printf</span>(<span class="str">"%d"</span>, a + b);
+	<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="op">'</span>-<span class="op">'</span>) <span class="fn">printf</span>(<span class="str">"%d"</span>, a - b);
+	<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="op">'</span>*<span class="op">'</span>) <span class="fn">printf</span>(<span class="str">"%d"</span>, a * b);
+	<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="op">'</span>/<span class="op">'</span>) <span class="fn">printf</span>(<span class="str">"%d"</span>, a / b);
+	<span class="kw">if</span> (argv[<span class="num">2</span>][<span class="num">0</span>] == <span class="op">'</span>%<span class="op">'</span>) <span class="fn">printf</span>(<span class="str">"%d"</span>, a % b);
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+}</pre>
     </div>
     <div class="exo-side">
       <div class="mantra-box">
@@ -479,19 +491,31 @@ code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatu
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">last_word.c (extrait)</span>
+        <span class="code-filename">last_word.c</span>
       </div>
-<pre><span class="cm">// partir de la FIN</span>
-<span class="tp">int</span> i = <span class="fn">strlen</span>(argv[<span class="num">1</span>]) - <span class="num">1</span>;
-<span class="kw">while</span> (i &gt;= <span class="num">0</span> &amp;&amp; argv[<span class="num">1</span>][i] == <span class="op">'</span> <span class="op">'</span>)
-	i<span class="op">--</span>;                            <span class="cm">// skip trailing</span>
-<span class="kw">while</span> (i &gt;= <span class="num">0</span> &amp;&amp; argv[<span class="num">1</span>][i] != <span class="op">'</span> <span class="op">'</span>)
-	i<span class="op">--</span>;                            <span class="cm">// recule sur mot</span>
-i<span class="op">++</span>;                               <span class="cm">// 1er char du mot</span>
-<span class="kw">while</span> (argv[<span class="num">1</span>][i] &amp;&amp; argv[<span class="num">1</span>][i] != <span class="op">'</span> <span class="op">'</span>)
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span>	<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i]) i<span class="op">++</span>;
+	i<span class="op">--</span>;
+	<span class="kw">while</span> (i &gt;= <span class="num">0</span> &amp;&amp; (argv[<span class="num">1</span>][i] == <span class="op">'</span> <span class="op">'</span> || argv[<span class="num">1</span>][i] == <span class="op">'</span>\t<span class="op">'</span>))
+		i<span class="op">--</span>;
+	<span class="kw">while</span> (i &gt;= <span class="num">0</span> &amp;&amp; argv[<span class="num">1</span>][i] != <span class="op">'</span> <span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] != <span class="op">'</span>\t<span class="op">'</span>)
+		i<span class="op">--</span>;
 	i<span class="op">++</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i] != <span class="op">'</span> <span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] != <span class="op">'</span>\t<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i])
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
 }</pre>
     </div>
     <div class="exo-side">
@@ -525,19 +549,23 @@ i<span class="op">++</span>;                               <span class="cm">// 1
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">ft_strrev.c</span>
       </div>
-<pre><span class="tp">char</span> *<span class="fn">ft_strrev</span>(<span class="tp">char</span> *str)
+<pre><span class="tp">char</span>	*<span class="fn">ft_strrev</span>(<span class="tp">char</span> *str)
 {
 	<span class="tp">int</span> i = <span class="num">0</span>;
-	<span class="tp">int</span> j = <span class="fn">strlen</span>(str) - <span class="num">1</span>;
+	<span class="tp">int</span> j = <span class="num">0</span>;
 	<span class="tp">char</span> tmp;
+	<span class="tp">char</span> jayle;
 
-	<span class="kw">while</span> (i &lt; j)
+	<span class="kw">while</span> (str[i]) i<span class="op">++</span>;
+	i<span class="op">--</span>;
+	<span class="kw">while</span> (i &gt;= j)
 	{
 		tmp = str[i];
-		str[i] = str[j];
+		jayle = str[j];
 		str[j] = tmp;
-		i<span class="op">++</span>;
-		j<span class="op">--</span>;
+		str[i] = jayle;
+		j<span class="op">++</span>;
+		i<span class="op">--</span>;
 	}
 	<span class="kw">return</span> (str);
 }</pre>
@@ -571,15 +599,39 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">alpha_mirror.c (cœur)</span>
+        <span class="code-filename">alpha_mirror.c</span>
       </div>
-<pre><span class="cm">// a + z = 219,  A + Z = 155</span>
-<span class="tp">char</span> c = argv[<span class="num">1</span>][i];
-<span class="kw">if</span> (c &gt;= <span class="op">'</span>a<span class="op">'</span> &amp;&amp; c &lt;= <span class="op">'</span>z<span class="op">'</span>)
-	c = <span class="num">219</span> - c;
-<span class="kw">else if</span> (c &gt;= <span class="op">'</span>A<span class="op">'</span> &amp;&amp; c &lt;= <span class="op">'</span>Z<span class="op">'</span>)
-	c = <span class="num">155</span> - c;
-<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>c, <span class="num">1</span>);</pre>
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span> (<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="tp">int</span> c = <span class="num">219</span>;   <span class="cm">// 'a' + 'z'</span>
+	<span class="tp">int</span> b = <span class="num">155</span>;   <span class="cm">// 'A' + 'Z'</span>
+
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+	{
+		<span class="kw">if</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>a<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>z<span class="op">'</span>)
+		{
+			argv[<span class="num">1</span>][i] = c - argv[<span class="num">1</span>][i];
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		}
+		<span class="kw">else if</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>A<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>Z<span class="op">'</span>)
+		{
+			argv[<span class="num">1</span>][i] = b - argv[<span class="num">1</span>][i];
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		}
+		<span class="kw">else</span>
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
+	}
+	<span class="fn">write</span> (<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+}</pre>
     </div>
     <div class="exo-side">
       <div class="mantra-box">
@@ -658,21 +710,21 @@ i<span class="op">++</span>;                               <span class="cm">// 1
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">ft_strdup.c</span>
       </div>
-<pre><span class="tp">char</span> *<span class="fn">ft_strdup</span>(<span class="tp">char</span> *src)
+<pre><span class="kw">#include</span> &lt;stdlib.h&gt;
+
+<span class="tp">char</span>	*<span class="fn">ft_strdup</span>(<span class="tp">char</span> *src)
 {
-	<span class="tp">int</span> len = <span class="num">0</span>;
-	<span class="kw">while</span> (src[len])
-		len<span class="op">++</span>;
-	<span class="tp">char</span> *dup = <span class="fn">malloc</span>(len + <span class="num">1</span>);
-	<span class="kw">if</span> (!dup)
-		<span class="kw">return</span> (<span class="num">NULL</span>);
 	<span class="tp">int</span> i = <span class="num">0</span>;
 	<span class="kw">while</span> (src[i])
-	{
-		dup[i] = src[i];
 		i<span class="op">++</span>;
+	<span class="tp">char</span> *dup = <span class="fn">malloc</span>(i + <span class="num">1</span>);
+	<span class="tp">int</span> j = <span class="num">0</span>;
+	<span class="kw">while</span> (src[j])
+	{
+		dup[j] = src[j];
+		j<span class="op">++</span>;
 	}
-	dup[i] = <span class="op">'</span>\0<span class="op">'</span>;
+	dup[j] = <span class="op">'</span>\0<span class="op">'</span>;
 	<span class="kw">return</span> (dup);
 }</pre>
     </div>
@@ -707,20 +759,22 @@ i<span class="op">++</span>;                               <span class="cm">// 1
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">ft_strcspn.c</span>
       </div>
-<pre><span class="tp">size_t</span> <span class="fn">ft_strcspn</span>(<span class="kw">const</span> <span class="tp">char</span> *s, <span class="kw">const</span> <span class="tp">char</span> *reject)
+<pre><span class="kw">#include</span> &lt;stddef.h&gt;
+
+<span class="tp">size_t</span>	<span class="fn">ft_strcspn</span>(<span class="kw">const</span> <span class="tp">char</span> *s, <span class="kw">const</span> <span class="tp">char</span> *reject)
 {
-	<span class="tp">size_t</span> i = <span class="num">0</span>;
-	<span class="tp">size_t</span> j;
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="tp">int</span> j = <span class="num">0</span>;
 
 	<span class="kw">while</span> (s[i])
 	{
-		j = <span class="num">0</span>;
 		<span class="kw">while</span> (reject[j])
 		{
 			<span class="kw">if</span> (s[i] == reject[j])
 				<span class="kw">return</span> (i);
 			j<span class="op">++</span>;
 		}
+		j = <span class="num">0</span>;
 		i<span class="op">++</span>;
 	}
 	<span class="kw">return</span> (i);
@@ -755,22 +809,34 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">snake_to_camel.c (cœur)</span>
+        <span class="code-filename">snake_to_camel.c</span>
       </div>
-<pre><span class="kw">while</span> (argv[<span class="num">1</span>][i])
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span> (<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	<span class="kw">if</span> (argv[<span class="num">1</span>][i] == <span class="op">'</span>_<span class="op">'</span>)
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
 	{
-		i<span class="op">++</span>;                          <span class="cm">// skip le _</span>
-		<span class="tp">char</span> c = argv[<span class="num">1</span>][i] - <span class="num">32</span>; <span class="cm">// minuscule → majuscule</span>
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>c, <span class="num">1</span>);
-		i<span class="op">++</span>;
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
 	}
-	<span class="kw">else</span>
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
 	{
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
-		i<span class="op">++</span>;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i] != <span class="op">'</span>_<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i])
+		{
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			i<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (argv[<span class="num">1</span>][i] == <span class="op">'</span>_<span class="op">'</span>)
+		{
+			i<span class="op">++</span>;
+			argv[<span class="num">1</span>][i] = argv[<span class="num">1</span>][i] - <span class="num">32</span>;
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			i<span class="op">++</span>;
+		}
 	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
 }</pre>
     </div>
     <div class="exo-side">
@@ -802,22 +868,35 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">camel_to_snake.c (cœur)</span>
+        <span class="code-filename">camel_to_snake.c</span>
       </div>
-<pre><span class="kw">while</span> (argv[<span class="num">1</span>][i])
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span> (<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	<span class="kw">while</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>a<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>z<span class="op">'</span>)
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
 	{
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
-		i<span class="op">++</span>;
+		<span class="fn">write</span> (<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
 	}
-	<span class="kw">if</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>A<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>Z<span class="op">'</span>)
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
 	{
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"_"</span>, <span class="num">1</span>);
-		argv[<span class="num">1</span>][i] <span class="op">+=</span> <span class="num">32</span>;
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
-		i<span class="op">++</span>;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>a<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>z<span class="op">'</span>)
+		{
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			i<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (argv[<span class="num">1</span>][i] &gt;= <span class="op">'</span>A<span class="op">'</span> &amp;&amp; argv[<span class="num">1</span>][i] &lt;= <span class="op">'</span>Z<span class="op">'</span>)
+		{
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"_"</span>, <span class="num">1</span>);
+			argv[<span class="num">1</span>][i] = argv[<span class="num">1</span>][i] + <span class="num">32</span>;
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+			i<span class="op">++</span>;
+		}
 	}
+	<span class="fn">write</span> (<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
 }</pre>
     </div>
     <div class="exo-side">
@@ -849,25 +928,40 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">wdmatch.c (cœur)</span>
+        <span class="code-filename">wdmatch.c</span>
       </div>
-<pre><span class="tp">int</span> i = <span class="num">0</span>, j = <span class="num">0</span>;
-<span class="kw">while</span> (argv[<span class="num">2</span>][i])
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
-		j<span class="op">++</span>;
-	i<span class="op">++</span>;
-	<span class="kw">if</span> (argv[<span class="num">1</span>][j] == <span class="op">'</span>\0<span class="op">'</span>)
+	<span class="kw">if</span> (argc != <span class="num">3</span>)
 	{
-		j = <span class="num">0</span>;
-		<span class="kw">while</span> (argv[<span class="num">1</span>][j])
-		{
-			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][j], <span class="num">1</span>);
-			j<span class="op">++</span>;
-		}
 		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
 		<span class="kw">return</span> <span class="num">0</span>;
 	}
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="tp">int</span> j = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">2</span>][i])
+	{
+		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
+		{
+			j<span class="op">++</span>;
+		}
+		i<span class="op">++</span>;
+		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == <span class="op">'</span>\0<span class="op">'</span>)
+		{
+			j = <span class="num">0</span>;
+			<span class="kw">while</span> (argv[<span class="num">1</span>][j])
+			{
+				<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][j], <span class="num">1</span>);
+				j<span class="op">++</span>;
+			}
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+			<span class="kw">return</span> <span class="num">0</span>;
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
 }</pre>
     </div>
     <div class="exo-side">
@@ -903,15 +997,18 @@ i<span class="op">++</span>;                               <span class="cm">// 1
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">print_bits.c</span>
       </div>
-<pre><span class="tp">void</span>	<span class="fn">print_bits</span>(<span class="tp">unsigned char</span> octet)
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">void</span>	<span class="fn">print_bits</span>(<span class="tp">unsigned char</span> octet)
 {
-	<span class="tp">int</span>		i = <span class="num">8</span>;
+	<span class="tp">int</span>		i = <span class="num">7</span>;
 	<span class="tp">char</span>	c;
 
-	<span class="kw">while</span> (i<span class="op">--</span>)
+	<span class="kw">while</span> (i &gt;= <span class="num">0</span>)
 	{
 		c = ((octet <span class="op">&gt;&gt;</span> i) <span class="op">&amp;</span> <span class="num">1</span>) + <span class="op">'</span>0<span class="op">'</span>;
 		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>c, <span class="num">1</span>);
+		i<span class="op">--</span>;
 	}
 }</pre>
     </div>
@@ -944,18 +1041,19 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">reverse_bits.c (arithmétique)</span>
+        <span class="code-filename">reverse_bits.c</span>
       </div>
 <pre><span class="tp">unsigned char</span>	<span class="fn">reverse_bits</span>(<span class="tp">unsigned char</span> octet)
 {
-	<span class="tp">int</span>		i = <span class="num">8</span>;
 	<span class="tp">unsigned char</span>	res = <span class="num">0</span>;
+	<span class="tp">int</span>		i = <span class="num">0</span>;
 
-	<span class="kw">while</span> (i &gt; <span class="num">0</span>)
+	<span class="kw">while</span> (i &lt; <span class="num">8</span>)
 	{
-		res = res <span class="op">*</span> <span class="num">2</span> + (octet <span class="op">%</span> <span class="num">2</span>);
-		octet = octet / <span class="num">2</span>;
-		i<span class="op">--</span>;
+		res = res <span class="op">&lt;&lt;</span> <span class="num">1</span>;
+		res = res <span class="op">|</span> (octet <span class="op">&amp;</span> <span class="num">1</span>);
+		octet = octet <span class="op">&gt;&gt;</span> <span class="num">1</span>;
+		i<span class="op">++</span>;
 	}
 	<span class="kw">return</span> (res);
 }</pre>
@@ -991,7 +1089,9 @@ i<span class="op">++</span>;                               <span class="cm">// 1
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
         <span class="code-filename">swap_bits.c</span>
       </div>
-<pre><span class="tp">unsigned char</span>	<span class="fn">swap_bits</span>(<span class="tp">unsigned char</span> octet)
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">unsigned char</span>	<span class="fn">swap_bits</span>(<span class="tp">unsigned char</span> octet)
 {
 	<span class="kw">return</span> ((octet <span class="op">&gt;&gt;</span> <span class="num">4</span>) <span class="op">|</span> (octet <span class="op">&lt;&lt;</span> <span class="num">4</span>));
 }</pre>
@@ -1027,43 +1127,54 @@ i<span class="op">++</span>;                               <span class="cm">// 1
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">union.c (cœur)</span>
+        <span class="code-filename">union.c</span>
       </div>
-<pre><span class="cm">// Phase 1 : parcourir s1</span>
-<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span>	<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	j = <span class="num">0</span>; found = <span class="num">0</span>;
-	<span class="kw">while</span> (j &lt; i)                     <span class="cm">// look behind</span>
+	<span class="kw">if</span> (argc != <span class="num">3</span>)
 	{
-		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">1</span>][i])
-			found = <span class="num">1</span>;
-		j<span class="op">++</span>;
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
 	}
-	<span class="kw">if</span> (found == <span class="num">0</span>)
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
-	i<span class="op">++</span>;
-}
-<span class="cm">// Phase 2 : parcourir s2 (2 boucles internes)</span>
-i = <span class="num">0</span>;
-<span class="kw">while</span> (argv[<span class="num">2</span>][i])
-{
-	j = <span class="num">0</span>; found = <span class="num">0</span>;
-	<span class="kw">while</span> (argv[<span class="num">1</span>][j])                <span class="cm">// in s1 ?</span>
+	<span class="tp">int</span> i = <span class="num">0</span>, j = <span class="num">0</span>, found = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
 	{
-		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
-			found = <span class="num">1</span>;
-		j<span class="op">++</span>;
+		j = <span class="num">0</span>; found = <span class="num">0</span>;
+		<span class="kw">while</span> (j &lt; i)
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">1</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (found == <span class="num">0</span>)
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
 	}
-	j = <span class="num">0</span>;
-	<span class="kw">while</span> (j &lt; i)                      <span class="cm">// in s2 avant ?</span>
+	i = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">2</span>][i])
 	{
-		<span class="kw">if</span> (argv[<span class="num">2</span>][j] == argv[<span class="num">2</span>][i])
-			found = <span class="num">1</span>;
-		j<span class="op">++</span>;
+		j = <span class="num">0</span>; found = <span class="num">0</span>;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][j])
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		j = <span class="num">0</span>;
+		<span class="kw">while</span> (j &lt; i)
+		{
+			<span class="kw">if</span> (argv[<span class="num">2</span>][j] == argv[<span class="num">2</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (found == <span class="num">0</span>)
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">2</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
 	}
-	<span class="kw">if</span> (found == <span class="num">0</span>)
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">2</span>][i], <span class="num">1</span>);
-	i<span class="op">++</span>;
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
 }</pre>
     </div>
     <div class="exo-side">
@@ -1095,27 +1206,40 @@ i = <span class="num">0</span>;
     <div class="exo-code">
       <div class="exo-code-header">
         <div class="code-dot" style="background:var(--red)"></div><div class="code-dot" style="background:var(--gold)"></div><div class="code-dot" style="background:var(--green)"></div>
-        <span class="code-filename">inter.c (cœur)</span>
+        <span class="code-filename">inter.c</span>
       </div>
-<pre><span class="kw">while</span> (argv[<span class="num">1</span>][i])
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span>	<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
 {
-	j = <span class="num">0</span>; dupe = <span class="num">0</span>;
-	<span class="kw">while</span> (j &lt; i)                     <span class="cm">// dupe dans s1 ?</span>
+	<span class="kw">if</span> (argc != <span class="num">3</span>)
 	{
-		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">1</span>][i])
-			dupe = <span class="num">1</span>;
-		j<span class="op">++</span>;
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
 	}
-	j = <span class="num">0</span>; in_s2 = <span class="num">0</span>;
-	<span class="kw">while</span> (argv[<span class="num">2</span>][j])                <span class="cm">// dans s2 ?</span>
+	<span class="tp">int</span> i = <span class="num">0</span>, j = <span class="num">0</span>, dupe = <span class="num">0</span>, in_s2 = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
 	{
-		<span class="kw">if</span> (argv[<span class="num">2</span>][j] == argv[<span class="num">1</span>][i])
-			in_s2 = <span class="num">1</span>;
-		j<span class="op">++</span>;
+		j = <span class="num">0</span>; dupe = <span class="num">0</span>;
+		<span class="kw">while</span> (j &lt; i)
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">1</span>][i])
+				dupe = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		j = <span class="num">0</span>; in_s2 = <span class="num">0</span>;
+		<span class="kw">while</span> (argv[<span class="num">2</span>][j])
+		{
+			<span class="kw">if</span> (argv[<span class="num">2</span>][j] == argv[<span class="num">1</span>][i])
+				in_s2 = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (dupe == <span class="num">0</span> &amp;&amp; in_s2 == <span class="num">1</span>)
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
 	}
-	<span class="kw">if</span> (dupe == <span class="num">0</span> &amp;&amp; in_s2 == <span class="num">1</span>)
-		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
-	i<span class="op">++</span>;
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
 }</pre>
     </div>
     <div class="exo-side">
