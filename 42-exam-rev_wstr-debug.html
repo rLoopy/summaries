@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rev_wstr · Le bug du i qui ne recule pas</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0C0C14; --bg2: #111119;
+  --card: #16161F; --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+  --text: #E2E4E9; --mid: #A0A4B0; --muted: #6B6F7E; --dim: #4A4D5A;
+  --cyan: #06D6A0; --cyan2: #34EDBC;
+  --purple: #A78BFA; --purple2: #C4B5FD;
+  --orange: #FB923C; --orange2: #FDBA74;
+  --red: #F87171; --red2: #FCA5A5;
+  --green: #34D399; --green2: #6EE7B7;
+  --gold: #FBBF24;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  -webkit-font-smoothing: antialiased; padding: 24px 16px 60px;
+}
+code, pre, .mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-ligatures: none; tab-size: 2;
+}
+
+.container { max-width: 880px; margin: 0 auto; }
+
+/* ─── HEADER ─── */
+.header { text-align: center; padding: 40px 16px 30px; }
+.tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  color: #0C0C14; font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 20px; margin-bottom: 18px;
+}
+h1 {
+  font-family: 'Playfair Display', Georgia, serif; font-weight: 900;
+  font-size: clamp(36px, 8vw, 64px); line-height: 1.1; margin-bottom: 12px;
+}
+h1 .grad {
+  background: linear-gradient(135deg, var(--red2), var(--orange2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sub { font-size: 16px; color: var(--mid); font-weight: 300; max-width: 560px; margin: 0 auto; }
+
+/* ─── SECTION ─── */
+section { margin: 40px 0; }
+.section-num {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1.5px; margin-bottom: 8px;
+}
+h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 28px; font-weight: 900; line-height: 1.2; margin-bottom: 8px;
+}
+.section-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+/* ─── CARD ─── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px;
+}
+.card-bad { border-color: rgba(248,113,113,0.3); background: linear-gradient(180deg, var(--card), rgba(248,113,113,0.04)); }
+.card-good { border-color: rgba(52,211,153,0.3); background: linear-gradient(180deg, var(--card), rgba(52,211,153,0.04)); }
+.card-cyan { border-color: rgba(6,214,160,0.3); background: linear-gradient(180deg, var(--card), rgba(6,214,160,0.04)); }
+
+/* ─── STRING VISUAL ─── */
+.string-viz {
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; flex-wrap: wrap; gap: 4px;
+  justify-content: center; padding: 16px 0;
+}
+.char {
+  width: 32px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 5px; font-size: 16px; font-weight: 600;
+  position: relative; color: var(--text);
+}
+.char.space { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.3); color: var(--purple); }
+.char.cursor { background: rgba(251,191,36,0.2); border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(251,191,36,0.4); }
+.char.printed { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.4); color: var(--green2); }
+.char.scanned { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--red2); }
+.char .idx {
+  position: absolute; bottom: -18px; font-size: 9px;
+  color: var(--dim); font-weight: 500;
+}
+
+@media (max-width: 540px) {
+  .char { width: 24px; height: 28px; font-size: 12px; }
+  .char .idx { font-size: 7px; bottom: -14px; }
+}
+
+.string-row { margin-bottom: 28px; }
+.string-label {
+  font-size: 11px; color: var(--muted); text-align: center;
+  margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* ─── STEP ─── */
+.step {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px; margin-bottom: 12px;
+}
+.step-num {
+  display: inline-block; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700; color: var(--cyan2);
+  background: rgba(6,214,160,0.1); padding: 3px 8px; border-radius: 4px;
+  margin-bottom: 10px;
+}
+.step-action { font-size: 14px; color: var(--text); margin-bottom: 10px; }
+.step-action code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--cyan2); }
+.step-state {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--mid); padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.step-state b { color: var(--text); }
+
+/* ─── BUG vs FIX ─── */
+.compare-grid {
+  display: grid; grid-template-columns: 1fr; gap: 16px;
+  margin-top: 16px;
+}
+@media (min-width: 720px) { .compare-grid { grid-template-columns: 1fr 1fr; } }
+
+.compare-card { padding: 20px; border-radius: 12px; }
+.compare-bad { background: rgba(248,113,113,0.05); border: 1px solid rgba(248,113,113,0.25); }
+.compare-good { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.25); }
+.compare-title { font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.compare-bad .compare-title { color: var(--red); }
+.compare-good .compare-title { color: var(--green); }
+.compare-card pre {
+  background: rgba(0,0,0,0.3); padding: 12px 14px; border-radius: 8px;
+  font-size: 11.5px; line-height: 1.6; overflow-x: auto;
+  color: #d1d5db;
+}
+.compare-result {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(255,255,255,0.03); border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+}
+.compare-bad .compare-result { color: var(--red2); }
+.compare-good .compare-result { color: var(--green2); }
+
+/* ─── CODE ─── */
+.code-block {
+  background: #08080f; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-top: 16px;
+}
+.code-header {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+}
+.code-dot { width: 8px; height: 8px; border-radius: 50%; }
+.code-filename { margin-left: 8px; font-size: 11px; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
+.code-block pre {
+  margin: 0; padding: 16px; overflow-x: auto;
+  font-size: 12.5px; line-height: 1.7;
+  color: #d1d5db;
+}
+.kw { color: #c084fc; } .fn { color: #22d3ee; } .tp { color: #fb923c; }
+.cm { color: #6b7280; } .str { color: #86efac; } .num { color: #fbbf24; }
+.op { color: #f472b6; }
+.highlight {
+  background: rgba(251,191,36,0.15);
+  border-left: 3px solid var(--gold);
+  display: inline-block; padding-left: 6px;
+  margin-left: -9px;
+}
+
+.legend {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
+  font-size: 11px; color: var(--muted); margin: 16px 0 24px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid; }
+
+.output-line {
+  text-align: center; padding: 14px 0; margin-top: 16px;
+  background: rgba(52,211,153,0.05); border: 1px dashed rgba(52,211,153,0.3);
+  border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  color: var(--green2); font-weight: 600;
+}
+
+.callout {
+  background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,146,60,0.08));
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 12px; padding: 16px 20px; margin: 20px 0;
+}
+.callout-title { font-weight: 700; color: var(--gold); margin-bottom: 6px; font-size: 14px; }
+.callout-text { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+
+.footer {
+  text-align: center; padding: 30px 16px 0; color: var(--muted); font-size: 12px;
+  border-top: 1px solid var(--border); margin-top: 50px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="tag">Debug session · rev_wstr</div>
+  <h1>Le bug du <span class="grad">i qui ne recule pas</span></h1>
+  <p class="sub">Tu avais 90% de la logique. Voici la pièce manquante, visualisée pas à pas.</p>
+</div>
+
+<!-- TON BUG -->
+<section>
+  <div class="section-num">01 / TON DIAGNOSTIC</div>
+  <h2>Ton bug à l'exam</h2>
+  <p class="section-sub">"J'arrivais à print le dernier mot, mais après je restais bloqué dessus."</p>
+
+  <div class="card card-bad">
+    <p style="font-size:14px;color:var(--mid);line-height:1.7">
+      <strong style="color:var(--red)">Symptôme :</strong> le programme print le dernier mot encore et encore, ne s'arrête jamais ou affiche des trucs n'importe comment.<br><br>
+      <strong style="color:var(--red)">Cause :</strong> après avoir trouvé l'espace et printé le mot, ton <code style="background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--cyan2)">i</code> reste sur cet espace. Au tour suivant, ta boucle "recule jusqu'à un espace" trouve <strong>le même espace</strong> immédiatement (puisque <code style="background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--cyan2)">argv[1][i]</code> EST déjà l'espace).
+    </p>
+  </div>
+</section>
+
+<!-- DÉMO BUG vs FIX -->
+<section>
+  <div class="section-num">02 / LA SOLUTION EN UNE LIGNE</div>
+  <h2>Le fix : <code style="font-size:24px;color:var(--gold)">i--</code> après le print</h2>
+  <p class="section-sub">Une seule instruction te séparait de la victoire.</p>
+
+  <div class="compare-grid">
+    <div class="compare-card compare-bad">
+      <div class="compare-title">✕ Sans le fix</div>
+<pre>while (i &gt;= 0)
+{
+    end = i;
+    while (i &gt;= 0 &amp;&amp; argv[1][i] != ' ')
+        i--;
+    j = i + 1;
+    while (j &lt;= end)
+    {
+        write(1, &amp;argv[1][j], 1);
+        j++;
+    }
+    if (i &gt;= 0)
+        write(1, " ", 1);
+    <span style="color:#f87171">// PAS de i-- ici</span>
+}</pre>
+      <div class="compare-result">→ boucle infinie sur le dernier mot 💀</div>
+    </div>
+
+    <div class="compare-card compare-good">
+      <div class="compare-title">✓ Avec le fix</div>
+<pre>while (i &gt;= 0)
+{
+    end = i;
+    while (i &gt;= 0 &amp;&amp; argv[1][i] != ' ')
+        i--;
+    j = i + 1;
+    while (j &lt;= end)
+    {
+        write(1, &amp;argv[1][j], 1);
+        j++;
+    }
+    if (i &gt;= 0)
+        write(1, " ", 1);
+    <span style="color:#34D399;background:rgba(52,211,153,0.15);padding:1px 4px;border-radius:3px">i--;  // ⚡ LE FIX</span>
+}</pre>
+      <div class="compare-result">→ tous les mots inversés ✅</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACE VISUELLE -->
+<section>
+  <div class="section-num">03 / TRACE VISUELLE</div>
+  <h2>Algo pas à pas sur "abc def"</h2>
+  <p class="section-sub">7 caractères, 2 mots. Suis le curseur 🟡 et la sortie en bas.</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:var(--bg2);border-color:var(--border)"></div>Char standard</div>
+    <div class="legend-item"><div class="legend-box" style="background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.3)"></div>Espace</div>
+    <div class="legend-item"><div class="legend-box" style="background:rgba(251,191,36,0.2);border-color:var(--gold)"></div>Curseur i</div>
+    <div class="legend-item"><div class="legend-box" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3)"></div>Scanné (recul)</div>
+    <div class="legend-item"><div class="legend-box" style="background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.4)"></div>Printé</div>
+  </div>
+
+  <!-- ÉTAT INITIAL -->
+  <div class="step">
+    <div class="step-num">ÉTAT INITIAL</div>
+    <div class="step-action">On part de la fin : <code>i = strlen - 1 = 6</code></div>
+    <div class="string-viz">
+      <div class="char">a<div class="idx">0</div></div>
+      <div class="char">b<div class="idx">1</div></div>
+      <div class="char">c<div class="idx">2</div></div>
+      <div class="char space">␣<div class="idx">3</div></div>
+      <div class="char">d<div class="idx">4</div></div>
+      <div class="char">e<div class="idx">5</div></div>
+      <div class="char cursor">f<div class="idx">6 ← i</div></div>
+    </div>
+  </div>
+
+  <!-- TOUR 1 - end -->
+  <div class="step">
+    <div class="step-num">TOUR 1 — étape A</div>
+    <div class="step-action"><code>end = i</code> → on mémorise la fin du mot courant</div>
+    <div class="step-state"><b>i = 6</b>, <b>end = 6</b>, output = ""</div>
+  </div>
+
+  <!-- TOUR 1 - recul -->
+  <div class="step">
+    <div class="step-num">TOUR 1 — étape B</div>
+    <div class="step-action">Recule <code>i</code> jusqu'à un espace ou index < 0</div>
+    <div class="string-viz">
+      <div class="char">a<div class="idx">0</div></div>
+      <div class="char">b<div class="idx">1</div></div>
+      <div class="char">c<div class="idx">2</div></div>
+      <div class="char cursor space">␣<div class="idx">3 ← i</div></div>
+      <div class="char scanned">d<div class="idx">4</div></div>
+      <div class="char scanned">e<div class="idx">5</div></div>
+      <div class="char scanned">f<div class="idx">6</div></div>
+    </div>
+    <div class="step-state"><b>i = 3</b> (sur l'espace), <b>end = 6</b></div>
+  </div>
+
+  <!-- TOUR 1 - print -->
+  <div class="step">
+    <div class="step-num">TOUR 1 — étape C</div>
+    <div class="step-action"><code>j = i + 1 = 4</code>, print de <code>j</code> jusqu'à <code>end</code> → "def"</div>
+    <div class="string-viz">
+      <div class="char">a<div class="idx">0</div></div>
+      <div class="char">b<div class="idx">1</div></div>
+      <div class="char">c<div class="idx">2</div></div>
+      <div class="char cursor space">␣<div class="idx">3 ← i</div></div>
+      <div class="char printed">d<div class="idx">4</div></div>
+      <div class="char printed">e<div class="idx">5</div></div>
+      <div class="char printed">f<div class="idx">6</div></div>
+    </div>
+    <div class="output-line">output: "def"</div>
+  </div>
+
+  <!-- TOUR 1 - séparateur + i-- -->
+  <div class="step" style="border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.04)">
+    <div class="step-num" style="color:var(--gold);background:rgba(251,191,36,0.1)">⚡ TOUR 1 — ÉTAPE CLEF</div>
+    <div class="step-action">
+      <code>i &gt;= 0</code> donc on print un espace → output: <code>"def "</code><br>
+      Puis <strong style="color:var(--gold)"><code>i--</code> → i passe de 3 à 2</strong> (on quitte l'espace)
+    </div>
+    <div class="string-viz">
+      <div class="char">a<div class="idx">0</div></div>
+      <div class="char">b<div class="idx">1</div></div>
+      <div class="char cursor">c<div class="idx">2 ← i</div></div>
+      <div class="char space">␣<div class="idx">3</div></div>
+      <div class="char printed">d<div class="idx">4</div></div>
+      <div class="char printed">e<div class="idx">5</div></div>
+      <div class="char printed">f<div class="idx">6</div></div>
+    </div>
+    <div class="step-state"><b>i = 2</b> (le 'c'), output = "def "</div>
+  </div>
+
+  <!-- TOUR 2 - end -->
+  <div class="step">
+    <div class="step-num">TOUR 2 — étape A</div>
+    <div class="step-action"><code>end = i = 2</code></div>
+  </div>
+
+  <!-- TOUR 2 - recul -->
+  <div class="step">
+    <div class="step-num">TOUR 2 — étape B</div>
+    <div class="step-action">Recule <code>i</code>, mais on ne trouve pas d'espace → <code>i</code> devient <code>-1</code></div>
+    <div class="string-viz">
+      <div class="char scanned">a<div class="idx">0</div></div>
+      <div class="char scanned">b<div class="idx">1</div></div>
+      <div class="char scanned">c<div class="idx">2</div></div>
+      <div class="char space">␣<div class="idx">3</div></div>
+      <div class="char printed">d<div class="idx">4</div></div>
+      <div class="char printed">e<div class="idx">5</div></div>
+      <div class="char printed">f<div class="idx">6</div></div>
+    </div>
+    <div class="step-state"><b>i = -1</b> (hors string), <b>end = 2</b></div>
+  </div>
+
+  <!-- TOUR 2 - print -->
+  <div class="step">
+    <div class="step-num">TOUR 2 — étape C</div>
+    <div class="step-action"><code>j = i + 1 = 0</code>, print de 0 à 2 → "abc"</div>
+    <div class="string-viz">
+      <div class="char printed">a<div class="idx">0</div></div>
+      <div class="char printed">b<div class="idx">1</div></div>
+      <div class="char printed">c<div class="idx">2</div></div>
+      <div class="char space">␣<div class="idx">3</div></div>
+      <div class="char printed">d<div class="idx">4</div></div>
+      <div class="char printed">e<div class="idx">5</div></div>
+      <div class="char printed">f<div class="idx">6</div></div>
+    </div>
+    <div class="output-line">output: "def abc"</div>
+  </div>
+
+  <!-- TOUR 2 - sortie -->
+  <div class="step" style="border-color:rgba(52,211,153,0.4);background:rgba(52,211,153,0.04)">
+    <div class="step-num" style="color:var(--green);background:rgba(52,211,153,0.1)">✓ TOUR 2 — SORTIE</div>
+    <div class="step-action">
+      <code>i &gt;= 0</code> ? <strong>NON</strong> (i = -1) → pas d'espace<br>
+      <code>i--</code> → <code>i = -2</code>, condition <code>while (i &gt;= 0)</code> fausse → <strong style="color:var(--green2)">SORTIE</strong>
+    </div>
+    <div class="step-state"><b>Sortie de boucle.</b> On write "\n", return 0.</div>
+  </div>
+</section>
+
+<!-- POURQUOI ÇA MARCHE -->
+<section>
+  <div class="section-num">04 / POURQUOI LE FIX MARCHE</div>
+  <h2>Le rôle de chaque <code>i</code> qui bouge</h2>
+
+  <div class="card card-cyan">
+    <p style="font-size:14px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--cyan2)">Recul interne (étape B)</strong> — sert à trouver le DÉBUT du mot courant.<br>
+      Il s'arrête PILE sur l'espace qui précède le mot (ou à -1).<br><br>
+
+      <strong style="color:var(--cyan2)">i-- final (étape clef)</strong> — sert à PASSER DEVANT cet espace pour que le tour suivant puisse trouver un nouvel espace.<br>
+      Sans lui, l'étape B au tour suivant trouve immédiatement le même espace (puisque i pointe dessus) → boucle infinie.
+    </p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Métaphore</div>
+    <div class="callout-text">
+      Imagine que tu recules dans un couloir et que tu cherches des portes. Tu trouves une porte (l'espace), tu lis le nom du locataire (le mot après). Maintenant pour trouver la porte SUIVANTE, tu dois <strong>continuer à reculer</strong> (i--), pas rester planté devant celle que tu viens de voir.
+    </div>
+  </div>
+</section>
+
+<!-- CODE COMPLET -->
+<section>
+  <div class="section-num">05 / CODE COMPLET</div>
+  <h2>La version finale, dans ton style</h2>
+  <p class="section-sub">3 variables (<code>i</code>, <code>j</code>, <code>end</code>), zéro malloc, walk in-place.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dot" style="background:#F87171"></div>
+      <div class="code-dot" style="background:#FBBF24"></div>
+      <div class="code-dot" style="background:#34D399"></div>
+      <span class="code-filename">rev_wstr.c</span>
+    </div>
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span>	<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+  <span class="kw">if</span> (argc != <span class="num">2</span>)
+  {
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+    <span class="kw">return</span> <span class="num">0</span>;
+  }
+  <span class="tp">int</span> i = <span class="num">0</span>;
+  <span class="kw">while</span> (argv[<span class="num">1</span>][i])
+    i<span class="op">++</span>;
+  i<span class="op">--</span>;
+  <span class="tp">int</span> end;
+  <span class="tp">int</span> j;
+  <span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="num">0</span>)
+  {
+    end = i;
+    <span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="num">0</span> <span class="op">&amp;&amp;</span> argv[<span class="num">1</span>][i] != <span class="op">'</span> <span class="op">'</span> <span class="op">&amp;&amp;</span> argv[<span class="num">1</span>][i] != <span class="op">'</span>\t<span class="op">'</span>)
+      i<span class="op">--</span>;
+    j = i <span class="op">+</span> <span class="num">1</span>;
+    <span class="kw">while</span> (j <span class="op">&lt;=</span> end)
+    {
+      <span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][j], <span class="num">1</span>);
+      j<span class="op">++</span>;
+    }
+    <span class="kw">if</span> (i <span class="op">&gt;=</span> <span class="num">0</span>)
+      <span class="fn">write</span>(<span class="num">1</span>, <span class="str">" "</span>, <span class="num">1</span>);
+<span class="highlight">    i<span class="op">--</span>;  <span class="cm">// ⚡ LE FIX</span></span>
+  }
+  <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+  </div>
+
+  <div class="callout" style="background:linear-gradient(135deg,rgba(52,211,153,0.08),rgba(6,214,160,0.08));border-color:rgba(52,211,153,0.3)">
+    <div class="callout-title" style="color:var(--green2)">✓ Tests à passer</div>
+    <div class="callout-text">
+      <code>"order in us put"</code> → <code>put us in order</code><br>
+      <code>"done! well it, did You"</code> → <code>You did it, well done!</code><br>
+      <code>"You hate people!..."</code> → <code>...people! hate You</code><br>
+      <code>"abcdefghijklm"</code> → <code>abcdefghijklm</code> (mot unique)<br>
+      sans args → <code>\n</code>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  42 Prof · Debug session rev_wstr · 14/04/2026<br>
+  <span style="color:var(--dim);font-size:10px">rrohrer · rloopy.github.io/summaries</span>
+</div>
+
+</div>
+
+</body>
+</html>
