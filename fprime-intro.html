@@ -303,13 +303,19 @@ main {
 .connector {
   display: block;
   width: 100%;
-  height: 220px;
-  margin: 20px 0 -120px;
+  height: 240px;
+  margin: 10px 0 20px;
   position: relative;
   pointer-events: none;
-  z-index: 2;
+  overflow: visible;
 }
-.connector svg { overflow: visible; }
+.connector svg {
+  display: block;
+  width: calc(100% + 220px);
+  height: 100%;
+  overflow: visible;
+  margin-right: -220px;
+}
 .connector svg { width: 100%; height: 100%; display: block; }
 
 /* ──────── TERMINAL with frame ──────── */
@@ -936,10 +942,10 @@ footer {
 
 <!-- zigzag connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">ok, c'est quoi un "premier" ?</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">ok, c'est quoi un "premier" ?</text>
   </svg>
 </div>
 
@@ -982,10 +988,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">maintenant, on casse 42 en morceaux.</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">maintenant, on casse 42 en morceaux.</text>
   </svg>
 </div>
 
@@ -1048,10 +1054,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">l'algo, en 4 gestes seulement.</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">l'algo, en 4 gestes seulement.</text>
   </svg>
 </div>
 
@@ -1117,10 +1123,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">voyons l'algo tourner pour de vrai.</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">voyons l'algo tourner pour de vrai.</text>
   </svg>
 </div>
 
@@ -1164,10 +1170,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">attention aux 4 pièges du sujet.</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">attention aux 4 pièges du sujet.</text>
   </svg>
 </div>
 
@@ -1223,10 +1229,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">ok et le "*" à l'affichage ?</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">ok et le "*" à l'affichage ?</text>
   </svg>
 </div>
 
@@ -1255,10 +1261,10 @@ footer {
 
 <!-- connector -->
 <div class="connector">
-  <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
-    <path d="M220,5 C420,10 500,40 485,120 C470,185 370,215 200,215 L110,215" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="10,6" filter="url(#rough)"/>
-    <polygon points="110,215 130,203 128,228" fill="#222030" filter="url(#rough)"/>
-    <text x="290" y="115" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 290 115)">ton plan avant de taper du code.</text>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <path d="M120,15 H520 C640,15 680,65 680,120 C680,175 640,225 520,225 H130" stroke="#222030" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10,6" filter="url(#rough)"/>
+    <polygon points="130,225 148,213 150,238" fill="#222030" filter="url(#rough)"/>
+    <text x="340" y="125" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#222030" font-weight="700" transform="rotate(-1 340 125)">ton plan avant de taper du code.</text>
   </svg>
 </div>
 
