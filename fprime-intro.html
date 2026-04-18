@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fprime — comprendre avant de coder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAF7F2;
+  --primary: #2563EB;
+  --primary-d: #1E40AF;
+  --primary-l: #DBEAFE;
+  --accent: #F59E0B;
+  --accent-l: #FEF3C7;
+  --green: #16A34A;
+  --green-l: #DCFCE7;
+  --red: #DC2626;
+  --red-l: #FEE2E2;
+  --dark: #111827;
+  --mid: #4B5563;
+  --muted: #9CA3AF;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --shadow: rgba(17,24,39,0.06);
+  --shadow-lg: rgba(17,24,39,0.12);
+  --radius: 16px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  z-index: 9999;
+  transition: width 0.1s linear;
+}
+
+.hero {
+  background: var(--dark);
+  color: #fff;
+  padding: 80px 24px 70px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 20%, rgba(37,99,235,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 70% 80%, rgba(245,158,11,0.15) 0%, transparent 60%);
+}
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.hero-content { position: relative; max-width: 720px; margin: 0 auto; }
+.hero-tag {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 30px;
+  margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1.1;
+  margin-bottom: 18px;
+}
+.hero h1 .accent {
+  color: var(--accent);
+  font-style: italic;
+}
+.hero-sub {
+  font-size: 17px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 300;
+  max-width: 560px;
+  margin: 0 auto 28px;
+}
+.hero-meta {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hero-pill {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.section { margin-bottom: 60px; }
+.section-num {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.section h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 36px);
+  color: var(--dark);
+  margin-bottom: 18px;
+  line-height: 1.2;
+}
+.section p {
+  color: var(--mid);
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+.section p strong { color: var(--dark); }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 2px 8px var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.card-flat { background: var(--primary-l); border: none; }
+
+.primes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+.prime-box {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  position: relative;
+}
+.prime-box.is-prime {
+  background: var(--green-l);
+  color: var(--green);
+  border: 2px solid var(--green);
+}
+.prime-box.not-prime {
+  background: var(--red-l);
+  color: var(--red);
+  border: 2px solid var(--red);
+  opacity: 0.65;
+}
+.prime-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--mid);
+}
+.prime-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prime-legend-box {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  border: 2px solid;
+}
+.prime-legend-box.ok { background: var(--green-l); border-color: var(--green); }
+.prime-legend-box.ko { background: var(--red-l); border-color: var(--red); }
+
+.tree {
+  background: var(--card);
+  padding: 32px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tree-node {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px;
+}
+.tree-value {
+  background: var(--primary);
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+}
+.tree-value.prime {
+  background: var(--green);
+  box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+}
+.tree-value.small { width: 44px; height: 44px; font-size: 14px; border-radius: 10px; }
+.tree-branch {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 12px;
+  position: relative;
+}
+.tree-branch::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  background: var(--border);
+}
+.tree-op {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0;
+}
+.tree-final {
+  margin-top: 28px;
+  padding: 16px;
+  background: var(--accent-l);
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--dark);
+}
+.tree-final .eq { color: var(--accent); }
+
+.steps {
+  display: grid;
+  gap: 12px;
+}
+.step {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 16px;
+  align-items: start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.2s;
+}
+.step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--shadow-lg);
+}
+.step-num {
+  background: var(--primary);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+}
+.step-body h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+.step-body p {
+  font-size: 14px;
+  color: var(--mid);
+  margin-bottom: 8px;
+}
+.step-body code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--primary-l);
+  color: var(--primary-d);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.terminal {
+  background: #0D1117;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 16px 0;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid #30363D;
+}
+.terminal-bar {
+  background: #161B22;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #30363D;
+}
+.terminal-dot { width: 11px; height: 11px; border-radius: 50%; }
+.terminal-dot.r { background: #FF5F56; }
+.terminal-dot.y { background: #FFBD2E; }
+.terminal-dot.g { background: #27C93F; }
+.terminal-title {
+  margin-left: auto;
+  color: #8B949E;
+  font-size: 12px;
+}
+.terminal-body {
+  padding: 16px 18px;
+  color: #E6EDF3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.term-arrow { color: #F59E0B; }
+.term-value { color: #79C0FF; }
+.term-comment { color: #8B949E; font-style: italic; }
+.term-ok { color: #7EE787; }
+.term-ko { color: #FF7B72; }
+.term-prompt { color: #7EE787; }
+
+.edge-table {
+  width: 100%;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  border-collapse: collapse;
+}
+.edge-table th {
+  background: var(--primary-l);
+  color: var(--primary-d);
+  text-align: left;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.edge-table td {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--mid);
+}
+.edge-table td.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--primary-d);
+  background: var(--primary-l);
+  width: 35%;
+  font-weight: 600;
+}
+.edge-table td.out {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--dark);
+  font-weight: 600;
+}
+
+.takeaway {
+  background: var(--primary);
+  color: #fff;
+  padding: 36px 28px;
+  border-radius: var(--radius);
+  text-align: center;
+  margin-top: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.takeaway::before {
+  content: "";
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.takeaway h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 28px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.takeaway p {
+  position: relative;
+  font-size: 15px;
+  color: rgba(255,255,255,0.88);
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+footer {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+footer a { color: var(--primary); text-decoration: none; }
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 60px 20px 50px; }
+  .container { padding: 40px 16px; }
+  .primes { grid-template-columns: repeat(5, 1fr); }
+  .tree { padding: 20px 8px; }
+  .tree-value { width: 48px; height: 48px; font-size: 15px; }
+  .tree-value.small { width: 38px; height: 38px; font-size: 12px; }
+  .tree-branch { gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<section class="hero">
+  <div class="hero-dots"></div>
+  <div class="hero-content">
+    <span class="hero-tag">42 · Rank 02 · Level 3</span>
+    <h1>fprime<br><span class="accent">comprendre</span> avant de coder</h1>
+    <p class="hero-sub">Décomposer un nombre en facteurs premiers. On part des maths, puis de l'algo, puis tu codes. Pas l'inverse.</p>
+    <div class="hero-meta">
+      <span class="hero-pill">printf</span>
+      <span class="hero-pill">atoi</span>
+      <span class="hero-pill">~40 lignes</span>
+      <span class="hero-pill">10 min</span>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+
+  <section class="section fade-in">
+    <span class="section-num">01 · BASE</span>
+    <h2>C'est quoi un nombre premier ?</h2>
+    <p>Un nombre <strong>divisible uniquement par 1 et par lui-même</strong>. Rien d'autre. Pas de reste.</p>
+
+    <div class="card">
+      <div class="primes">
+        <div class="prime-box is-prime">2</div>
+        <div class="prime-box is-prime">3</div>
+        <div class="prime-box not-prime">4</div>
+        <div class="prime-box is-prime">5</div>
+        <div class="prime-box not-prime">6</div>
+        <div class="prime-box is-prime">7</div>
+        <div class="prime-box not-prime">8</div>
+        <div class="prime-box not-prime">9</div>
+        <div class="prime-box not-prime">10</div>
+        <div class="prime-box is-prime">11</div>
+        <div class="prime-box not-prime">12</div>
+        <div class="prime-box is-prime">13</div>
+      </div>
+      <div class="prime-legend">
+        <div class="prime-legend-item"><span class="prime-legend-box ok"></span> Premier</div>
+        <div class="prime-legend-item"><span class="prime-legend-box ko"></span> Pas premier</div>
+      </div>
+    </div>
+
+    <p>Les premiers dans l'ordre : <strong>2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37...</strong> Ils sont infinis.</p>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">02 · DÉCOMPOSITION</span>
+    <h2>Factoriser, c'est casser un nombre en produit de premiers</h2>
+    <p>Exemple avec <strong>42</strong>. L'idée : on descend en divisant à chaque étape jusqu'à tomber sur des premiers.</p>
+
+    <div class="tree">
+      <div class="tree-node">
+        <div class="tree-value">42</div>
+        <div class="tree-op">÷ 2</div>
+        <div class="tree-branch">
+          <div class="tree-node">
+            <div class="tree-value prime small">2</div>
+          </div>
+          <div class="tree-node">
+            <div class="tree-value">21</div>
+            <div class="tree-op">÷ 3</div>
+            <div class="tree-branch">
+              <div class="tree-node">
+                <div class="tree-value prime small">3</div>
+              </div>
+              <div class="tree-node">
+                <div class="tree-value prime small">7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tree-final">42 <span class="eq">=</span> 2 × 3 × 7</div>
+    </div>
+
+    <p style="margin-top:16px;">Les <strong style="color:var(--green);">ronds verts</strong> sont des premiers (on peut plus diviser). Le résultat final c'est le <strong>produit de toutes les feuilles</strong>.</p>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">03 · L'ALGORITHME</span>
+    <h2>4 étapes, pas plus</h2>
+    <p>Oublie le code pour l'instant. Voilà ce que ton programme doit <em>faire</em>, pas à pas :</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Commencer par le plus petit diviseur</h3>
+          <p>Le plus petit premier c'est <code>2</code>. Tu testes : <em>est-ce que n est divisible par 2 ?</em></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Tant que ça divise, tu restes sur le même diviseur</h3>
+          <p>Si <code>n = 8</code>, tu divises par 2 puis 4 puis 2 puis 1. Tu écris <code>2*2*2</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Quand ça divise plus, tu incrémentes le diviseur</h3>
+          <p>Passe de 2 à 3, de 3 à 4, etc. <strong>Pas besoin de tester si le diviseur est premier lui-même</strong> — si n n'est plus divisible par 2, il ne le sera pas par 4 non plus.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Tu t'arrêtes quand n vaut 1</h3>
+          <p>C'est terminé. Tous les facteurs ont été extraits. Affiche <code>\n</code> et <code>return 0</code>.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">04 · TRACE</span>
+    <h2>L'algo qui tourne sur 42</h2>
+    <p>Visualise exactement ce qu'il se passe dans la tête du programme :</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">./fprime 42</div>
+      </div>
+      <div class="terminal-body">
+<span class="term-comment">// État initial : n=42, div=2</span><br>
+<span class="term-arrow">→</span> 42 % 2 == 0 ? <span class="term-ok">OUI</span> → print "2", n = 42/2 = <span class="term-value">21</span><br>
+<span class="term-arrow">→</span> 21 % 2 == 0 ? <span class="term-ko">NON</span> → div++ (div=<span class="term-value">3</span>)<br>
+<span class="term-arrow">→</span> 21 % 3 == 0 ? <span class="term-ok">OUI</span> → print "*3", n = 21/3 = <span class="term-value">7</span><br>
+<span class="term-arrow">→</span> 7 % 3 == 0 ? <span class="term-ko">NON</span> → div++ (div=<span class="term-value">4</span>)<br>
+<span class="term-arrow">→</span> 7 % 4 == 0 ? <span class="term-ko">NON</span> → div++ (div=<span class="term-value">5</span>)<br>
+<span class="term-arrow">→</span> 7 % 5 == 0 ? <span class="term-ko">NON</span> → div++ (div=<span class="term-value">6</span>)<br>
+<span class="term-arrow">→</span> 7 % 6 == 0 ? <span class="term-ko">NON</span> → div++ (div=<span class="term-value">7</span>)<br>
+<span class="term-arrow">→</span> 7 % 7 == 0 ? <span class="term-ok">OUI</span> → print "*7", n = 7/7 = <span class="term-value">1</span><br>
+<span class="term-arrow">→</span> n == 1 ? <span class="term-ok">STOP</span> → print "\n"<br><br>
+<span class="term-prompt">output:</span> <span class="term-value">2*3*7</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">05 · EDGE CASES</span>
+    <h2>Les 4 cas particuliers du sujet</h2>
+    <p>Lis attentivement le sujet. Il te donne <strong>4 situations spéciales</strong> à gérer avant la factorisation :</p>
+
+    <table class="edge-table">
+      <thead>
+        <tr><th>Input</th><th>Output</th><th>Pourquoi</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">./fprime</td>
+          <td class="out">(newline)</td>
+          <td>Pas d'argument → rien à factoriser. Juste un <code>\n</code>.</td>
+        </tr>
+        <tr>
+          <td class="mono">./fprime 42 21</td>
+          <td class="out">(newline)</td>
+          <td>Plus d'1 argument → même traitement qu'aucun argument.</td>
+        </tr>
+        <tr>
+          <td class="mono">./fprime 1</td>
+          <td class="out">1</td>
+          <td>1 n'a pas de facteurs premiers, on affiche juste 1.</td>
+        </tr>
+        <tr>
+          <td class="mono">./fprime 9539</td>
+          <td class="out">9539</td>
+          <td>9539 est déjà premier → l'algo s'arrête à div=9539 et affiche 9539 lui-même.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">06 · AFFICHAGE</span>
+    <h2>Le piège du séparateur <code>*</code></h2>
+    <p>Regarde : <strong>2*3*7</strong>, pas <strong>2*3*7*</strong>. Il y a <em>n-1</em> étoiles pour <em>n</em> facteurs. Comment gérer ça sans <code>*</code> en trop à la fin ?</p>
+
+    <div class="card card-flat">
+      <p style="color: var(--primary-d); font-weight: 600; margin-bottom: 10px;">Technique classique en C :</p>
+      <p style="color: var(--mid); font-size: 14px; margin-bottom: 0;">Imprimer le <code>*</code> <strong>AVANT</strong> chaque facteur, <strong>sauf le premier</strong>. Tu gardes un flag <code>first = 1</code>, et tu l'abaisses après la première impression.</p>
+    </div>
+
+    <div class="terminal" style="margin-top: 12px;">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">pseudocode</div>
+      </div>
+      <div class="terminal-body">
+<span class="term-comment">// première fois : on affiche juste le chiffre</span><br>
+<span class="term-comment">// fois suivantes : on affiche "*chiffre"</span><br><br>
+<span class="term-prompt">if</span> (first) { <span class="term-value">printf("%d", div)</span>; first = 0; }<br>
+<span class="term-prompt">else</span>       { <span class="term-value">printf("*%d", div)</span>; }
+      </div>
+    </div>
+
+    <p style="margin-top: 16px; color: var(--mid); font-size: 14px;">Il existe d'autres techniques (imprimer le <code>*</code> APRÈS et trim à la fin, ou concaténer dans un buffer), mais celle-ci est la plus simple avec juste <code>printf</code>.</p>
+  </section>
+
+  <section class="section fade-in">
+    <span class="section-num">07 · SQUELETTE</span>
+    <h2>Par où commencer ton code</h2>
+    <p>Avant d'ouvrir <code>fprime.c</code>, tu sais que tu auras besoin de :</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-body">
+          <h3>Vérifier le nombre d'arguments</h3>
+          <p>Si <code>argc != 2</code> → <code>printf("\n")</code> et <code>return 0</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-body">
+          <h3>Convertir le string en int</h3>
+          <p>Avec <code>atoi(argv[1])</code>. Tu obtiens ton <code>n</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">C</div>
+        <div class="step-body">
+          <h3>Boucler</h3>
+          <p>Un diviseur <code>div = 2</code>. Une boucle externe qui tourne tant que <code>n > 1</code>. Une boucle interne (ou un if) qui divise tant que <code>n % div == 0</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">D</div>
+        <div class="step-body">
+          <h3>Print final</h3>
+          <p>Un <code>printf("\n")</code> à la toute fin.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="takeaway fade-in">
+    <h3>La règle d'or</h3>
+    <p>Ne code pas tant que tu peux pas expliquer l'algo à voix haute sur un papier. Si tu bloques sur le code, c'est souvent que tu comprends pas encore assez l'algo.</p>
+  </div>
+
+</main>
+
+<footer>
+  Généré pour loopy · Rank 02 Level 3 · avril 2026 · <a href="https://github.com/terminal-42s/42_examshell">terminal-42s/42_examshell</a>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
