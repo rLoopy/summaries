@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche R&eacute;vision &mdash; union &middot; Exam Rank 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0C0C14;
+  --bg2: #111119;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #E2E4E9;
+  --mid: #A0A4B0;
+  --muted: #6B6F7E;
+  --dim: #4A4D5A;
+  --cyan: #06D6A0;
+  --cyan2: #34EDBC;
+  --cyan-bg: rgba(6,214,160,0.08);
+  --cyan-border: rgba(6,214,160,0.22);
+  --purple: #A78BFA;
+  --purple2: #C4B5FD;
+  --purple-bg: rgba(167,139,250,0.08);
+  --purple-border: rgba(167,139,250,0.22);
+  --orange: #FB923C;
+  --orange2: #FDBA74;
+  --orange-bg: rgba(251,146,60,0.08);
+  --orange-border: rgba(251,146,60,0.22);
+  --red: #F87171;
+  --red2: #FCA5A5;
+  --red-bg: rgba(248,113,113,0.06);
+  --red-border: rgba(248,113,113,0.18);
+  --green: #34D399;
+  --green2: #6EE7B7;
+  --green-bg: rgba(52,211,153,0.08);
+  --green-border: rgba(52,211,153,0.22);
+  --gold: #FBBF24;
+  --gold-bg: rgba(251,191,36,0.08);
+  --gold-border: rgba(251,191,36,0.22);
+  --blue: #38BDF8;
+  --blue-bg: rgba(56,189,248,0.08);
+  --blue-border: rgba(56,189,248,0.22);
+  --gap: 16px;
+  --radius: 18px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatures: none; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--orange));
+  z-index: 9999; transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── HERO ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 70svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(6,214,160,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(167,139,250,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(251,146,60,0.08) 0%, transparent 50%),
+    var(--bg);
+  animation: heroShift 14s ease-in-out infinite alternate;
+}
+
+@keyframes heroShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(6deg) brightness(1.03); }
+  100% { filter: hue-rotate(-4deg) brightness(0.98); }
+}
+
+.hero-shape {
+  position: absolute; border-radius: 50%; opacity: 0.08;
+  animation: floatShape 8s ease-in-out infinite; pointer-events: none;
+}
+.hero-shape-1 { width:350px;height:350px;background:var(--cyan);top:-100px;right:-80px }
+.hero-shape-2 { width:220px;height:220px;background:var(--purple);bottom:-60px;left:-60px;animation-delay:-3s }
+.hero-shape-3 { width:140px;height:140px;background:var(--orange);top:35%;left:6%;opacity:0.05;animation-delay:-5s }
+
+@keyframes floatShape {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(8deg); }
+}
+
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+
+/* glow lines */
+.hero-glow {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.15; top: 40%; left: -50%;
+  animation: glowSlide 6s linear infinite;
+}
+.hero-glow-2 {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  opacity: 0.1; top: 60%; left: -50%;
+  animation: glowSlide 8s linear infinite reverse;
+}
+@keyframes glowSlide {
+  0% { transform: translateX(-25%); }
+  100% { transform: translateX(25%); }
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 700px; }
+
+.hero-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  color: #0C0C14;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 6px 18px; border-radius: 30px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(40px, 9vw, 80px);
+  color: #fff; line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--cyan2) 0%, var(--purple2) 50%, var(--orange2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 16px; color: var(--muted);
+  margin-bottom: 28px; font-weight: 300;
+}
+
+.hero-stats {
+  display: flex; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+
+.hero-stat {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+
+.hero-mantra {
+  margin-top: 28px;
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--mid);
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  max-width: 600px;
+}
+.hero-mantra strong { color: var(--cyan2); }
+
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%;
+  transform: translateX(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--dim); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── STICKY NAV ────────────────────────────────────────────── */
+.sticky-nav {
+  position: sticky; top: 0;
+  background: rgba(12,12,20,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100; padding: 10px 20px;
+  display: flex; align-items: center; gap: 8px;
+  overflow-x: auto; white-space: nowrap;
+}
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.nav-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); flex-shrink: 0;
+}
+
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 600;
+  color: var(--cyan); text-decoration: none; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-pill:hover { background: var(--cyan); color: var(--bg); }
+.nav-pill .n {
+  width: 16px; height: 16px;
+  background: var(--cyan);
+  border-radius: 50%; color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.nav-pill:hover .n { background: rgba(0,0,0,0.3); color: var(--cyan2); }
+
+/* ─── MAIN ──────────────────────────────────────────────────── */
+.main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* ─── BENTO GRID ────────────────────────────────────────────── */
+.bento {
+  display: grid; grid-template-columns: 1fr;
+  gap: var(--gap); margin-bottom: 40px;
+}
+@media (min-width: 900px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+  .bento-wide { grid-column: 1 / -1; }
+}
+
+/* ─── BENTO CARD ────────────────────────────────────────────── */
+.bcard {
+  border-radius: var(--radius); padding: 28px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
+}
+.bcard.in-view { opacity: 1; transform: translateY(0); }
+.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+.bcard-dark   { background: var(--card); border: 1px solid var(--border); }
+.bcard-cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); }
+.bcard-purple { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+.bcard-orange { background: var(--orange-bg); border: 1px solid var(--orange-border); }
+.bcard-green  { background: var(--green-bg); border: 1px solid var(--green-border); }
+.bcard-gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); }
+.bcard-blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+.bcard-glass  { background: rgba(255,255,255,0.02); border: 1px solid var(--border2); }
+
+/* ─── SECTION HEADINGS ──────────────────────────────────────── */
+.section-label {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.section-label.in-view { opacity: 1; transform: translateY(0); }
+
+.sec-num {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; flex-shrink: 0;
+}
+.sec-num.cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan2); }
+.sec-num.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple2); }
+.sec-num.orange { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange2); }
+.sec-num.red    { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red2); }
+.sec-num.green  { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green2); }
+.sec-num.gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); color: var(--gold); }
+.sec-num.blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+
+.sec-info h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 900;
+}
+.sec-info p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ─── CODE BLOCK ────────────────────────────────────────────── */
+.code-block {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--border2);
+  background: #0A0A10; margin: 0;
+}
+.code-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-filename {
+  margin-left: 8px; font-size: 12px;
+  color: var(--dim); font-family: 'JetBrains Mono', monospace;
+}
+.code-block pre {
+  margin: 0; padding: 18px 22px; overflow-x: auto;
+  font-size: 13.5px; line-height: 1.8;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d1d5db; tab-size: 4;
+}
+.kw { color: var(--purple2); } .fn { color: var(--cyan2); } .tp { color: var(--orange2); }
+.num { color: var(--gold); } .op { color: #F472B6; }
+
+/* ─── FLASHCARD ─────────────────────────────────────────────── */
+.flashcard {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 0; margin-bottom: 12px;
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.flashcard:hover { border-color: var(--purple); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
+
+.flash-q {
+  padding: 18px 22px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.flash-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--purple-bg); border: 1px solid var(--purple-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; color: var(--purple);
+  transition: all 0.3s;
+}
+.flashcard.open .flash-icon { background: var(--purple); color: var(--bg); transform: rotate(45deg); }
+.flash-q-text { flex: 1; }
+.flash-hint { font-size: 11px; color: var(--dim); margin-top: 2px; font-weight: 400; }
+
+.flash-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 22px;
+  background: var(--purple-bg);
+  border-top: 1px solid transparent;
+}
+.flashcard.open .flash-a {
+  max-height: 300px;
+  padding: 16px 22px;
+  border-top-color: var(--purple-border);
+}
+.flash-a p { font-size: 13px; color: var(--mid); line-height: 1.7; }
+.flash-a code {
+  font-size: 12px; background: rgba(167,139,250,0.15);
+  padding: 2px 7px; border-radius: 4px; color: var(--purple2);
+}
+
+/* ─── PIEGE CARD ────────────────────────────────────────────── */
+.trap-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 20px 22px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.trap-card:hover { border-color: var(--orange); transform: translateX(4px); }
+
+.trap-tag {
+  display: inline-flex; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.tag-swap   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan); }
+.tag-loop   { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+.tag-logic  { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange); }
+.tag-init   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+.tag-type   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+.tag-safety { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+
+.trap-label {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+
+.trap-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; flex-wrap: wrap;
+}
+.trap-bad {
+  font-size: 10px; font-weight: 800; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-good {
+  font-size: 10px; font-weight: 800; color: var(--green);
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-code {
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  color: var(--mid); background: rgba(255,255,255,0.04);
+  padding: 4px 10px; border-radius: 6px;
+}
+
+.trap-rule {
+  font-size: 13px; color: var(--mid); line-height: 1.6;
+  padding: 10px 14px; margin-top: 8px;
+  background: var(--gold-bg); border: 1px solid var(--gold-border);
+  border-radius: 10px;
+}
+.trap-rule strong { color: var(--gold); }
+
+/* ─── PATTERN ───────────────────────────────────────────────── */
+.pattern-steps { list-style: none; counter-reset: step; }
+.pattern-steps li {
+  counter-increment: step; position: relative;
+  padding: 10px 0 10px 44px; font-size: 14px;
+  color: var(--mid); line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+.pattern-steps li:last-child { border-bottom: none; }
+.pattern-steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #0C0C14;
+}
+.pattern-steps code {
+  font-size: 12px; background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  padding: 2px 7px; border-radius: 4px; color: var(--cyan2);
+}
+
+/* ─── EVOLUTION TIMELINE ────────────────────────────────────── */
+.evo-timeline { position: relative; padding-left: 24px; }
+.evo-timeline::before {
+  content: ''; position: absolute;
+  left: 7px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, var(--red), var(--orange), var(--green));
+  border-radius: 1px;
+}
+.evo-step {
+  position: relative; margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.evo-step::before {
+  content: ''; position: absolute;
+  left: -21px; top: 18px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.evo-step:nth-child(1)::before { background: var(--red); box-shadow: 0 0 8px rgba(248,113,113,0.4); }
+.evo-step:nth-child(2)::before { background: var(--orange); box-shadow: 0 0 8px rgba(251,146,60,0.4); }
+.evo-step:nth-child(3)::before { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+.evo-version {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.evo-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: var(--mid); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.evo-fix {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 6px; margin-right: 4px; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+}
+.fix-bad  { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+.fix-good { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+
+/* ─── TRANSFER ──────────────────────────────────────────────── */
+.transfer-box {
+  background: var(--card2); border-radius: 14px;
+  padding: 28px; position: relative; overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.transfer-box::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, var(--gold), var(--orange));
+}
+.transfer-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: var(--bg); font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.transfer-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; color: var(--text);
+  margin-bottom: 10px;
+}
+.transfer-desc {
+  font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px;
+}
+.transfer-desc strong { color: var(--orange2); }
+.transfer-proto {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--cyan2);
+  background: rgba(6,214,160,0.06);
+  border: 1px solid var(--cyan-border);
+  border-radius: 8px; padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.transfer-hint {
+  font-size: 12px; color: var(--dim); font-style: italic;
+}
+
+/* ─── CHECKLIST ─────────────────────────────────────────────── */
+.check-list { list-style: none; }
+.check-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; font-size: 14px; color: var(--mid);
+  border-bottom: 1px solid var(--border);
+}
+.check-list li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px; color: var(--dim);
+}
+.check-list code {
+  font-size: 11px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+}
+
+/* ─── FOOTER ────────────────────────────────────────────────── */
+.footer {
+  text-align: center; padding: 32px 20px;
+  font-size: 12px; color: var(--dim);
+  border-top: 1px solid var(--border);
+}
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: 16px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .bcard { padding: 20px; }
+  .sec-num { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+  .sec-info h2 { font-size: 20px; }
+  .hero-mantra { font-size: 11px; padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Exam Rank 02 &middot; Level 2</div>
+    <h1><span class="gradient-text">union</span></h1>
+    <p class="hero-sub">Fusion s1+s2, sans doublons, ordre d&apos;apparition</p>
+    <div class="hero-stats">
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> Joker</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#34D399" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute;</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> Double while + flag</span>
+      <span class="hero-stat">14/04/2026</span>
+    </div>
+    <div class="hero-mantra">
+      <strong>Mantra &rarr;</strong> Partie <code style="color:var(--cyan2);background:rgba(6,214,160,0.1);padding:1px 6px;border-radius:4px">s1</code> : regarde derri&egrave;re toi &mdash; Partie <code style="color:var(--purple2);background:rgba(167,139,250,0.1);padding:1px 6px;border-radius:4px">s2</code> : s1 entier + s2 avant toi
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4v12M5 11l5 5 5-5"/></svg>
+    SCROLL
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <span class="nav-label">Fiche</span>
+  <a href="#code" class="nav-pill"><span class="n">1</span>Code</a>
+  <a href="#flashcards" class="nav-pill"><span class="n">2</span>Flashcards</a>
+  <a href="#pieges" class="nav-pill"><span class="n">3</span>Pi&egrave;ges</a>
+  <a href="#pattern" class="nav-pill"><span class="n">4</span>Pattern</a>
+  <a href="#evolution" class="nav-pill"><span class="n">5</span>&Eacute;volution</a>
+  <a href="#transfert" class="nav-pill"><span class="n">6</span>Transfert</a>
+  <a href="#checklist" class="nav-pill"><span class="n">7</span>Checklist</a>
+</nav>
+
+<div class="main">
+
+<!-- 1 CODE FINAL -->
+<div id="code" class="section-label">
+  <div class="sec-num green">1</div>
+  <div class="sec-info">
+    <h2>Code final</h2>
+    <p>Compile avec -Wall -Wextra -Werror, tous tests OK</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide" style="padding:0">
+    <div class="code-block" style="border:none">
+      <div class="code-header">
+        <div class="code-dot" style="background:var(--red)"></div>
+        <div class="code-dot" style="background:var(--gold)"></div>
+        <div class="code-dot" style="background:var(--green)"></div>
+        <span class="code-filename">union.c</span>
+      </div>
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="kw">if</span> (argc != <span class="num">3</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">"</span>\n<span class="op">"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="tp">int</span> j = <span class="num">0</span>;
+	<span class="tp">int</span> found = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">1</span>][i])
+	{
+		j = <span class="num">0</span>;
+		found = <span class="num">0</span>;
+		<span class="kw">while</span> (j &lt; i)
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">1</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (found == <span class="num">0</span>)
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
+	}
+	i = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">2</span>][i])
+	{
+		j = <span class="num">0</span>;
+		found = <span class="num">0</span>;
+		<span class="kw">while</span> (argv[<span class="num">1</span>][j])
+		{
+			<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		j = <span class="num">0</span>;
+		<span class="kw">while</span> (j &lt; i)
+		{
+			<span class="kw">if</span> (argv[<span class="num">2</span>][j] == argv[<span class="num">2</span>][i])
+				found = <span class="num">1</span>;
+			j<span class="op">++</span>;
+		}
+		<span class="kw">if</span> (found == <span class="num">0</span>)
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">2</span>][i], <span class="num">1</span>);
+		i<span class="op">++</span>;
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="op">"</span>\n<span class="op">"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="bcard bcard-cyan">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">SUJET</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--text)">int main(int argc, char **argv);</strong><br><br>
+      Affiche les chars qui apparaissent<br>
+      dans <strong style="color:var(--text)">s1 OU s2</strong> (au moins l&apos;une)<br>
+      <strong style="color:var(--red2)">SANS DOUBLONS</strong>, dans l&apos;ordre<br>
+      d&apos;apparition. Puis \n.<br><br>
+      argc != 3 &rarr; juste <strong style="color:var(--text)">\n</strong><br>
+      Allowed: write
+    </div>
+  </div>
+
+  <div class="bcard bcard-green">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">TESTS</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
+      <span style="color:var(--muted)">zpadinton + paqefwtdjety…</span><br>&rarr; <strong style="color:var(--green2)">zpadintoqefwjy &#10003;</strong><br><br>
+      <span style="color:var(--muted)">ddf6vewg64f + gtwth…</span><br>&rarr; <strong style="color:var(--green2)">df6vewg4thras &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"rien" + "cette phrase…"</span><br>&rarr; <strong style="color:var(--green2)">rienct phas &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"" + "abc"</span><br>&rarr; <strong style="color:var(--green2)">abc &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"aaa" + "aaa"</span><br>&rarr; <strong style="color:var(--green2)">a &#10003;</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 2 FLASHCARDS -->
+<div id="flashcards" class="section-label">
+  <div class="sec-num purple">2</div>
+  <div class="sec-info">
+    <h2>Flashcards</h2>
+    <p>R&eacute;ponds dans ta t&ecirc;te AVANT de cliquer</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi <strong>2 phases</strong> (s1 puis s2) ?</div>
+        <div class="flash-hint">Ordre d&apos;apparition...</div></div>
+      </div>
+      <div class="flash-a"><p>Le sujet exige <strong>l&apos;ordre d&apos;apparition en ligne de commande</strong>. Donc on traite <code>argv[1]</code> en premier (ses chars sortent en premier), puis <code>argv[2]</code>. Fusionner les deux boucles dans une seule casserait l&apos;ordre naturel.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi <code>while (j &lt; i)</code> et pas <code>while (argv[1][j])</code> ?</div>
+        <div class="flash-hint">Se comparer &agrave; soi-m&ecirc;me...</div></div>
+      </div>
+      <div class="flash-a"><p>On veut <strong>regarder derri&egrave;re soi</strong>, pas parcourir toute la string. Avec <code>while (argv[1][j])</code>, on irait jusqu&apos;au <code>\0</code> &rarr; &agrave; un moment <code>j == i</code> &rarr; on compare <code>s1[i]</code> avec <code>s1[i]</code> &rarr; found = 1 toujours &rarr; on skip TOUT. <code>while (j &lt; i)</code> s&apos;arr&ecirc;te strictement avant le char courant.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi <strong>2 boucles internes</strong> pour la phase s2 ?</div>
+        <div class="flash-hint">Deux "vus d&eacute;j&agrave;"...</div></div>
+      </div>
+      <div class="flash-a"><p>Un char de s2 a 2 raisons possibles d&apos;&ecirc;tre "d&eacute;j&agrave; affich&eacute;" : (1) il apparait dans <strong>s1 entier</strong> (tous les chars uniques de s1 ont &eacute;t&eacute; write), (2) il apparait dans <strong>s2 avant l&apos;index i</strong> (on l&apos;a d&eacute;j&agrave; vu dans s2). Les deux check partagent le m&ecirc;me <code>found</code> &mdash; si au moins un le met &agrave; 1, on skip.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">&Agrave; quoi sert <code>i = 0</code> entre les 2 phases ?</div>
+        <div class="flash-hint">Reset de curseur...</div></div>
+      </div>
+      <div class="flash-a"><p>Apr&egrave;s la phase 1, <code>i</code> pointe au <code>\0</code> de <code>argv[1]</code>. Avant de scanner <code>argv[2]</code>, il faut <strong>remettre <code>i</code> &agrave; 0</strong> pour repartir du d&eacute;but de s2. Sans ce reset, on sauterait le d&eacute;but de s2 ou on lirait hors limites.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Si s1 est vide <code>""</code>, que fait le code ?</div>
+        <div class="flash-hint">Skip et continue...</div></div>
+      </div>
+      <div class="flash-a"><p>Phase 1 : <code>while (argv[1][0])</code> = <code>while ('\0')</code> = FAUX &rarr; boucle ignor&eacute;e compl&egrave;tement. Phase 2 : scan <code>argv[2]</code> normalement, la boucle interne qui check s1 tourne z&eacute;ro fois (car <code>argv[1][0] == '\0'</code>). Output final = s2 sans doublons. <strong>&Ccedil;a marche automatiquement</strong>, pas besoin de cas sp&eacute;cial.</p></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 3 PIEGES -->
+<div id="pieges" class="section-label">
+  <div class="sec-num orange">3</div>
+  <div class="sec-info">
+    <h2>Pi&egrave;ges d&eacute;jou&eacute;s</h2>
+    <p>4 pi&egrave;ges &mdash; chaque carte = une le&ccedil;on grav&eacute;e</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-logic">WHILE (j &lt; i)</span>
+    <div class="trap-label">PI&Egrave;GE #1</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (argv[1][j])  // compare s1[i] avec s1[i] aussi</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (j &lt; i)       // s&apos;arr&ecirc;te AVANT i</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> si on parcourt toute la string, &agrave; un moment <code>j == i</code> &rarr; on compare le char &agrave; lui-m&ecirc;me &rarr; <code>found = 1</code> toujours &rarr; on skip chaque char. <code>j &lt; i</code> = "regarde derri&egrave;re moi, pas moi".</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-swap">RESET DE i</span>
+    <div class="trap-label">PI&Egrave;GE #2</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">// oublier i = 0 entre phase 1 et phase 2</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">i = 0;  // APR&Egrave;S la phase 1, AVANT la phase 2</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> apr&egrave;s la phase 1, <code>i</code> pointe au <code>\0</code> de s1. Sans reset, le <code>while (argv[2][i])</code> part avec un <code>i</code> d&eacute;j&agrave; grand &rarr; on saute le d&eacute;but de s2 ou on lit hors limites.</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-type">RESET DE found</span>
+    <div class="trap-label">PI&Egrave;GE #3</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">// found d&eacute;clar&eacute; hors boucle, jamais reset</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">found = 0;  // AU D&Eacute;BUT de chaque char &agrave; traiter</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> si <code>found</code> n&apos;est pas remis &agrave; 0 au d&eacute;but de chaque it&eacute;ration externe, une fois qu&apos;il passe &agrave; 1 &agrave; cause d&apos;un doublon, il reste &agrave; 1 pour tous les chars suivants &rarr; on skip tout.</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-safety">RESET DE j</span>
+    <div class="trap-label">PI&Egrave;GE #4</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">// j pas reset entre les 2 boucles internes de phase 2</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">j = 0;  // AVANT la 2&egrave;me boucle interne</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> apr&egrave;s la boucle qui scan s1 entier, <code>j</code> pointe au <code>\0</code> de s1. Si on enchaine avec <code>while (j &lt; i)</code> sans reset, <code>j</code> est d&eacute;j&agrave; &gt; i &rarr; la boucle ne tourne pas &rarr; doublons dans s2 non d&eacute;tect&eacute;s.</div>
+  </div>
+
+</div>
+
+<!-- 4 PATTERN -->
+<div id="pattern" class="section-label">
+  <div class="sec-num cyan">4</div>
+  <div class="sec-info">
+    <h2>Pattern r&eacute;utilisable</h2>
+    <p>Double while + flag &mdash; dans la famille de ft_strcspn</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-purple bento-wide">
+    <ol class="pattern-steps">
+      <li><strong>Phase 1 (s1)</strong> : while <code>argv[1][i]</code> &mdash; pour chaque char, reset <code>j=0, found=0</code>, scan <code>j &lt; i</code>, si doublon <code>found=1</code>, write si <code>found==0</code></li>
+      <li><strong>Reset <code>i = 0</code></strong> entre les 2 phases</li>
+      <li><strong>Phase 2 (s2)</strong> : while <code>argv[2][i]</code> &mdash; reset <code>j=0, found=0</code></li>
+      <li>Scan <strong>s1 entier</strong> (<code>while argv[1][j]</code>) &rarr; si pr&eacute;sent, <code>found=1</code></li>
+      <li>Reset <code>j=0</code>, scan <strong>s2 avant i</strong> (<code>while j &lt; i</code>) &rarr; si pr&eacute;sent, <code>found=1</code></li>
+      <li>Write si <code>found==0</code>. Apr&egrave;s le while principal : write <code>\n</code></li>
+    </ol>
+  </div>
+  <div class="bcard bcard-cyan bento-wide">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">FAMILLE DOUBLE WHILE + FLAG</div>
+    <div style="font-size:14px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--cyan2)">ft_strcspn</strong> &mdash; scan <code style="background:var(--cyan-bg);color:var(--cyan2);padding:1px 5px;border-radius:3px">reject</code> pour chaque char de <code>s</code><br>
+      <strong style="color:var(--cyan2)">union</strong> &mdash; scan <strong>passe pr&eacute;c&eacute;dent</strong> pour d&eacute;tecter doublons<br>
+      <strong style="color:var(--cyan2)">inter</strong> &mdash; 2 flags (doublon + pr&eacute;sence dans s2)<br>
+      <strong style="color:var(--cyan2)">search</strong> &mdash; flag "trouv&eacute;" r&eacute;utilisable pour n&apos;importe quel <code style="background:var(--cyan-bg);color:var(--cyan2);padding:1px 5px;border-radius:3px">contains</code><br>
+      <strong style="color:var(--purple2)">Cl&eacute;</strong> &mdash; le flag est <strong>reset &agrave; 0</strong> au d&eacute;but de chaque traitement, mont&eacute; &agrave; 1 si trouv&eacute;, test&eacute; avant action
+    </div>
+  </div>
+</div>
+
+<!-- 5 EVOLUTION -->
+<div id="evolution" class="section-label">
+  <div class="sec-num gold">5</div>
+  <div class="sec-info">
+    <h2>&Eacute;volution de la compr&eacute;hension</h2>
+    <p>Les blocages successifs sur cet exo &mdash; &agrave; retenir pour la prochaine fois</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide">
+    <div class="evo-timeline">
+
+      <div class="evo-step">
+        <div class="evo-version">&Eacute;TAPE 1 &mdash; &Eacute;nonc&eacute; pas compris</div>
+        <div class="evo-code">// Reflexe : "merger s1 et s2 en virant les doublons,
+//            en gardant l'ordre d'apparition"
+//
+// Trace sur "zpadinton" + "paqefwtdjetyiytj..." :
+//   z p a d i n t o (uniques de s1, dans l'ordre)
+//   q e f w j y    (nouveaux de s2, les autres skip)
+//   → zpadintoqefwjy</div>
+        <div><span class="evo-fix fix-bad">N&eacute;cessit&eacute; de tracer un exemple avant de coder</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">&Eacute;TAPE 2 &mdash; "String de stockage" (rejet&eacute;)</div>
+        <div class="evo-code">// Reflexe : "je cr&eacute;e une string, je stocke ce que j'&eacute;cris,
+//            je compare"
+//
+// Probl&egrave;me : ajoute 2 variables, 1 boucle de recherche,
+//            rend le code plus long et moins naturel.
+//
+// Solution : utiliser les strings d&eacute;j&agrave; l&agrave; (argv[1] et argv[2])
+//            comme r&eacute;f&eacute;rences.</div>
+        <div><span class="evo-fix fix-bad">Instinct correct mais overengineered</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">&Eacute;TAPE 3 &mdash; Blocage sur <code>while (j &lt; i)</code></div>
+        <div class="evo-code">// Confusion : "j et i sont tous les deux &agrave; 0,
+//             donc while (0 &lt; 0) ne tourne pas jamais ?"
+//
+// D&eacute;blocage : j est RESET &agrave; 0 &agrave; chaque tour externe,
+//            mais i MONTE. Donc :
+//   Tour 1 : i=0, j=0 → boucle interne 0 fois (normal)
+//   Tour 2 : i=1, j=0 → boucle interne 1 fois
+//   Tour 3 : i=2, j=0 → boucle interne 2 fois (zone grandit)</div>
+        <div><span class="evo-fix fix-bad">Subtilit&eacute; du reset &agrave; comprendre</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION FINALE (joker)</div>
+        <div class="evo-code">// Double while + flag 'found', 3 variables (i, j, found)
+// Phase 1 : scan s1 avec look-behind
+// Phase 2 : scan s2 avec 2 boucles internes (s1 entier + s2 avant)
+// Compile -Wall -Wextra -Werror, tous tests OK</div>
+        <div><span class="evo-fix fix-good">Pattern maitris&eacute; par analogie &agrave; ft_strcspn &#10003;</span></div>
+        <div><span class="evo-fix fix-good">Tests : zpadintoqefwjy, df6vewg4thras, rienct phas &#10003;</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- 6 TRANSFERT -->
+<div id="transfert" class="section-label">
+  <div class="sec-num red">6</div>
+  <div class="sec-info">
+    <h2>Exercices de transfert</h2>
+    <p>M&ecirc;me pattern, exo diff&eacute;rent &mdash; solidifie l&apos;apprentissage</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 1</div>
+      <div class="transfer-title">inter</div>
+      <div class="transfer-desc">Afficher les chars pr&eacute;sents dans <strong>s1 ET s2</strong>, dans l&apos;ordre de s1, sans doublons. <strong>2 flags</strong> au lieu d&apos;1 : <code>dupe</code> (d&eacute;j&agrave; vu dans s1 avant) + <code>in_s2</code> (existe dans s2). Condition : <code>dupe==0 &amp;&amp; in_s2==1</code>.</div>
+      <div class="transfer-proto">// "padinton" + "paqefwtdjety…" &rarr; "padinto"</div>
+      <div class="transfer-hint">Indice : 1 seule phase (que s1), 2 boucles internes scannent s1 avant i et s2 entier.</div>
+    </div>
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 2</div>
+      <div class="transfer-title">ft_strcspn (r&eacute;vision)</div>
+      <div class="transfer-desc">Le parent de union. Compter les caract&egrave;res de <code>s</code> AVANT le premier qui appartient &agrave; <code>reject</code>. <strong>M&ecirc;me double while + flag</strong> mais on incr&eacute;mente un compteur au lieu de write.</div>
+      <div class="transfer-proto">size_t ft_strcspn(const char *s, const char *reject);</div>
+      <div class="transfer-hint">Indice : flag trouv&eacute; passe &agrave; 1 d&egrave;s qu&apos;un char de <code>s[i]</code> est dans <code>reject</code> &rarr; return i.</div>
+    </div>
+
+    <div class="transfer-box">
+      <div class="transfer-tag">CHALLENGE 3</div>
+      <div class="transfer-title">remove_duplicates (in-place)</div>
+      <div class="transfer-desc">Prendre une string et en retourner une version <strong>sans doublons</strong> (just la phase 1 d&apos;union, mais sur une seule string). Tr&egrave;s utile pour normaliser une entr&eacute;e.</div>
+      <div class="transfer-proto">// "aabbccdd" &rarr; "abcd"</div>
+      <div class="transfer-hint">Indice : recopie exacte de la phase 1 d&apos;union. Tu sais d&eacute;j&agrave; le faire.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 7 CHECKLIST -->
+<div id="checklist" class="section-label">
+  <div class="sec-num gold">7</div>
+  <div class="sec-info">
+    <h2>Checklist exam</h2>
+    <p>V&eacute;rifie avant chaque submit</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-gold bento-wide">
+    <ul class="check-list">
+      <li><span class="check-icon">&#9744;</span> <code>argc != 3</code> &rarr; write <strong style="color:var(--text)">\n</strong> + return 0</li>
+      <li><span class="check-icon">&#9744;</span> 3 variables : <code>i</code>, <code>j</code>, <code>found</code></li>
+      <li><span class="check-icon">&#9744;</span> <strong style="color:var(--text)">Phase 1</strong> : scan <code>argv[1]</code>, boucle interne <code>while (j &lt; i)</code></li>
+      <li><span class="check-icon">&#9744;</span> <strong style="color:var(--text)">Reset <code>i = 0</code></strong> entre phase 1 et phase 2</li>
+      <li><span class="check-icon">&#9744;</span> <strong style="color:var(--text)">Phase 2</strong> : scan <code>argv[2]</code>, <strong>DEUX</strong> boucles internes (s1 entier + s2 avant i)</li>
+      <li><span class="check-icon">&#9744;</span> Reset <code>j = 0</code> entre les 2 boucles internes de phase 2</li>
+      <li><span class="check-icon">&#9744;</span> Reset <code>found = 0</code> au d&eacute;but de chaque char trait&eacute;</li>
+      <li><span class="check-icon">&#9744;</span> Write <code>\n</code> final <strong style="color:var(--text)">apr&egrave;s</strong> le while principal</li>
+      <li><span class="check-icon">&#9744;</span> Tester : <strong style="color:var(--text)">zpadintoqefwjy</strong>, <strong style="color:var(--text)">rienct phas</strong>, <strong style="color:var(--text)">"aaa"&rarr;"a"</strong>, pas d&apos;args</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">42 Prof</div>
+  Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 14/04/2026
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.bcard, .section-label').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>

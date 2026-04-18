@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Résumé — Auto-améliore tes skills Claude</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f0f;
+    color: #e8e8e8;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 0 40px 0;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #6c3ce0 0%, #c94bdb 100%);
+    padding: 32px 24px 28px;
+    border-radius: 0 0 24px 24px;
+  }
+  .header .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 16px;
+  }
+  .header .meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+  }
+  .header .meta .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .header .stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+  }
+  .header .stats span { display: flex; align-items: center; gap: 4px; }
+
+  /* Content */
+  .content { padding: 24px 20px; }
+
+  /* TLDR box */
+  .tldr {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-left: 4px solid #c94bdb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    color: #d4d4d4;
+  }
+  .tldr strong { color: #c94bdb; }
+
+  /* Section */
+  .section {
+    margin-bottom: 24px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .section p, .section li {
+    font-size: 14px;
+    color: #b8b8b8;
+    margin-bottom: 8px;
+  }
+  .section ul {
+    list-style: none;
+    padding: 0;
+  }
+  .section ul li {
+    padding-left: 20px;
+    position: relative;
+  }
+  .section ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #c94bdb;
+    font-weight: 700;
+  }
+
+  /* Result card */
+  .result-card {
+    background: linear-gradient(135deg, #1b2a1b 0%, #0f1f0f 100%);
+    border: 1px solid #2d5a2d;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .result-card .before-after {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .result-card .score {
+    font-size: 36px;
+    font-weight: 800;
+  }
+  .result-card .score.bad { color: #e74c3c; }
+  .result-card .score.good { color: #2ecc71; }
+  .result-card .arrow { font-size: 24px; color: #666; }
+  .result-card .detail {
+    font-size: 13px;
+    color: #7a7a7a;
+  }
+
+  /* Changes list */
+  .change-item {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #b8b8b8;
+  }
+  .change-item .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge.kept { background: #1b3a1b; color: #2ecc71; }
+  .badge.reverted { background: #3a1b1b; color: #e74c3c; }
+
+  /* Use cases */
+  .use-cases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .use-case {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #b8b8b8;
+  }
+  .use-case .emoji { font-size: 22px; margin-bottom: 4px; }
+
+  /* Takeaway */
+  .takeaway {
+    background: linear-gradient(135deg, #2a1a3e 0%, #1a1a2e 100%);
+    border: 1px solid #6c3ce0;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 24px;
+  }
+  .takeaway .icon { font-size: 28px; margin-bottom: 8px; }
+  .takeaway p {
+    font-size: 15px;
+    color: #d4d4d4;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 32px;
+    padding: 0 20px;
+    font-size: 11px;
+    color: #555;
+  }
+
+  /* ===== Desktop (768px+) ===== */
+  @media (min-width: 768px) {
+    body {
+      max-width: 900px;
+      padding: 24px;
+      background: #080808;
+    }
+    .header {
+      border-radius: 20px;
+      padding: 48px 40px 36px;
+    }
+    .header h1 {
+      font-size: 32px;
+    }
+    .header .meta { font-size: 16px; }
+    .header .stats { font-size: 14px; gap: 24px; }
+
+    .content {
+      padding: 32px 8px;
+    }
+
+    .tldr {
+      font-size: 17px;
+      padding: 24px 28px;
+    }
+
+    /* 2-column layout for sections */
+    .sections-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .sections-grid .section {
+      background: #141414;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 0;
+    }
+
+    .section-header h2 { font-size: 19px; }
+    .section p, .section li { font-size: 15px; }
+
+    .result-card {
+      padding: 32px;
+      border-radius: 20px;
+    }
+    .result-card .score { font-size: 48px; }
+    .result-card .detail { font-size: 15px; }
+
+    .change-item {
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+
+    .use-cases {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .use-case {
+      padding: 16px;
+      font-size: 14px;
+    }
+    .use-case .emoji { font-size: 28px; }
+
+    .takeaway {
+      padding: 32px;
+    }
+    .takeaway p { font-size: 17px; }
+
+    .footer { font-size: 12px; }
+  }
+
+  /* ===== Large Desktop (1200px+) ===== */
+  @media (min-width: 1200px) {
+    body { max-width: 1100px; }
+    .header h1 { font-size: 36px; }
+    .header { padding: 56px 48px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="tag">AI Workflow</div>
+  <h1>Auto-améliore tes skills Claude en pilote automatique</h1>
+  <div class="meta">
+    <div class="avatar">OL</div>
+    <div>
+      <strong>Ole Lehmann</strong><br>
+      <span style="font-size:12px;opacity:0.7">@itsolelehmann · 17 mars 2026</span>
+    </div>
+  </div>
+  <div class="stats">
+    <span>❤️ 4.8k</span>
+    <span>🔄 462</span>
+    <span>💬 80</span>
+    <span>👁️ 2M</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="tldr">
+    <strong>TL;DR</strong> — Tes skills Claude fail ~30% du temps sans que tu le remarques. Ole a adapté la méthode "autoresearch" de Karpathy pour auto-améliorer n'importe quel skill en boucle, sans intervention manuelle.
+  </div>
+
+  <div class="sections-grid">
+
+  <!-- Concept -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#1a1a3e;">🔄</div>
+      <h2>Le concept : autoresearch</h2>
+    </div>
+    <p>Inspiré d'Andrej Karpathy. Au lieu d'améliorer un prompt manuellement, un agent IA le fait en boucle :</p>
+    <ul>
+      <li>Fait un petit changement au prompt</li>
+      <li>Teste le résultat</li>
+      <li>Garde si c'est mieux, annule sinon</li>
+      <li>Recommence. Encore et encore.</li>
+    </ul>
+  </div>
+
+  <!-- Scoring -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#1a2e1a;">📋</div>
+      <h2>Le scoring : ta checklist</h2>
+    </div>
+    <p>Tu définis 3-6 questions oui/non qui décrivent un "bon" output :</p>
+    <ul>
+      <li>"Le headline mentionne un pain point concret ?"</li>
+      <li>"Zéro buzzword dans le texte ?"</li>
+      <li>"Le CTA est clair et actionnable ?"</li>
+    </ul>
+    <p>L'agent utilise cette checklist pour noter chaque itération. Pas de vibes, que du mesurable.</p>
+  </div>
+
+  <!-- Process -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#2e1a1a;">⚙️</div>
+      <h2>Le process en 6 étapes</h2>
+    </div>
+    <ul>
+      <li>Télécharge le skill et choisis quel skill améliorer</li>
+      <li>L'agent te pose 3 questions : quel skill, quels inputs de test, quels critères</li>
+      <li>Il teste et affiche ton score de base</li>
+      <li>Dashboard live dans le navigateur (auto-refresh 10s)</li>
+      <li>L'agent boucle tout seul : analyse → modifie → teste → garde/revert</li>
+      <li>S'arrête à 95%+ ou quand tu le stop</li>
+    </ul>
+  </div>
+
+  </div><!-- /sections-grid -->
+
+  <!-- Result -->
+  <div class="result-card">
+    <div style="font-size:12px;color:#7a7a7a;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Résultat : Landing Page Skill</div>
+    <div class="before-after">
+      <div class="score bad">56%</div>
+      <div class="arrow">→</div>
+      <div class="score good">92%</div>
+    </div>
+    <div class="detail">4 rounds · 3 changements gardés · 1 reverté</div>
+  </div>
+
+  <!-- Changes -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#1a1a2e;">🔧</div>
+      <h2>Ce que l'agent a changé</h2>
+    </div>
+    <div class="change-item">
+      <span class="badge kept">gardé</span>
+      Règle ajoutée contre le failure le plus fréquent
+    </div>
+    <div class="change-item">
+      <span class="badge kept">gardé</span>
+      Liste de buzzwords interdits
+    </div>
+    <div class="change-item">
+      <span class="badge kept">gardé</span>
+      Exemple concret de bon output ajouté au prompt
+    </div>
+    <div class="change-item">
+      <span class="badge reverted">annulé</span>
+      Word count plus strict — le CTA en souffrait
+    </div>
+  </div>
+
+  <!-- Use cases -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#2e2a1a;">⚡</div>
+      <h2>Ça marche sur tout ce qui est mesurable</h2>
+    </div>
+    <div class="use-cases">
+      <div class="use-case">
+        <div class="emoji">🌐</div>
+        Site speed<br><strong>1100ms → 67ms</strong>
+      </div>
+      <div class="use-case">
+        <div class="emoji">📧</div>
+        Cold outreach<br><strong>Scoring checklist</strong>
+      </div>
+      <div class="use-case">
+        <div class="emoji">📰</div>
+        Newsletters<br><strong>Intros optimisées</strong>
+      </div>
+      <div class="use-case">
+        <div class="emoji">💬</div>
+        N'importe quel<br><strong>prompt récurrent</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Takeaway -->
+  <div class="takeaway">
+    <div class="icon">💡</div>
+    <p>Si tu peux scorer un output avec une checklist oui/non, tu peux laisser un agent l'améliorer en boucle sans intervention — c'est du A/B testing automatisé pour tes prompts.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  Résumé généré automatiquement · Source : x.com/itsolelehmann
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>holy graph — loopy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #FBF6EB;
+  --paper-d: #F2ECDC;
+  --ink: #222030;
+  --ink-soft: #4A4660;
+  --accent: #FF7755;
+  --accent-d: #D54F2F;
+  --hl-yellow: #FFE96B;
+  --hl-mint: #BFE6CC;
+  --hl-pink: #FFCACA;
+  --hl-blue: #BDD7F0;
+  --hl-purple: #D9CAF0;
+  --warm: #E89A38;
+  /* états */
+  --st-done: #2E7BC7;
+  --st-done-bg: #BDD7F0;
+  --st-inprogress: #A8C4E2;
+  --st-todo: #E8E2D2;
+  --st-todo-stroke: #B8AE95;
+  --st-exam: #D54F2F;
+  --st-exam-bg: #FFCACA;
+  --st-locked: #D4CDB8;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background: var(--paper); color: var(--ink); font-family: 'Patrick Hand', cursive; }
+body {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255,233,107,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(189,215,240,0.15) 0%, transparent 50%),
+    var(--paper);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* étoiles en fond */
+.bg-stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.5; }
+.svg-defs { width:0; height:0; position:absolute; }
+
+/* ===== BAND ===== */
+.band {
+  background: var(--ink); color: var(--paper);
+  padding: 10px 28px;
+  display:flex; justify-content: space-between; align-items: center;
+  font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700;
+  letter-spacing: 0.5px;
+  position: relative; z-index: 2;
+}
+.band-r { opacity: 0.75; }
+
+/* ===== HERO ===== */
+.hero {
+  text-align: center;
+  padding: 44px 20px 28px;
+  position: relative; z-index: 2;
+  max-width: 900px; margin: 0 auto;
+}
+.hero h1 {
+  font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: clamp(40px, 7vw, 84px);
+  margin: 0; line-height: 0.95;
+  letter-spacing: -1px;
+  white-space: nowrap;
+}
+.hero h1 .word { display:inline-block; position: relative; }
+.hero h1 .under {
+  position:absolute; left:-4px; right:-4px; bottom:-8px; width: calc(100% + 8px); height: 14px;
+}
+.hero-sub {
+  font-family: 'Caveat', cursive; font-size: 28px;
+  color: var(--ink-soft); margin: 18px 0 0;
+  transform: rotate(-1deg); display: inline-block;
+}
+.hero-meta {
+  display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top: 24px;
+  padding: 0 12px;
+}
+.metapill {
+  background: var(--paper-d);
+  border: 2px solid var(--ink);
+  padding: 6px 14px; border-radius: 999px;
+  font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700;
+  transform: rotate(-1deg);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.metapill:nth-child(2n) { transform: rotate(1deg); }
+.metapill .num { color: var(--accent-d); }
+
+/* Loopy + bubble */
+.intro-row {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  margin-top: 24px;
+}
+.loopy-wrap { flex-shrink: 0; }
+.loopy-wrap svg { width: 90px; height: 100px; }
+.bubble {
+  background: var(--paper-d);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700;
+  max-width: 380px; text-align: left;
+  box-shadow: 3px 3px 0 var(--ink);
+  position: relative;
+}
+.bubble::before {
+  content: ""; position: absolute; left: -14px; top: 22px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+  border-right: 14px solid var(--ink);
+}
+.bubble::after {
+  content: ""; position: absolute; left: -10px; top: 24px;
+  width: 0; height: 0;
+  border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+  border-right: 11px solid var(--paper-d);
+}
+.bubble .hl {
+  background: var(--hl-yellow);
+  padding: 0 4px; border: 1.5px solid var(--ink); border-radius: 2px;
+}
+
+/* ===== LEGEND ===== */
+.legend-bar {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  padding: 18px 16px 24px;
+  max-width: 880px; margin: 0 auto;
+  position: relative; z-index: 2;
+}
+.lg {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Caveat', cursive; font-size: 18px; font-weight: 700;
+  background: var(--paper-d);
+  border: 2px solid var(--ink);
+  padding: 4px 12px;
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 var(--ink);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.lg-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--ink);
+}
+.lg-dot.done { background: var(--st-done); }
+.lg-dot.reg { background: var(--paper-d); box-shadow: inset 0 0 0 3px var(--st-inprogress); }
+.lg-dot.todo { background: var(--paper); border-style: dashed; }
+.lg-dot.exam { background: var(--st-exam); }
+.lg-dot.locked { background: var(--st-locked); opacity: 0.6; }
+
+/* ===== GRAPH ===== */
+.graph-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  z-index: 2;
+}
+.graph {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.graph-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+/* orbit circles */
+.orbit {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0.7;
+  filter: url(#rough);
+}
+.orbit.thin { stroke-width: 1.4; opacity: 0.55; }
+.orbit.thick { stroke-width: 2.6; opacity: 0.8; }
+.orbit.locked {
+  stroke: var(--st-locked);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 10;
+  opacity: 0.45;
+  filter: none;
+}
+/* subtle glow halo behind each orbit */
+.orbit-halo {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  opacity: 0.06;
+}
+
+/* cluster hull (wraps grouped projects = "choose 1") */
+.cluster-hull {
+  fill: var(--hl-yellow);
+  fill-opacity: 0.18;
+  stroke: var(--accent-d);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+.cluster-label {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 700;
+  fill: var(--accent-d);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 4;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.node.grouped { border-color: var(--accent-d); }
+.orbit-label {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 700;
+  fill: var(--ink-soft);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.orbit-label.locked { fill: var(--st-locked); }
+.orbit-num {
+  font-family: 'Kalam', cursive;
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--paper);
+}
+
+/* Nodes (as HTML positioned absolutely) */
+.node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.2s cubic-bezier(.3,1.4,.5,1), box-shadow 0.2s, background 0.2s;
+  text-decoration: none;
+  z-index: 3;
+}
+.node:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 4px 4px 0 var(--ink);
+  z-index: 10;
+}
+.node .dot {
+  display: inline-block;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ink); margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* states */
+.node.done { background: var(--st-done); color: var(--paper); border-color: var(--ink); }
+.node.done .dot { background: var(--paper); }
+.node.done::after {
+  content: "✓";
+  position: absolute; top: -8px; right: -8px;
+  width: 22px; height: 22px;
+  background: var(--hl-yellow);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-family: 'Kalam'; font-size: 14px; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.node.reg { background: var(--paper-d); border-color: var(--st-done); color: var(--ink-soft); border-style: solid; border-width: 3px; }
+.node.reg .dot { background: var(--st-done); }
+
+.node.todo { background: var(--paper); border-style: dashed; color: var(--ink-soft); opacity: 0.85; }
+.node.todo .dot { background: var(--ink-soft); }
+
+.node.exam { background: var(--st-exam); color: var(--paper); border-color: var(--ink); font-family: 'Kalam'; }
+.node.exam::before {
+  content: "⚠"; margin-right: 4px;
+}
+.node.locked { background: var(--st-locked); color: var(--ink-soft); opacity: 0.55; border-style: dotted; cursor: not-allowed; pointer-events: none; }
+.node.locked .dot { display: none; }
+
+.node.has-fiche::after {
+  content: "📄";
+  position: absolute; top: -10px; right: -10px;
+  width: 22px; height: 22px;
+  background: var(--hl-yellow);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.node.done.has-fiche::after { content: "✓📄"; width: 30px; font-size: 10px; }
+
+/* Center — libft throne */
+.center-node {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  background: var(--hl-yellow);
+  border: 3px solid var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Kalam', cursive;
+  text-decoration: none; color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  z-index: 5;
+  cursor: pointer;
+}
+.center-node:hover { transform: translate(-50%, -50%) scale(1.08); }
+.center-node .c-label { font-size: 20px; font-weight: 700; line-height: 1; }
+.center-node .c-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; font-family: 'Patrick Hand'; }
+
+/* connectors svg */
+.link {
+  stroke: var(--ink-soft);
+  stroke-width: 1.2;
+  fill: none;
+  opacity: 0.3;
+}
+.link.active { stroke: var(--accent-d); opacity: 0.8; stroke-width: 2; }
+
+/* floating post-its (map annotations) */
+.map-note {
+  position: absolute;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.25;
+  width: 170px;
+  background: var(--hl-yellow);
+  padding: 12px 14px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 4;
+}
+.map-note::before {
+  content: "";
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%) rotate(-4deg);
+  width: 44px; height: 12px;
+  background: rgba(34,32,48,0.18);
+  border-radius: 1px;
+}
+.map-note.n1 { top: 2%; left: 4%; transform: rotate(-4deg); background: var(--hl-pink); }
+.map-note.n2 { top: 50%; right: 2%; transform: rotate(3deg); background: var(--hl-mint); width: 160px; }
+.map-note.n3 { bottom: 3%; left: 8%; transform: rotate(-2deg); background: var(--hl-blue); }
+
+/* decorations — stars */
+.sparkle { position: absolute; color: var(--accent); font-family: 'Kalam'; pointer-events: none; z-index: 1; opacity: 0.7; }
+
+/* Tooltip */
+#tooltip {
+  position: fixed;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+  max-width: 240px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+}
+#tooltip.on { opacity: 1; }
+#tooltip .tt-t { font-family: 'Kalam'; font-size: 18px; font-weight: 700; }
+#tooltip .tt-meta { font-size: 14px; opacity: 0.75; margin-top: 4px; }
+#tooltip .tt-desc { font-family: 'Caveat'; font-size: 18px; margin-top: 6px; color: var(--hl-yellow); }
+
+/* ═══════════ EXAM PANEL ═══════════ */
+#exam-panel {
+  position: fixed; inset: 0 auto 0 auto; right: 0; top: 0; bottom: 0;
+  width: min(440px, 92vw);
+  background: var(--paper);
+  border-left: 3px solid var(--ink);
+  box-shadow: -6px 0 0 rgba(0,0,0,0.1), -12px 0 30px rgba(0,0,0,0.15);
+  z-index: 2000;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.6, 0, 0.2, 1);
+  overflow-y: auto;
+  padding: 24px 26px 32px;
+}
+#exam-panel.on { transform: translateX(0); }
+#exam-panel .xp-close {
+  position: absolute; top: 14px; right: 18px;
+  width: 36px; height: 36px;
+  border: 2.5px solid var(--ink); background: var(--paper-d); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Kalam'; font-size: 20px; cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+#exam-panel .xp-close:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+#exam-panel h2 {
+  font-family: 'Kalam'; font-size: 28px; margin: 0 0 4px; color: var(--st-exam);
+  display: flex; align-items: center; gap: 10px;
+}
+#exam-panel h2::before {
+  content: "⚠"; font-size: 24px;
+}
+#exam-panel .xp-sub {
+  font-family: 'Caveat'; font-size: 20px; color: var(--ink-soft); margin-bottom: 22px;
+}
+#exam-panel h3 {
+  font-family: 'Kalam'; font-size: 20px; margin: 22px 0 8px; color: var(--ink);
+  border-bottom: 2px dashed var(--ink-soft); padding-bottom: 4px;
+  display: flex; align-items: baseline; gap: 8px;
+}
+#exam-panel h3 .xp-count {
+  font-family: 'Patrick Hand'; font-size: 15px; color: var(--ink-soft); font-weight: 400;
+}
+#exam-panel .xp-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#exam-panel .xp-list.solo { grid-template-columns: 1fr; }
+#exam-panel .xp-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px;
+  background: var(--paper-d);
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+  font-family: 'Patrick Hand'; font-size: 16px;
+  color: var(--ink); text-decoration: none;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+#exam-panel .xp-item:hover {
+  background: var(--hl-yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+#exam-panel .xp-item .xp-tag {
+  margin-left: auto;
+  font-size: 11px;
+  background: var(--ink); color: var(--paper);
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Kalam';
+}
+#exam-panel .xp-item.has-vis { border-color: var(--accent); }
+#exam-panel .xp-visuels {
+  grid-column: 1 / -1;
+  margin: -2px 0 4px 14px;
+  padding-left: 10px;
+  border-left: 2px dashed var(--accent);
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+#exam-panel .xp-vis-link {
+  font-family: 'Caveat'; font-size: 16px;
+  color: var(--accent-d); text-decoration: none;
+  padding: 2px 8px; border: 1.5px dashed var(--accent); border-radius: 5px;
+}
+#exam-panel .xp-vis-link:hover { background: var(--accent); color: var(--paper); }
+#exam-backdrop {
+  position: fixed; inset: 0; background: rgba(34, 32, 48, 0.3);
+  z-index: 1999; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+#exam-backdrop.on { opacity: 1; pointer-events: auto; }
+
+/* ═══════════ NOTES & OUTILS ═══════════ */
+.notes-section {
+  max-width: 1100px;
+  margin: 60px auto 40px;
+  padding: 0 24px;
+}
+.notes-section h2 {
+  font-family: 'Kalam'; font-size: 34px; margin: 0 0 6px;
+  color: var(--ink); display: flex; align-items: center; gap: 12px;
+}
+.notes-section h2::before {
+  content: "✦"; color: var(--accent); font-size: 28px;
+}
+.notes-section .ns-sub {
+  font-family: 'Caveat'; font-size: 20px; color: var(--ink-soft); margin-bottom: 28px;
+}
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+.note-card {
+  display: block;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 9px;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.14s, box-shadow 0.14s;
+  position: relative;
+}
+.note-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--ink);
+  background: var(--hl-yellow);
+}
+.note-card .nc-cat {
+  font-family: 'Kalam'; font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.note-card .nc-title {
+  font-family: 'Kalam'; font-size: 18px; margin-top: 2px;
+  display: block; line-height: 1.2;
+}
+.note-card .nc-desc {
+  font-family: 'Patrick Hand'; font-size: 14px; margin-top: 4px;
+  color: var(--ink-soft); line-height: 1.3;
+}
+.note-card[data-cat="claude"] { border-color: var(--accent); }
+.note-card[data-cat="claude"] .nc-cat { color: var(--accent-d); }
+.note-card[data-cat="skills"] { border-color: var(--st-done); }
+.note-card[data-cat="skills"] .nc-cat { color: var(--st-done); }
+
+/* footer */
+footer {
+  text-align: center;
+  padding: 40px 20px 30px;
+  font-family: 'Caveat', cursive;
+  font-size: 22px;
+  color: var(--ink-soft);
+  position: relative; z-index: 2;
+}
+footer a { color: var(--accent-d); text-decoration: underline wavy; }
+
+/* responsive */
+@media (max-width: 820px) {
+  .map-note { display: none; }
+  .hero h1 { font-size: 42px; white-space: normal; }
+  .hero-sub { font-size: 22px; }
+  .legend-bar { gap: 8px; padding: 12px 8px 18px; }
+  .lg { font-size: 15px; padding: 3px 8px; }
+  .graph { max-width: 100%; }
+  .node { font-size: 11px; padding: 4px 8px; }
+  .node.has-fiche::after, .node.done::after { width: 16px; height: 16px; top:-6px; right:-6px; font-size: 10px; }
+  .center-node { width: 68px; height: 68px; }
+  .center-node .c-label { font-size: 14px; }
+  .center-node .c-sub { font-size: 9px; }
+  .intro-row { flex-direction: column; }
+  .bubble::before, .bubble::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="2"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- background stars -->
+<svg class="bg-stars" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <g fill="var(--ink-soft)">
+    <circle cx="8" cy="12" r="0.2"/><circle cx="18" cy="30" r="0.15"/><circle cx="27" cy="8" r="0.2"/>
+    <circle cx="42" cy="22" r="0.1"/><circle cx="55" cy="5" r="0.18"/><circle cx="70" cy="18" r="0.15"/>
+    <circle cx="84" cy="9" r="0.2"/><circle cx="92" cy="28" r="0.15"/><circle cx="95" cy="52" r="0.18"/>
+    <circle cx="88" cy="72" r="0.2"/><circle cx="78" cy="88" r="0.15"/><circle cx="62" cy="95" r="0.18"/>
+    <circle cx="45" cy="88" r="0.2"/><circle cx="28" cy="92" r="0.15"/><circle cx="10" cy="78" r="0.18"/>
+    <circle cx="5" cy="52" r="0.2"/><circle cx="15" cy="62" r="0.1"/>
+  </g>
+</svg>
+
+<div class="band">
+  <span class="band-l">★ the apprentissage zine — dashboard</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<!-- ═════════ HERO ═════════ -->
+<section class="hero">
+  <h1>
+    <span class="word">the holy graph
+      <svg class="under" viewBox="0 0 400 14" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4,8 Q50,2 100,8 T200,8 T300,8 T396,8" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+      </svg>
+    </span>
+  </h1>
+  <div class="hero-sub">(une carte stellaire de ton apprentissage)</div>
+
+  <div class="intro-row">
+    <div class="loopy-wrap">
+      <svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+        <g filter="url(#rough)">
+          <ellipse cx="60" cy="120" rx="28" ry="3" fill="#222030" opacity="0.15"/>
+          <path d="M40,36 C18,40 18,80 42,84 C68,88 74,60 58,54 C44,49 38,64 52,70 C64,74 72,66 74,56 C78,34 58,22 40,36 Z"
+                fill="#FF7755" stroke="#222030" stroke-width="2.8" stroke-linejoin="round"/>
+          <path d="M58,36 Q56,20 68,14" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <circle cx="70" cy="12" r="4" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+          <circle cx="50" cy="48" r="3.2" fill="#FBF6EB" stroke="#222030" stroke-width="1.8"/>
+          <circle cx="50.8" cy="48.6" r="1.4" fill="#222030"/>
+          <path d="M64,47 Q68,44 72,48" stroke="#222030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M54,58 Q60,63 65,58" stroke="#222030" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <ellipse cx="42" cy="58" rx="3" ry="2" fill="#FFCACA" opacity="0.8"/>
+          <path d="M46,92 L42,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <path d="M66,92 L70,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <path d="M36,114 Q42,118 50,114 Z" fill="#222030"/>
+          <path d="M64,114 Q70,118 78,114 Z" fill="#222030"/>
+        </g>
+      </svg>
+    </div>
+    <div class="bubble">
+      te voilà, pèlerin. tu es au cercle <span class="hl">02</span> — l'exam t'attend. clique sur un astre.
+    </div>
+  </div>
+
+  <div class="hero-meta">
+    <span class="metapill"><span class="num" id="stat-done">1</span>/<span id="stat-total">12</span> validés</span>
+    <span class="metapill">cercle actuel : <span class="num">02</span></span>
+    <span class="metapill">exam en cours : <span class="num">rank 02</span></span>
+    <span class="metapill">fiches dispo : <span class="num" id="stat-fiches">1</span></span>
+  </div>
+</section>
+
+<div class="legend-bar">
+  <div class="lg"><span class="lg-dot done"></span>validé</div>
+  <div class="lg"><span class="lg-dot reg"></span>register / en cours</div>
+  <div class="lg"><span class="lg-dot todo"></span>à faire</div>
+  <div class="lg"><span class="lg-dot exam"></span>exam en cours</div>
+  <div class="lg"><span class="lg-dot locked"></span>verrouillé</div>
+  <div class="lg">📄 fiche dispo</div>
+</div>
+
+<!-- ═════════ GRAPH ═════════ -->
+<div class="graph-wrap">
+  <div class="graph" id="graph">
+    <svg class="graph-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" id="graph-svg">
+      <!-- orbits drawn via JS -->
+    </svg>
+
+    <!-- center: libft -->
+    <a class="center-node" href="#" id="libft-center" data-title="libft" data-type="projet" data-desc="ta première lib. les briques de base. C, pointeurs, mémoire." data-circle="00">
+      <span class="c-label">libft</span>
+      <span class="c-sub">rank 00</span>
+    </a>
+
+    <!-- post-it annotations retirés -->
+  </div>
+</div>
+
+<footer>
+  une carte en travaux · les astres bougent, les fiches poussent.<br>
+  <a href="fiches/fprime.html">→ fprime (cercle 01)</a>
+</footer>
+
+<div id="tooltip"></div>
+
+<!-- ═════════ EXAM PANEL ═════════ -->
+<div id="exam-backdrop"></div>
+<aside id="exam-panel" aria-hidden="true">
+  <button class="xp-close" aria-label="fermer">✕</button>
+  <h2>exam rank 02</h2>
+  <div class="xp-sub">libft + ft_printf + gnl niveau · les exos que tu peux tomber</div>
+  <div id="xp-content"></div>
+</aside>
+
+<!-- ═════════ NOTES & OUTILS ═════════ -->
+<section class="notes-section">
+  <h2>notes &amp; outils</h2>
+  <div class="ns-sub">fiches meta — ce que j'apprends au-delà du cursus.</div>
+  <div class="notes-grid">
+    <a class="note-card" data-cat="42" href="fiches/42-c-guide.html">
+      <span class="nc-cat">42 · guide</span>
+      <span class="nc-title">42 C guide</span>
+      <span class="nc-desc">la boîte à outils C pour 42.</span>
+    </a>
+    <a class="note-card" data-cat="42" href="fiches/architecture.html">
+      <span class="nc-cat">42 · architecture</span>
+      <span class="nc-title">architecture</span>
+      <span class="nc-desc">comment je structure mes projets.</span>
+    </a>
+    <a class="note-card" data-cat="42" href="fiches/fprime-intro.html">
+      <span class="nc-cat">42 · intro</span>
+      <span class="nc-title">fprime — intro</span>
+      <span class="nc-desc">le zine d'entrée de fprime.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/self-audit-claude.html">
+      <span class="nc-cat">claude · self-audit</span>
+      <span class="nc-title">self-audit claude</span>
+      <span class="nc-desc">l'audit, version finale.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/self-audit-claude-v1.html">
+      <span class="nc-cat">claude · v1</span>
+      <span class="nc-title">self-audit v1</span>
+      <span class="nc-desc">première itération.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/self-audit-claude-v2.html">
+      <span class="nc-cat">claude · v2</span>
+      <span class="nc-title">self-audit v2</span>
+      <span class="nc-desc">deuxième passe.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/self-audit-claude-v3.html">
+      <span class="nc-cat">claude · v3</span>
+      <span class="nc-title">self-audit v3</span>
+      <span class="nc-desc">troisième passe.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/self-audit-claude-v4.html">
+      <span class="nc-cat">claude · v4</span>
+      <span class="nc-title">self-audit v4</span>
+      <span class="nc-desc">quatrième passe.</span>
+    </a>
+    <a class="note-card" data-cat="claude" href="ole/autoresearch.html">
+      <span class="nc-cat">claude · recherche</span>
+      <span class="nc-title">autoresearch</span>
+      <span class="nc-desc">protocole d'auto-recherche.</span>
+    </a>
+    <a class="note-card" data-cat="skills" href="skills/20-agentic-skills-ai.html">
+      <span class="nc-cat">skills · ai</span>
+      <span class="nc-title">20 skills agentic ai</span>
+      <span class="nc-desc">résumé de tweets · compétences IA.</span>
+    </a>
+    <a class="note-card" data-cat="skills" href="skills/sandbox-dev-guide.html">
+      <span class="nc-cat">skills · sandbox</span>
+      <span class="nc-title">sandbox dev guide</span>
+      <span class="nc-desc">dev en environnement isolé.</span>
+    </a>
+    <a class="note-card" data-cat="skills" href="skills/sysls-agentic-engineering.html">
+      <span class="nc-cat">skills · agentic</span>
+      <span class="nc-title">sysls · agentic engineering</span>
+      <span class="nc-desc">principes d'ingénierie agentique.</span>
+    </a>
+  </div>
+</section>
+
+<script>
+/* ═══════════ DATA ═══════════ */
+const DATA = [
+  // cercle 00 - libft (handled as center, but one alt placement for sprites around)
+  { id:'libft', name:'libft', circle:0, state:'done', fiche:null, desc:'C, pointeurs, mémoire.', center:true },
+
+  // cercle 01
+  { id:'ft_printf',   name:'ft_printf',   circle:1, state:'done', fiche:null, desc:'refais printf. va_args et maths de formatage.' },
+  { id:'gnl',         name:'get_next_line', circle:1, state:'done', fiche:null, desc:'lecture ligne à ligne. le piège du buffer.' },
+  { id:'born2beroot', name:'born2beroot', circle:1, state:'done', fiche:null, desc:'sysadmin. VM, users, sudo, cron.' },
+  { id:'fprime',      name:'fprime',      circle:1, state:'done', fiche:'fiches/fprime.html', desc:'factorisation en nombres premiers.', angleNudge: 1.4 },
+
+  // cercle 02
+  { id:'push_swap',   name:'push_swap',   circle:2, state:'reg', fiche:null, desc:'tri avec 2 piles, coût minimal.' },
+  { id:'so_long',     name:'so_long',     circle:2, state:'todo', fiche:null, group:'graphique', desc:'petit jeu 2D avec MiniLibX.' },
+  { id:'fdf',         name:'FdF',         circle:2, state:'todo', fiche:null, group:'graphique', desc:'wireframe 3D. MiniLibX + projection iso.' },
+  { id:'fractol',     name:'fract_ol',    circle:2, state:'todo', fiche:null, group:'graphique', desc:'Mandelbrot, Julia. MiniLibX.' },
+  { id:'pipex',       name:'pipex',       circle:2, state:'todo', fiche:null, group:'comm', desc:'recrée le shell pipe |. fork, exec, dup2.' },
+  { id:'minitalk',    name:'minitalk',    circle:2, state:'todo', fiche:null, group:'comm', desc:'client/serveur avec signaux UNIX.' },
+  { id:'exam02',      name:'exam rank 02', circle:2, state:'exam', fiche:null, desc:'l\'exam en cours. clique → liste des exos par level.', exam:true, examPanel:true },
+
+  // cercle 03
+  { id:'philo',       name:'philosophers', circle:3, state:'todo', fiche:null, desc:'threads & mutex. dîner des philosophes.' },
+  { id:'minishell',   name:'minishell',    circle:3, state:'locked', fiche:null, desc:'verrouillé' },
+];
+
+/* ═══════════ EXAMS RANK 02 ═══════════ */
+const EXAM_DATA = {
+  level1: [
+    { id:'alpha_mirror',   f:'exams/alpha_mirror.html' },
+    { id:'camel_to_snake', f:'exams/camel_to_snake.html' },
+    { id:'do_op',          f:'exams/do_op.html' },
+    { id:'ft_strcmp',      f:'exams/ft_strcmp.html' },
+    { id:'ft_strcspn',     f:'exams/ft_strcspn.html' },
+    { id:'ft_strdup',      f:'exams/ft_strdup.html' },
+    { id:'ft_strrev',      f:'exams/ft_strrev.html' },
+    { id:'inter',          f:'exams/inter.html' },
+    { id:'is_power_of_2',  f:'exams/is_power_of_2.html' },
+    { id:'last_word',      f:'exams/last_word.html', visuels:[{name:'visuel', f:'fiches/last-word-visual.html'}] },
+    { id:'max',            f:'exams/max.html' },
+    { id:'print_bits',     f:'exams/print_bits.html' },
+    { id:'reverse_bits',   f:'exams/reverse_bits.html' },
+    { id:'snake_to_camel', f:'exams/snake_to_camel.html' },
+    { id:'swap_bits',      f:'exams/swap_bits.html' },
+    { id:'union',          f:'exams/union.html' },
+    { id:'wdmatch',        f:'exams/wdmatch.html' },
+  ],
+  level2: [
+    { id:'ft_atoi',        f:'exams/ft_atoi.html', visuels:[{name:'bloc 3 visuel', f:'fiches/atoi-bloc3-visual.html'}] },
+  ],
+  level3: [
+    { id:'fprime',         f:'fiches/fprime.html' },
+    { id:'rev_wstr',       f:'exams/rev_wstr-debug.html' },
+  ],
+  recaps: [
+    { id:'récap level 2 — tous', f:'exams/_index-level2.html' },
+    { id:'récap level 2 — mobile', f:'exams/_index-level2-mobile.html' },
+  ],
+};
+
+/* ═══════════ LAYOUT ═══════════ */
+const CX = 500, CY = 500;
+// radii for each circle (0 at center, 1..3 outward)
+const RADII = [0, 200, 320, 440];
+// max visible circle index that is "unlocked"
+const VISIBLE_UNLOCKED = 3;
+
+const svg = document.getElementById('graph-svg');
+const graphEl = document.getElementById('graph');
+
+/* draw orbits */
+function drawOrbits() {
+  const ns = 'http://www.w3.org/2000/svg';
+  for (let i = 1; i <= 3; i++) {
+    // halo behind orbit (subtle warm glow)
+    if (i <= VISIBLE_UNLOCKED) {
+      const halo = document.createElementNS(ns, 'circle');
+      halo.setAttribute('cx', CX); halo.setAttribute('cy', CY);
+      halo.setAttribute('r', RADII[i]);
+      halo.setAttribute('class', 'orbit-halo');
+      svg.appendChild(halo);
+    }
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', CX); c.setAttribute('cy', CY);
+    c.setAttribute('r', RADII[i]);
+    // vary stroke weight: inner orbits more affirmed
+    const weightClass = i === 1 ? 'thick' : (i === 2 ? '' : 'thin');
+    c.setAttribute('class', 'orbit ' + (i > VISIBLE_UNLOCKED ? 'locked' : weightClass));
+    svg.appendChild(c);
+
+    // label sur l'orbite — placé à 12h (en haut), bien visible et centré sur le cercle
+    const angle = -Math.PI / 2;
+    const labelR = RADII[i];
+    const lx = CX + Math.cos(angle) * labelR;
+    const ly = CY + Math.sin(angle) * labelR;
+    const bg = document.createElementNS(ns, 'rect');
+    bg.setAttribute('x', lx - 38); bg.setAttribute('y', ly - 12);
+    bg.setAttribute('width', 76); bg.setAttribute('height', 22);
+    bg.setAttribute('rx', 4);
+    bg.setAttribute('fill', i > VISIBLE_UNLOCKED ? '#D4CDB8' : '#222030');
+    bg.setAttribute('opacity', i > VISIBLE_UNLOCKED ? '0.5' : '0.9');
+    svg.appendChild(bg);
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', lx); t.setAttribute('y', ly + 3);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('class', 'orbit-num');
+    t.textContent = 'cercle 0' + i;
+    svg.appendChild(t);
+  }
+}
+drawOrbits();
+
+/* place nodes — items in the same `group` are clustered (you pick one among them) */
+function layoutNodes() {
+  const byCircle = {};
+  DATA.filter(d => !d.center).forEach(d => {
+    byCircle[d.circle] = byCircle[d.circle] || [];
+    byCircle[d.circle].push(d);
+  });
+
+  const angleOffsets = [0, -0.35, -0.55, 0.2];
+  const ns = 'http://www.w3.org/2000/svg';
+
+  Object.entries(byCircle).forEach(([circ, items]) => {
+    const r = RADII[+circ];
+    const off = angleOffsets[+circ] || 0;
+
+    // build slot list: solo items + groups
+    const groups = {};
+    const slots = []; // each slot = array of items (1 = solo, >1 = cluster)
+    items.forEach(it => {
+      if (it.group) {
+        if (!groups[it.group]) {
+          groups[it.group] = [];
+          slots.push(groups[it.group]);
+        }
+        groups[it.group].push(it);
+      } else {
+        slots.push([it]);
+      }
+    });
+
+    const nSlots = slots.length;
+
+    slots.forEach((slot, si) => {
+      const slotAngle = (si / nSlots) * Math.PI * 2 + off;
+      const isCluster = slot.length > 1;
+      // angular width per node — big enough for pills (~90px wide) to sit side-by-side on the orbit
+      // arc length ≈ r * spread; we want ~95px gap → spread ≈ 95 / r
+      const clusterSpread = Math.max(0.22, 100 / r);
+
+      slot.forEach((item, ii) => {
+        // within cluster, fan items slightly along the orbit
+        const innerOff = isCluster
+          ? (ii - (slot.length - 1) / 2) * clusterSpread
+          : 0;
+        const angle = slotAngle + innerOff + (item.angleNudge || 0);
+        const x = CX + Math.cos(angle) * r;
+        const y = CY + Math.sin(angle) * r;
+        const pctX = (x / 1000) * 100;
+        const pctY = (y / 1000) * 100;
+        item._x = pctX; item._y = pctY; item._angle = angle;
+
+        const a = document.createElement('a');
+        a.className = 'node ' + item.state + (item.fiche ? ' has-fiche' : '') + (item.exam ? ' exam' : '');
+        if (item.group) a.classList.add('grouped');
+        if (item.fiche && item.state !== 'locked') {
+          a.href = item.fiche;
+          a.target = '_blank';
+          a.rel = 'noopener';
+        } else {
+          a.href = '#';
+          a.addEventListener('click', (e) => { if (!item.fiche) e.preventDefault(); });
+        }
+        a.style.left = pctX + '%';
+        a.style.top = pctY + '%';
+        a.innerHTML = '<span class="dot"></span>' + item.name;
+        a.dataset.id = item.id;
+        a.dataset.title = item.name;
+        a.dataset.desc = item.desc || '';
+        a.dataset.circle = 'cercle 0' + item.circle;
+        a.dataset.state = item.state;
+        a.dataset.fiche = item.fiche || '';
+        a.dataset.group = item.group || '';
+        graphEl.appendChild(a);
+      });
+
+      // draw a soft arc/blob wrapping the cluster (indicates "choose 1")
+      if (isCluster) {
+        const first = slot[0], last = slot[slot.length - 1];
+        const pad = 0.09;
+        const a0 = first._angle - pad;
+        const a1 = last._angle + pad;
+        const rOut = r + 38;
+        const rIn  = r - 38;
+        const x0o = CX + Math.cos(a0) * rOut, y0o = CY + Math.sin(a0) * rOut;
+        const x1o = CX + Math.cos(a1) * rOut, y1o = CY + Math.sin(a1) * rOut;
+        const x1i = CX + Math.cos(a1) * rIn,  y1i = CY + Math.sin(a1) * rIn;
+        const x0i = CX + Math.cos(a0) * rIn,  y0i = CY + Math.sin(a0) * rIn;
+        // path: arc outer from a0->a1 at rOut, line to a1@rIn, arc back a1->a0 at rIn, close.
+        const sweep = (a1 - a0);
+        const large = sweep > Math.PI ? 1 : 0;
+        const d = `M ${x0o} ${y0o}
+                   A ${rOut} ${rOut} 0 ${large} 1 ${x1o} ${y1o}
+                   L ${x1i} ${y1i}
+                   A ${rIn} ${rIn} 0 ${large} 0 ${x0i} ${y0i}
+                   Z`;
+        const p = document.createElementNS(ns, 'path');
+        p.setAttribute('d', d);
+        p.setAttribute('class', 'cluster-hull');
+        p.setAttribute('data-group', slot[0].group);
+        svg.appendChild(p);
+
+        // small label at mid-angle, outside
+        const midA = (a0 + a1) / 2;
+        const lx = CX + Math.cos(midA) * (rOut + 18);
+        const ly = CY + Math.sin(midA) * (rOut + 18);
+        const t = document.createElementNS(ns, 'text');
+        t.setAttribute('x', lx); t.setAttribute('y', ly + 4);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('class', 'cluster-label');
+        t.textContent = 'choisis 1';
+        svg.appendChild(t);
+      }
+    });
+  });
+}
+layoutNodes();
+
+/* ═══════════ TOOLTIP ═══════════ */
+const tt = document.getElementById('tooltip');
+const stateLabels = {
+  done: '✓ validé',
+  reg: '● en cours / register',
+  todo: '○ à faire',
+  exam: '⚠ exam en cours',
+  locked: '🔒 verrouillé'
+};
+document.querySelectorAll('.node, .center-node').forEach(el => {
+  el.addEventListener('mouseenter', (e) => {
+    const t = el.dataset.title || el.querySelector('.c-label')?.textContent || '';
+    const d = el.dataset.desc || '';
+    const c = el.dataset.circle || '';
+    const s = el.dataset.state || 'done';
+    const f = el.dataset.fiche;
+    tt.innerHTML = `<div class="tt-t">${t}</div>
+      <div class="tt-meta">${c} · ${stateLabels[s] || s}</div>
+      <div class="tt-desc">${d}</div>
+      ${el.dataset.group ? '<div class="tt-meta" style="color:var(--accent);">⚑ groupe ' + el.dataset.group + ' — choisis 1 parmi</div>' : ''}
+      ${f ? '<div class="tt-meta" style="color:var(--hl-yellow)">📄 clic → fiche</div>' : ''}`;
+    tt.classList.add('on');
+  });
+  el.addEventListener('mousemove', (e) => {
+    const pad = 18;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const rect = tt.getBoundingClientRect();
+    if (x + rect.width > innerWidth) x = e.clientX - rect.width - pad;
+    if (y + rect.height > innerHeight) y = e.clientY - rect.height - pad;
+    tt.style.left = x + 'px';
+    tt.style.top = y + 'px';
+  });
+  el.addEventListener('mouseleave', () => tt.classList.remove('on'));
+});
+
+/* ═══════════ EXAM PANEL ═══════════ */
+const examPanel = document.getElementById('exam-panel');
+const examBackdrop = document.getElementById('exam-backdrop');
+const xpContent = document.getElementById('xp-content');
+
+function renderExamPanel() {
+  const section = (title, items, solo = false) => {
+    if (!items.length) return '';
+    const listItems = items.map(it => {
+      const vis = it.visuels ? `
+        <div class="xp-visuels">
+          ${it.visuels.map(v => `<a class="xp-vis-link" href="${v.f}" target="_blank" rel="noopener">✦ ${v.name}</a>`).join('')}
+        </div>` : '';
+      const hasVis = it.visuels ? 'has-vis' : '';
+      const tag = it.visuels ? '<span class="xp-tag">+vis</span>' : '';
+      return `<a class="xp-item ${hasVis}" href="${it.f}" target="_blank" rel="noopener">${it.id}${tag}</a>${vis}`;
+    }).join('');
+    return `
+      <h3>${title} <span class="xp-count">${items.length} fiche${items.length > 1 ? 's' : ''}</span></h3>
+      <div class="xp-list${solo ? ' solo' : ''}">${listItems}</div>
+    `;
+  };
+  xpContent.innerHTML =
+    section('level 1 · court', EXAM_DATA.level1) +
+    section('level 2 · moyen', EXAM_DATA.level2, true) +
+    section('level 3 · long', EXAM_DATA.level3) +
+    section('récaps', EXAM_DATA.recaps, true);
+}
+renderExamPanel();
+
+function openExamPanel() {
+  examPanel.classList.add('on');
+  examPanel.setAttribute('aria-hidden', 'false');
+  examBackdrop.classList.add('on');
+}
+function closeExamPanel() {
+  examPanel.classList.remove('on');
+  examPanel.setAttribute('aria-hidden', 'true');
+  examBackdrop.classList.remove('on');
+}
+examPanel.querySelector('.xp-close').addEventListener('click', closeExamPanel);
+examBackdrop.addEventListener('click', closeExamPanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeExamPanel(); });
+
+// hook the exam02 node
+const examNode = document.querySelector('.node[data-id="exam02"]');
+if (examNode) {
+  examNode.addEventListener('click', (e) => {
+    e.preventDefault();
+    openExamPanel();
+  });
+  examNode.style.cursor = 'pointer';
+}
+
+/* stats */
+document.getElementById('stat-done').textContent = DATA.filter(d => d.state === 'done').length;
+document.getElementById('stat-total').textContent = DATA.filter(d => !d.exam).length;
+// fiches = fiches des nodes + tous les exos + récaps + visuels + notes dans la grille
+const notesCount = document.querySelectorAll('.note-card').length;
+const examFichesCount = EXAM_DATA.level1.length + EXAM_DATA.level2.length + EXAM_DATA.level3.length + EXAM_DATA.recaps.length;
+const visuelsCount = [...EXAM_DATA.level1, ...EXAM_DATA.level2, ...EXAM_DATA.level3].reduce((n, it) => n + (it.visuels?.length || 0), 0);
+document.getElementById('stat-fiches').textContent = DATA.filter(d => d.fiche).length + examFichesCount + visuelsCount + notesCount;
+
+/* entry animation — retirée (instantané) */
+
+/* ═══════════ TWEAKS ═══════════ */
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "showLocked": true,
+  "compactLegend": true,
+  "rotateOrbits": false
+}/*EDITMODE-END*/;
+
+function applyTweaks(t) {
+  document.querySelectorAll('.node.locked').forEach(n => n.style.display = t.showLocked ? '' : 'none');
+  document.querySelector('.legend-bar').style.display = t.compactLegend ? 'none' : '';
+  const g = document.getElementById('graph-svg');
+  if (t.rotateOrbits) {
+    g.style.animation = 'spin 120s linear infinite';
+  } else {
+    g.style.animation = '';
+  }
+}
+/* inject keyframes */
+const st = document.createElement('style');
+st.textContent = '@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }';
+document.head.appendChild(st);
+applyTweaks(TWEAKS);
+
+let tweakPanel = null;
+function renderTweaks(t) {
+  if (!tweakPanel) {
+    tweakPanel = document.createElement('div');
+    tweakPanel.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--paper-d);border:2.5px solid var(--ink);border-radius:10px;padding:14px 16px;box-shadow:4px 4px 0 var(--ink);z-index:1000;font-family:Patrick Hand,cursive;min-width:220px;';
+    document.body.appendChild(tweakPanel);
+  }
+  tweakPanel.innerHTML = `
+    <div style="font-family:Kalam;font-weight:700;font-size:18px;margin-bottom:10px;">Tweaks</div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:16px;margin-bottom:6px;">
+      <input type="checkbox" ${t.showLocked ? 'checked' : ''} data-k="showLocked"> afficher les projets verrouillés
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:16px;margin-bottom:6px;">
+      <input type="checkbox" ${t.compactLegend ? 'checked' : ''} data-k="compactLegend"> masquer la légende
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:16px;">
+      <input type="checkbox" ${t.rotateOrbits ? 'checked' : ''} data-k="rotateOrbits"> faire tourner les orbites 🌌
+    </label>
+  `;
+  tweakPanel.querySelectorAll('input[type=checkbox]').forEach(c => {
+    c.addEventListener('change', () => {
+      const k = c.dataset.k;
+      const edits = {};
+      edits[k] = c.checked;
+      Object.assign(TWEAKS, edits);
+      applyTweaks(TWEAKS);
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    });
+  });
+}
+function hideTweaks() { if (tweakPanel) { tweakPanel.remove(); tweakPanel = null; } }
+window.addEventListener('message', (e) => {
+  if (e.data?.type === '__activate_edit_mode') renderTweaks(TWEAKS);
+  if (e.data?.type === '__deactivate_edit_mode') hideTweaks();
+});
+window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+</script>
+
+</body>
+</html>

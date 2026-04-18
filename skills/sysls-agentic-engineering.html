@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Less is More — Maximiser les agents IA · @systematicls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F5F7FF;--primary:#2563EB;--primary-d:#1D4ED8;--primary-l:#DBEAFE;
+  --green:#059669;--green-l:#D1FAE5;--gold:#D97706;--gold-l:#FEF3C7;
+  --purple:#7C3AED;--purple-l:#EDE9FE;--red:#DC2626;--red-l:#FEE2E2;
+  --dark:#0F172A;--mid:#475569;--muted:#94A3B8;
+  --card1:#EFF6FF;--card2:#ECFDF5;--card3:#FFF7ED;--card4:#F5F3FF;
+  --border:#CBD5E1;--shadow:rgba(37,99,235,0.08);
+  --gap:16px;--radius:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--dark);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#progress-bar{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--primary),var(--purple),var(--gold));z-index:9999;transition:width .1s linear;border-radius:0 2px 2px 0}
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;overflow:hidden;background:var(--dark)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 20%,rgba(37,99,235,.35) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 80%,rgba(124,58,237,.25) 0%,transparent 60%),radial-gradient(ellipse 70% 50% at 50% 110%,rgba(217,119,6,.15) 0%,transparent 60%),#0F172A;animation:heroShift 12s ease-in-out infinite alternate}
+@keyframes heroShift{0%{filter:hue-rotate(0deg) brightness(1)}50%{filter:hue-rotate(8deg) brightness(1.05)}100%{filter:hue-rotate(-4deg) brightness(1.02)}}
+.hero-shape{position:absolute;border-radius:50%;opacity:.1;animation:floatShape 8s ease-in-out infinite;pointer-events:none}
+.hero-shape-1{width:300px;height:300px;background:var(--primary);top:-80px;right:-80px}
+.hero-shape-2{width:200px;height:200px;background:var(--purple);bottom:-40px;left:-40px;animation-delay:-3s}
+.hero-shape-3{width:120px;height:120px;background:var(--gold);top:30%;left:8%;opacity:.06;animation-delay:-5s}
+@keyframes floatShape{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.05)}}
+.hero-content{position:relative;z-index:2;max-width:800px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:#93C5FD;padding:6px 16px;border-radius:99px;font-size:13px;font-weight:600;margin-bottom:24px;backdrop-filter:blur(8px)}
+.hero h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(40px,7vw,72px);color:#fff;line-height:1.05;margin-bottom:16px;letter-spacing:-2px}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,#60A5FA,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(16px,2.5vw,20px);color:#94A3B8;max-width:600px;margin:0 auto 32px;line-height:1.5;font-weight:400}
+.hero-stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#CBD5E1;padding:8px 18px;border-radius:99px;font-size:14px;font-weight:600;backdrop-filter:blur(8px)}
+.hero-pill strong{color:#fff}
+.container{max-width:960px;margin:0 auto;padding:0 20px}
+.bento{display:grid;grid-template-columns:1fr;gap:var(--gap);padding:60px 0}
+@media(min-width:900px){.bento{grid-template-columns:1fr 1fr}.span-2{grid-column:span 2}}
+.card{background:#fff;border-radius:var(--radius);padding:32px;box-shadow:0 1px 3px var(--shadow),0 8px 24px rgba(0,0,0,.04);transition:transform .3s ease,box-shadow .3s ease;opacity:0;transform:translateY(20px)}
+.card:hover{transform:translateY(-3px);box-shadow:0 4px 12px var(--shadow),0 16px 40px rgba(0,0,0,.06)}
+.card.visible{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.card h3{font-family:'Playfair Display',serif;font-weight:700;font-size:22px;margin-bottom:10px;color:var(--dark);line-height:1.25}
+.card p{font-size:15px;color:var(--mid);line-height:1.7}
+.card-blue{background:var(--card1)}.card-blue .card-icon{background:var(--primary-l);color:var(--primary)}
+.card-green{background:var(--card2)}.card-green .card-icon{background:var(--green-l);color:var(--green)}
+.card-orange{background:var(--card3)}.card-orange .card-icon{background:var(--gold-l);color:var(--gold)}
+.card-purple{background:var(--card4)}.card-purple .card-icon{background:var(--purple-l);color:var(--purple)}
+.card-red{background:var(--red-l)}.card-red .card-icon{background:#fff;color:var(--red)}
+.tldr{border-left:4px solid var(--primary);background:var(--card1)}
+.tldr h3{color:var(--primary)}
+.quote-card{background:var(--dark);color:#fff;text-align:center;padding:48px 36px}
+.quote-card blockquote{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(20px,3vw,28px);line-height:1.4;max-width:700px;margin:0 auto;font-weight:700}
+.quote-card blockquote::before{content:'\201C';font-size:64px;color:var(--primary);display:block;line-height:1;margin-bottom:-10px}
+.quote-card cite{display:block;margin-top:16px;font-family:'Inter',sans-serif;font-style:normal;font-size:14px;color:#94A3B8}
+.terminal{background:#0F172A;border-radius:14px;overflow:hidden;margin:16px 0;border:1px solid #1E293B}
+.terminal-bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:#1E293B}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal pre{padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#CBD5E1;line-height:1.7;overflow-x:auto;white-space:pre}
+.terminal .comment{color:#64748B}
+.terminal .keyword{color:#60A5FA}
+.terminal .string{color:#34D399}
+.stat-card{text-align:center;padding:36px 24px}
+.stat-num{font-family:'Playfair Display',serif;font-weight:900;font-size:48px;line-height:1;margin-bottom:6px}
+.stat-label{font-size:14px;color:var(--mid);font-weight:500}
+.takeaway{background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;text-align:center;padding:48px 36px}
+.takeaway h3{font-family:'Playfair Display',serif;font-weight:900;font-size:28px;margin-bottom:12px;color:#fff}
+.takeaway p{font-size:16px;color:rgba(255,255,255,.85);max-width:600px;margin:0 auto;line-height:1.7}
+.footer{text-align:center;padding:40px 20px;font-size:13px;color:var(--muted)}
+.footer a{color:var(--primary);text-decoration:none}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-content">
+    <div class="hero-badge">📡 Article X · @systematicls</div>
+    <h1><em>Less is More</em><br>Le guide ultime pour<br>maximiser les agents IA</h1>
+    <p class="hero-sub">Arrête d'installer des tonnes de plugins. Le secret des meilleurs développeurs avec Claude et Codex tient en quelques principes simples.</p>
+    <div class="hero-stats">
+      <span class="hero-pill"><strong>7.5K</strong> likes</span>
+      <span class="hero-pill"><strong>889</strong> RT</span>
+      <span class="hero-pill"><strong>2.8M</strong> vues</span>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+<div class="bento">
+
+<!-- TL;DR -->
+<div class="card tldr span-2">
+  <h3>🎯 TL;DR</h3>
+  <p>Ton CLAUDE.md de 26 000 lignes et tes 15 plugins te ralentissent plus qu'ils ne t'aident. Les meilleurs résultats viennent d'un setup barebones + une maîtrise du contexte + des principes simples d'ingénierie agentique. Les entreprises fondatrices (Anthropic, OpenAI) intègrent tout ce qui est vraiment utile — tu n'as rien à installer.</p>
+</div>
+
+<!-- 1. Less is more -->
+<div class="card card-blue">
+  <div class="card-icon">🪶</div>
+  <h3>Less is More — N'installe rien</h3>
+  <p>Les solutions tierces (skills, mémoire, subagents) qui marchent vraiment finissent <strong>toujours</strong> intégrées dans les produits officiels. Si OpenAI et Anthropic l'implémentent tous les deux → c'est utile. Sinon, c'est probablement du bruit. Mets juste à jour ton CLI de temps en temps et lis les release notes.</p>
+</div>
+
+<!-- 2. Context -->
+<div class="card card-red">
+  <div class="card-icon">🧠</div>
+  <h3>Le contexte est TOUT</h3>
+  <p>Le <strong>context bloat</strong> est l'ennemi n°1. Chaque plugin, mémoire, skill mal nommée pollue le contexte de l'agent. Donne-lui EXACTEMENT l'info dont il a besoin, rien de plus. Un agent qui reçoit des recettes de cuisine quand tu lui demandes un poème va produire de la merde.</p>
+</div>
+
+<!-- Stats -->
+<div class="card card-blue stat-card">
+  <div class="stat-num" style="color:var(--primary)" data-target="7567">0</div>
+  <div class="stat-label">Likes sur l'article</div>
+</div>
+<div class="card card-purple stat-card">
+  <div class="stat-num" style="color:var(--purple)" data-target="2800000">0</div>
+  <div class="stat-label">Vues</div>
+</div>
+
+<!-- 3. Recherche vs Implémentation -->
+<div class="card card-green span-2">
+  <div class="card-icon">🔬</div>
+  <h3>Sépare recherche et implémentation</h3>
+  <p>❌ <em>"Construis un système d'auth"</em> → l'agent recherche toutes les options, son contexte se pollue, il hallucine.<br><br>
+  ✅ <em>"Implémente JWT avec bcrypt-12, refresh token rotation, expiry 7 jours"</em> → il sait exactement quoi faire.<br><br>
+  Si tu ne connais pas les détails → fais une <strong>tâche de recherche séparée</strong>, décide, puis lance un <strong>agent frais</strong> pour implémenter.</p>
+</div>
+
+<!-- Quote -->
+<div class="card quote-card span-2">
+  <blockquote>Traite ton CLAUDE.md comme un répertoire logique IF-ELSE de où trouver le contexte selon le scénario. Il doit être barebones et ne contenir que les directions.</blockquote>
+  <cite>— @systematicls</cite>
+</div>
+
+<!-- 4. Sycophantie -->
+<div class="card card-orange span-2">
+  <div class="card-icon">🎭</div>
+  <h3>Exploite la sycophantie au lieu de la subir</h3>
+  <p>Les agents veulent te plaire. Si tu dis <em>"trouve un bug"</em>, ils en inventeront un. Utilise des <strong>prompts neutres</strong> : <em>"Parcours le code, suis la logique, rapporte tes observations."</em></p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="comment"># Système adversarial à 3 agents</span>
+
+<span class="keyword">Agent 1</span> — Bug-finder (sycophant)
+  <span class="string">"+1 bug mineur, +5 moyen, +10 critique"</span>
+  → Trouve TOUS les bugs (même les faux)
+
+<span class="keyword">Agent 2</span> — Adversarial
+  <span class="string">"+score si réfute un bug, -2×score si tort"</span>
+  → Réfute agressivement les faux positifs
+
+<span class="keyword">Agent 3</span> — Referee
+  <span class="string">"+1 correct, -1 incorrect (vs ground truth)"</span>
+  → Tranche entre les deux → haute fidélité</pre>
+  </div>
+</div>
+
+<!-- 5. Tests -->
+<div class="card card-green">
+  <div class="card-icon">✅</div>
+  <h3>Les tests = milestone</h3>
+  <p><em>"Ta tâche n'est PAS finie tant que ces X tests ne passent pas. Tu n'as PAS le droit de modifier les tests."</em><br><br>Les tests sont déterministes → l'agent sait exactement quand il a terminé. Combine avec des <strong>screenshots + vérification</strong> pour le frontend.</p>
+</div>
+
+<!-- 6. Contracts -->
+<div class="card card-purple">
+  <div class="card-icon">📜</div>
+  <h3>Contracts, pas sessions 24h</h3>
+  <p>Les sessions longues dérivent. À la place : <strong>1 contrat par tâche</strong>, un stop-hook qui bloque la terminaison tant que le contrat n'est pas rempli. Orchestration layer qui crée de nouveaux contrats → agents frais à chaque fois.</p>
+</div>
+
+<!-- Terminal: CLAUDE.md structure -->
+<div class="card span-2" style="background:var(--dark);color:#CBD5E1;padding:24px">
+  <h3 style="color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px">Le CLAUDE.md idéal = un routeur</h3>
+  <div class="terminal" style="margin:0;border:1px solid #334155">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="comment"># CLAUDE.md — Keep it barebones</span>
+
+<span class="keyword">Après compaction</span>, relis ton task plan
+et les fichiers pertinents avant de continuer.
+
+<span class="keyword">SI</span> tu dois écrire du code →
+  lis <span class="string">rules/coding-standards.md</span>
+
+<span class="keyword">SI</span> tu rencontres un bug →
+  lis <span class="string">skills/bug-investigation.md</span>
+
+<span class="keyword">SI</span> tu dois déployer →
+  lis <span class="string">skills/deploy-checklist.md</span>
+
+<span class="comment"># C'est TOUT. Pas de dump de 26000 lignes.</span></pre>
+  </div>
+</div>
+
+<!-- 7. Rules & Skills -->
+<div class="card card-blue">
+  <div class="card-icon">📏</div>
+  <h3>Rules = préférences</h3>
+  <p>Quand tu vois l'agent faire un truc que t'aimes pas → ajoute une <strong>rule</strong>. Dis-lui de lire la rule AVANT de refaire cette action. Il ne le refera plus.</p>
+</div>
+
+<div class="card card-orange">
+  <div class="card-icon">🧪</div>
+  <h3>Skills = recettes</h3>
+  <p>Tu veux contrôler COMMENT un problème est résolu ? Fais rechercher l'approche par l'agent, écris-la comme <strong>skill</strong>, corrige-la, puis référence-la dans le CLAUDE.md.</p>
+</div>
+
+<!-- 8. Iterate -->
+<div class="card card-green span-2">
+  <div class="card-icon">♻️</div>
+  <h3>Le cycle magique : itère sans cesse</h3>
+  <p><strong>1.</strong> Commence barebones (juste le CLI)<br>
+  <strong>2.</strong> Ajoute des rules quand tu vois un problème<br>
+  <strong>3.</strong> Ajoute des skills quand tu veux contrôler une méthode<br>
+  <strong>4.</strong> Quand la performance se dégrade → <strong>cleanup day</strong> : consolide, supprime les contradictions, demande à l'agent de simplifier<br>
+  <strong>5.</strong> Ça redevient magique → retourne en 2.<br><br>
+  C'est le même principe qu'un EA (executive assistant) : tu construis les préférences avec le temps, pas d'un coup.</p>
+</div>
+
+<!-- Takeaway -->
+<div class="card takeaway span-2">
+  <h3>🎯 Own the Outcome</h3>
+  <p>Aucun agent n'est parfait. Tu délègues le design et l'implémentation, mais tu gardes la responsabilité du résultat. Strip tes dépendances, maîtrise le contexte, utilise rules et skills, et nettoie régulièrement. C'est tout le secret.</p>
+</div>
+
+</div><!-- /bento -->
+</div><!-- /container -->
+
+<footer class="footer">
+  Résumé généré automatiquement · Source : <a href="https://x.com/systematicls/status/2028814227004395561" target="_blank">@systematicls sur X</a>
+</footer>
+
+<script>
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const p=(scrollY/(document.body.scrollHeight-innerHeight))*100;
+  document.getElementById('progress-bar').style.width=p+'%';
+});
+
+// Scroll reveal
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('visible'),i*80);
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.card').forEach(c=>obs.observe(c));
+
+// Count-up animation
+const numObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target;const target=+el.dataset.target;
+      const dur=1500;const start=performance.now();
+      function step(now){
+        const p=Math.min((now-start)/dur,1);
+        const val=Math.floor(p*target);
+        el.textContent=target>=1000000?(val/1000000).toFixed(1)+'M':val>=1000?(val/1000).toFixed(1)+'K':val;
+        if(p<1)requestAnimationFrame(step);
+        else el.textContent=target>=1000000?(target/1000000).toFixed(1)+'M':target>=1000?(target/1000).toFixed(1)+'K':target;
+      }
+      requestAnimationFrame(step);
+      numObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+document.querySelectorAll('[data-target]').forEach(e=>numObs.observe(e));
+</script>
+</body>
+</html>

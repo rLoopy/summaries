@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ft_atoi — Comprendre le Bloc 3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0C0C14;--bg2:#111119;--card:#16161F;--card2:#1C1C28;
+  --border:rgba(255,255,255,0.07);--text:#E2E4E9;--mid:#A0A4B0;--muted:#6B6F7E;
+  --cyan:#06D6A0;--cyan2:#34EDBC;--purple:#A78BFA;--purple2:#C4B5FD;
+  --orange:#FB923C;--orange2:#FDBA74;--green:#34D399;--gold:#FBBF24;
+  --blue:#38BDF8;--red:#F87171;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.7;overflow-x:hidden;font-variant-ligatures:none}
+.container{max-width:800px;margin:0 auto;padding:2rem 1.5rem}
+
+/* Hero */
+.hero{text-align:center;padding:3rem 1rem 2rem;position:relative}
+.hero h1{font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,var(--purple2),var(--cyan2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--mid);margin-top:0.5rem;font-size:1.05rem}
+
+/* Tape - the string as a conveyor belt */
+section{margin:3rem 0}
+section h2{font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.6rem}
+.sec-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+
+/* ===== SECTION 1: L'idée en une image ===== */
+.idea-card{
+  background:var(--card);border:1px solid var(--gold);border-radius:16px;
+  padding:2.5rem 2rem;text-align:center;
+  box-shadow:0 0 40px rgba(251,191,36,0.06);
+}
+.idea-card .big-text{
+  font-size:1.8rem;font-weight:800;line-height:1.4;margin-bottom:1.5rem;
+}
+.idea-card .big-text .hl-shift{color:var(--purple2)}
+.idea-card .big-text .hl-put{color:var(--cyan2)}
+
+/* Visual conveyor */
+.conveyor-demo{
+  display:flex;flex-direction:column;gap:2rem;
+  margin-top:2rem;padding:2rem 1rem;
+  background:var(--bg2);border-radius:12px;border:1px solid var(--border);
+}
+.conv-row{
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+}
+.conv-label{
+  font-size:0.85rem;font-weight:600;color:var(--muted);
+  width:120px;text-align:right;flex-shrink:0;
+}
+.conv-slots{
+  display:flex;gap:4px;
+}
+.conv-slot{
+  width:56px;height:64px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;
+  border:2px solid var(--border);background:var(--card);
+  position:relative;transition:all 0.4s;
+}
+.conv-slot.empty{opacity:0.2;border-style:dashed}
+.conv-slot.filled{border-color:var(--purple);color:var(--purple2);background:rgba(167,139,250,0.08)}
+.conv-slot.new-digit{border-color:var(--cyan);color:var(--cyan2);background:rgba(6,214,160,0.1);
+  box-shadow:0 0 20px rgba(6,214,160,0.2);animation:popIn 0.4s ease}
+.conv-arrow{
+  font-size:2rem;margin:0 0.5rem;
+}
+.conv-arrow-shift{color:var(--purple)}
+.conv-arrow-add{color:var(--cyan)}
+.conv-caption{
+  text-align:center;font-size:1rem;color:var(--mid);margin-top:0.5rem;
+}
+.conv-caption strong{font-weight:700}
+.conv-caption .c-purple{color:var(--purple2)}
+.conv-caption .c-cyan{color:var(--cyan2)}
+
+@keyframes popIn{
+  0%{transform:scale(0.5);opacity:0}
+  60%{transform:scale(1.15)}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* ===== SECTION 2: Animation interactive ===== */
+.anim-box{
+  background:var(--card);border:1px solid var(--blue);border-radius:16px;
+  padding:2rem;box-shadow:0 0 30px rgba(56,189,248,0.06);
+}
+
+/* The reading tape */
+.tape{
+  display:flex;justify-content:center;gap:6px;margin:1.5rem 0;
+}
+.tape-cell{
+  width:60px;height:72px;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;
+  border:2px solid var(--border);background:var(--bg2);
+  transition:all 0.4s ease;position:relative;
+}
+.tape-cell .tc-char{font-size:1.6rem;font-weight:800;color:var(--text)}
+.tape-cell .tc-label{font-size:0.6rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em}
+.tape-cell.reading{
+  border-color:var(--cyan);background:rgba(6,214,160,0.1);
+  box-shadow:0 0 25px rgba(6,214,160,0.2);transform:scale(1.08);
+}
+.tape-cell.reading::before{
+  content:'▼ lecture';position:absolute;top:-26px;
+  font-size:0.7rem;font-weight:700;color:var(--cyan);white-space:nowrap;
+}
+.tape-cell.read{border-color:var(--purple);background:rgba(167,139,250,0.06);opacity:0.5}
+.tape-cell.unread{opacity:0.3}
+
+/* Display / result area */
+.display-area{
+  display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  margin:2rem 0;
+}
+
+/* The big number display like a calculator */
+.calc-display{
+  background:var(--bg);border:2px solid var(--border);border-radius:16px;
+  padding:1rem 2.5rem;min-width:280px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.calc-display-label{
+  font-size:0.75rem;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.25rem;
+}
+.calc-display-val{
+  font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:900;
+  color:var(--text);transition:all 0.3s;min-height:4rem;
+  display:flex;align-items:center;justify-content:center;gap:2px;
+}
+.calc-digit{
+  display:inline-block;transition:all 0.4s ease;
+}
+.calc-digit.shift-anim{
+  animation:shiftLeft 0.5s ease;color:var(--purple2);
+}
+.calc-digit.new-anim{
+  animation:dropIn 0.4s ease;color:var(--cyan2);
+}
+@keyframes shiftLeft{
+  0%{transform:translateX(0);color:var(--text)}
+  50%{transform:translateX(-8px);color:var(--purple2)}
+  100%{transform:translateX(0);color:var(--purple2)}
+}
+@keyframes dropIn{
+  0%{transform:translateY(-30px);opacity:0;color:var(--cyan)}
+  100%{transform:translateY(0);opacity:1;color:var(--cyan2)}
+}
+
+/* Narration bubble */
+.narration{
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:1rem 1.5rem;max-width:500px;text-align:center;
+  font-size:1.05rem;color:var(--mid);line-height:1.6;
+  min-height:3.5rem;transition:all 0.3s;
+}
+.narration strong{color:var(--text)}
+.narration .n-purple{color:var(--purple2);font-weight:700}
+.narration .n-cyan{color:var(--cyan2);font-weight:700}
+.narration .n-gold{color:var(--gold);font-weight:700}
+.narration .n-green{color:var(--green);font-weight:700}
+.narration .n-orange{color:var(--orange);font-weight:700}
+
+/* Controls */
+.anim-controls{
+  display:flex;justify-content:center;gap:0.75rem;margin:1.5rem 0;flex-wrap:wrap;
+}
+.btn{
+  border:none;border-radius:10px;padding:0.7rem 2rem;font-weight:700;
+  font-size:1rem;cursor:pointer;transition:all 0.2s;
+}
+.btn-main{
+  background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;
+  box-shadow:0 4px 20px rgba(6,214,160,0.2);
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(6,214,160,0.3)}
+.btn-main:active{transform:translateY(0)}
+.btn-sec{
+  background:var(--card2);color:var(--text);border:1px solid var(--border);
+}
+.btn-sec:hover{border-color:var(--cyan)}
+.btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important}
+
+/* Step counter */
+.step-dots{
+  display:flex;justify-content:center;gap:8px;margin:1rem 0;
+}
+.step-dot{
+  width:12px;height:12px;border-radius:50%;
+  background:var(--card2);border:2px solid var(--border);
+  transition:all 0.3s;
+}
+.step-dot.active{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(6,214,160,0.4)}
+.step-dot.done{background:var(--purple);border-color:var(--purple)}
+
+/* ===== SECTION 3: Le code final ===== */
+.code-final{
+  background:var(--card);border:1px solid var(--green);border-radius:16px;
+  padding:2rem;box-shadow:0 0 25px rgba(52,211,153,0.06);
+}
+.code-block{
+  font-family:'JetBrains Mono',monospace;font-size:0.95rem;
+  line-height:2;padding:1rem 1.5rem;background:var(--bg);
+  border-radius:10px;border:1px solid var(--border);
+}
+.code-block .kw{color:var(--purple)}
+.code-block .op{color:var(--orange)}
+.code-block .st{color:var(--green)}
+.code-block .cm{color:var(--muted);font-style:italic}
+.code-block .hl-line{background:rgba(167,139,250,0.08);display:block;padding:0 0.5rem;border-radius:4px;margin:2px -0.5rem}
+
+/* Mantra */
+.mantra{
+  margin-top:2rem;padding:1.25rem;text-align:center;
+  background:rgba(251,191,36,0.06);border:2px solid var(--gold);
+  border-radius:12px;font-size:1.2rem;font-weight:800;color:var(--gold);
+}
+
+/* Responsive */
+@media(max-width:640px){
+  .hero h1{font-size:1.6rem}
+  .conv-label{width:auto;text-align:center;font-size:0.75rem}
+  .conv-row{flex-direction:column}
+  .conv-slot{width:46px;height:54px;font-size:1.3rem}
+  .tape-cell{width:48px;height:60px}
+  .tape-cell .tc-char{font-size:1.3rem}
+  .calc-display-val{font-size:2.5rem}
+  .narration{font-size:0.95rem}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Comment atoi construit un nombre</h1>
+    <p>Zero maths — juste des boîtes qui bougent</p>
+  </div>
+
+  <!-- SECTION 1: L'idée en une image -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(251,191,36,0.1);color:var(--gold)">💡</span> L'idée</h2>
+    <div class="idea-card">
+      <div class="big-text">
+        À chaque chiffre lu :<br>
+        <span class="hl-shift">décale tout à gauche</span> →
+        <span class="hl-put">pose le nouveau à droite</span>
+      </div>
+
+      <div class="conveyor-demo">
+        <!-- Row 1: on lit '4' -->
+        <div>
+          <div class="conv-row">
+            <span class="conv-label">On lit '4'</span>
+            <div class="conv-slots">
+              <div class="conv-slot new-digit" style="animation:none">4</div>
+            </div>
+          </div>
+          <div class="conv-caption">Résultat : <strong class="c-cyan">4</strong></div>
+        </div>
+
+        <!-- Row 2: on lit '2' -->
+        <div>
+          <div class="conv-row">
+            <span class="conv-label">On lit '2'</span>
+            <div class="conv-slots">
+              <div class="conv-slot filled">4</div>
+              <span class="conv-arrow conv-arrow-shift">←</span>
+            </div>
+            <span style="font-size:1.5rem;color:var(--muted);margin:0 0.25rem">puis</span>
+            <div class="conv-slots">
+              <div class="conv-slot filled">4</div>
+              <div class="conv-slot new-digit" style="animation:none">2</div>
+            </div>
+          </div>
+          <div class="conv-caption"><span class="c-purple">4 glisse à gauche</span>, <span class="c-cyan">2 se pose à droite</span> → <strong>42</strong></div>
+        </div>
+
+        <!-- Row 3: on lit '7' -->
+        <div>
+          <div class="conv-row">
+            <span class="conv-label">On lit '7'</span>
+            <div class="conv-slots">
+              <div class="conv-slot filled">4</div>
+              <div class="conv-slot filled">2</div>
+              <span class="conv-arrow conv-arrow-shift">←</span>
+            </div>
+            <span style="font-size:1.5rem;color:var(--muted);margin:0 0.25rem">puis</span>
+            <div class="conv-slots">
+              <div class="conv-slot filled">4</div>
+              <div class="conv-slot filled">2</div>
+              <div class="conv-slot new-digit" style="animation:none">7</div>
+            </div>
+          </div>
+          <div class="conv-caption"><span class="c-purple">42 glisse à gauche</span>, <span class="c-cyan">7 se pose à droite</span> → <strong>427</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Animation interactive -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(56,189,248,0.1);color:var(--blue)">▶️</span> Regarde-le faire — pas à pas</h2>
+    <div class="anim-box">
+
+      <div class="tape" id="tape"></div>
+
+      <div class="display-area">
+        <div class="calc-display">
+          <div class="calc-display-label">res (le nombre qu'on construit)</div>
+          <div class="calc-display-val" id="calcVal">0</div>
+        </div>
+        <div class="narration" id="narration">
+          Clique <strong>Suivant</strong> pour lire le premier caractère
+        </div>
+      </div>
+
+      <div class="step-dots" id="stepDots"></div>
+
+      <div class="anim-controls">
+        <button class="btn btn-sec" id="btnReset" onclick="resetAnim()">↻ Reset</button>
+        <button class="btn btn-main" id="btnNext2" onclick="animNext()">Suivant →</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 3: Le code -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(52,211,153,0.1);color:var(--green)">📝</span> Le code — maintenant tu comprends</h2>
+    <div class="code-final">
+      <div class="code-block">
+        <span class="kw">while</span> (str[i] <span class="op">>=</span> <span class="st">'0'</span> <span class="op">&&</span> str[i] <span class="op"><=</span> <span class="st">'9'</span>) &nbsp; <span class="cm">// tant que c'est un chiffre</span><br>
+        {<br>
+        <span class="hl-line">&nbsp;&nbsp;&nbsp;&nbsp;res <span class="op">=</span> res <span class="op">*</span> <span class="st">10</span> <span class="op">+</span> (str[i] <span class="op">-</span> <span class="st">'0'</span>); &nbsp; <span class="cm">// décale + pose</span></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="cm">// chiffre suivant</span><br>
+        }<br>
+        <span class="kw">return</span> (res <span class="op">*</span> signe);
+      </div>
+      <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div style="background:var(--bg);padding:1rem;border-radius:10px;border:1px solid rgba(167,139,250,0.2);text-align:center">
+          <div style="font-family:'JetBrains Mono',monospace;color:var(--purple2);font-weight:700;font-size:1.1rem">res * 10</div>
+          <div style="color:var(--muted);font-size:0.9rem;margin-top:0.25rem">= décale à gauche</div>
+        </div>
+        <div style="background:var(--bg);padding:1rem;border-radius:10px;border:1px solid rgba(6,214,160,0.2);text-align:center">
+          <div style="font-family:'JetBrains Mono',monospace;color:var(--cyan2);font-weight:700;font-size:1.1rem">str[i] - '0'</div>
+          <div style="color:var(--muted);font-size:0.9rem;margin-top:0.25rem">= le vrai chiffre</div>
+        </div>
+      </div>
+      <div class="mantra">Je décale, je pose. Je décale, je pose.</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const STR = "427";
+const CHARS = STR.split('');
+let animStep = -1;
+
+// Narration for each step
+function getNarration(step) {
+  if (step === 0) return `On lit <span class="n-cyan">'${CHARS[0]}'</span>. C'est le premier chiffre.<br>res était <span class="n-purple">0</span>, maintenant c'est <span class="n-green">${CHARS[0]}</span>.`;
+  if (step < CHARS.length) {
+    const prev = parseInt(STR.substring(0, step));
+    const shifted = prev * 10;
+    const digit = CHARS[step];
+    const result = shifted + parseInt(digit);
+    return `On lit <span class="n-cyan">'${digit}'</span>. On <span class="n-purple">décale</span> ${prev} → ${shifted}, on <span class="n-cyan">pose</span> ${digit} → <span class="n-green">${result}</span>`;
+  }
+  return `<span class="n-orange">'\\0'</span> — c'est plus un chiffre. <strong>On s'arrête.</strong><br>Résultat final : <span class="n-green" style="font-size:1.3rem">${STR}</span>`;
+}
+
+function initTape() {
+  const tape = document.getElementById('tape');
+  tape.innerHTML = '';
+  CHARS.forEach((c, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'tape-cell unread';
+    cell.id = 'tc-' + i;
+    cell.innerHTML = `<span class="tc-char">'${c}'</span><span class="tc-label">str[${i}]</span>`;
+    tape.appendChild(cell);
+  });
+  // \0
+  const nul = document.createElement('div');
+  nul.className = 'tape-cell unread';
+  nul.id = 'tc-end';
+  nul.innerHTML = `<span class="tc-char" style="color:var(--muted)">\\0</span><span class="tc-label">str[${CHARS.length}]</span>`;
+  tape.appendChild(nul);
+
+  // Dots
+  const dots = document.getElementById('stepDots');
+  dots.innerHTML = '';
+  for (let i = 0; i <= CHARS.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'step-dot';
+    d.id = 'dot-' + i;
+    dots.appendChild(d);
+  }
+}
+
+function animNext() {
+  animStep++;
+  if (animStep > CHARS.length) { animStep = CHARS.length; return; }
+
+  // Update tape
+  CHARS.forEach((_, i) => {
+    const cell = document.getElementById('tc-' + i);
+    cell.classList.remove('reading', 'read', 'unread');
+    if (i < animStep) cell.classList.add('read');
+    else if (i === animStep) cell.classList.add('reading');
+    else cell.classList.add('unread');
+  });
+  const endCell = document.getElementById('tc-end');
+  endCell.classList.remove('reading', 'read', 'unread');
+  if (animStep === CHARS.length) endCell.classList.add('reading');
+  else endCell.classList.add('unread');
+
+  // Update display
+  const calcVal = document.getElementById('calcVal');
+  if (animStep < CHARS.length) {
+    const newVal = parseInt(STR.substring(0, animStep + 1));
+    const digits = String(newVal).split('');
+    calcVal.innerHTML = digits.map((d, i) => {
+      if (i < digits.length - 1) {
+        return `<span class="calc-digit shift-anim">${d}</span>`;
+      }
+      return `<span class="calc-digit new-anim">${d}</span>`;
+    }).join('');
+    // Remove animation classes after animation ends
+    setTimeout(() => {
+      calcVal.querySelectorAll('.calc-digit').forEach(d => {
+        d.classList.remove('shift-anim', 'new-anim');
+      });
+    }, 600);
+  }
+
+  // Update narration
+  document.getElementById('narration').innerHTML = getNarration(animStep);
+
+  // Update dots
+  for (let i = 0; i <= CHARS.length; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.remove('active', 'done');
+    if (i < animStep) dot.classList.add('done');
+    else if (i === animStep) dot.classList.add('active');
+  }
+
+  // Disable button at end
+  if (animStep >= CHARS.length) {
+    document.getElementById('btnNext2').disabled = true;
+  }
+}
+
+function resetAnim() {
+  animStep = -1;
+  initTape();
+  document.getElementById('calcVal').textContent = '0';
+  document.getElementById('narration').innerHTML = 'Clique <strong>Suivant</strong> pour lire le premier caractère';
+  document.getElementById('btnNext2').disabled = false;
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active', 'done'));
+}
+
+window.addEventListener('load', () => {
+  initTape();
+});
+</script>
+</body>
+</html>

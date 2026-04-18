@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandbox Dev — Guide Docker + Cursor pour Windows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F0FDF4;--primary:#059669;--primary-d:#047857;--primary-l:#D1FAE5;
+  --blue:#2563EB;--blue-l:#DBEAFE;--gold:#D97706;--gold-l:#FEF3C7;
+  --purple:#7C3AED;--purple-l:#EDE9FE;--red:#DC2626;--red-l:#FEE2E2;
+  --dark:#0F172A;--mid:#475569;--muted:#94A3B8;
+  --card1:#ECFDF5;--card2:#EFF6FF;--card3:#FFF7ED;--card4:#F5F3FF;
+  --border:#A7F3D0;--shadow:rgba(5,150,105,0.08);
+  --gap:16px;--radius:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--dark);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#progress-bar{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--primary),var(--blue));z-index:9999;transition:width .1s linear}
+.hero{position:relative;min-height:80svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;overflow:hidden;background:var(--dark)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 20%,rgba(5,150,105,.35) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 80%,rgba(37,99,235,.25) 0%,transparent 60%),radial-gradient(ellipse 70% 50% at 50% 110%,rgba(124,58,237,.15) 0%,transparent 60%),#0F172A;animation:heroShift 12s ease-in-out infinite alternate}
+@keyframes heroShift{0%{filter:hue-rotate(0deg) brightness(1)}50%{filter:hue-rotate(6deg) brightness(1.04)}100%{filter:hue-rotate(-3deg) brightness(1.02)}}
+.hero-shape{position:absolute;border-radius:50%;opacity:.1;animation:float 8s ease-in-out infinite;pointer-events:none}
+.hs1{width:280px;height:280px;background:var(--primary);top:-60px;right:-60px}
+.hs2{width:180px;height:180px;background:var(--blue);bottom:-40px;left:-40px;animation-delay:-3s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.hero-content{position:relative;z-index:2;max-width:750px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(5,150,105,.2);border:1px solid rgba(5,150,105,.4);color:#6EE7B7;padding:6px 16px;border-radius:99px;font-size:13px;font-weight:600;margin-bottom:24px}
+.hero h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(36px,6vw,64px);color:#fff;line-height:1.05;margin-bottom:16px;letter-spacing:-2px}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,#6EE7B7,#60A5FA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(15px,2.2vw,19px);color:#94A3B8;max-width:580px;margin:0 auto 32px;line-height:1.5}
+.container{max-width:960px;margin:0 auto;padding:0 20px}
+.bento{display:grid;grid-template-columns:1fr;gap:var(--gap);padding:60px 0}
+@media(min-width:900px){.bento{grid-template-columns:1fr 1fr}.span-2{grid-column:span 2}}
+.card{background:#fff;border-radius:var(--radius);padding:32px;box-shadow:0 1px 3px var(--shadow),0 8px 24px rgba(0,0,0,.04);transition:transform .3s,box-shadow .3s;opacity:0;transform:translateY(20px)}
+.card:hover{transform:translateY(-3px);box-shadow:0 4px 12px var(--shadow),0 16px 40px rgba(0,0,0,.06)}
+.card.visible{opacity:1;transform:translateY(0);transition:opacity .6s,transform .6s}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.card h3{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;margin-bottom:10px;line-height:1.25}
+.card p,.card li{font-size:15px;color:var(--mid);line-height:1.7}
+.card ul{padding-left:20px;margin-top:8px}
+.card li{margin-bottom:4px}
+.card-green{background:var(--card1)}.card-green .card-icon{background:var(--primary-l);color:var(--primary)}
+.card-blue{background:var(--card2)}.card-blue .card-icon{background:var(--blue-l);color:var(--blue)}
+.card-orange{background:var(--card3)}.card-orange .card-icon{background:var(--gold-l);color:var(--gold)}
+.card-purple{background:var(--card4)}.card-purple .card-icon{background:var(--purple-l);color:var(--purple)}
+.card-red{background:var(--red-l)}.card-red .card-icon{background:#fff;color:var(--red)}
+.tldr{border-left:4px solid var(--primary);background:var(--card1)}
+.tldr h3{color:var(--primary)}
+.step-num{display:inline-flex;width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;align-items:center;justify-content:center;font-weight:800;font-size:15px;margin-bottom:12px}
+.terminal{background:#0F172A;border-radius:14px;overflow:hidden;margin:16px 0;border:1px solid #1E293B}
+.terminal-bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:#1E293B}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal pre{padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#CBD5E1;line-height:1.7;overflow-x:auto;white-space:pre}
+.cm{color:#64748B}
+.kw{color:#6EE7B7}
+.str{color:#60A5FA}
+.warn{color:#FBBF24}
+.vs-card{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px}
+.vs-box{flex:1;min-width:200px;padding:20px;border-radius:14px;text-align:center}
+.vs-bad{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2)}
+.vs-good{background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2)}
+.vs-box h4{font-size:16px;margin-bottom:6px}
+.vs-box p{font-size:13px;color:var(--mid)}
+.takeaway{background:linear-gradient(135deg,var(--primary),var(--blue));color:#fff;text-align:center;padding:48px 36px}
+.takeaway h3{font-family:'Playfair Display',serif;font-weight:900;font-size:26px;margin-bottom:12px;color:#fff}
+.takeaway p{font-size:16px;color:rgba(255,255,255,.85);max-width:600px;margin:0 auto;line-height:1.7}
+.footer{text-align:center;padding:40px 20px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-shape hs1"></div>
+  <div class="hero-shape hs2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔒 Sécurité · Dev Setup</div>
+    <h1>Code dans une <em>Sandbox</em></h1>
+    <p class="hero-sub">Guide complet pour isoler ton environnement de dev avec Docker + Cursor sur Windows. Vibecode tranquille, ton PC reste propre.</p>
+  </div>
+</section>
+
+<div class="container">
+<div class="bento">
+
+<!-- TL;DR -->
+<div class="card tldr span-2">
+  <h3>🎯 TL;DR</h3>
+  <p>Installe <strong>Docker Desktop</strong> + l'extension <strong>Dev Containers</strong> dans Cursor. Chaque projet tourne dans un container isolé. Si un package malveillant s'exécute, il reste enfermé dans le container — pas d'accès à tes mots de passe, wallets, cookies ou fichiers perso.</p>
+</div>
+
+<!-- Pourquoi -->
+<div class="card card-red span-2">
+  <div class="card-icon">⚠️</div>
+  <h3>Pourquoi c'est important ?</h3>
+  <p>Quand tu vibeocodes, l'IA installe des packages, exécute des commandes, écrit des fichiers. Si un package est malveillant (supply chain attack), il a accès à <strong>tout ce qui est sur ta machine</strong> :</p>
+  <div class="vs-card">
+    <div class="vs-box vs-bad">
+      <h4 style="color:var(--red)">❌ Sans sandbox</h4>
+      <p>Le malware accède à tes cookies Chrome, tes wallets crypto, tes SSH keys, tes API keys, tes fichiers perso, tes sessions Discord...</p>
+    </div>
+    <div class="vs-box vs-good">
+      <h4 style="color:var(--primary)">✅ Avec sandbox</h4>
+      <p>Le malware est enfermé dans le container. Il voit que les fichiers du projet. Ton Windows est intact.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Étape 1 -->
+<div class="card card-green">
+  <span class="step-num">1</span>
+  <h3>Installe Docker Desktop</h3>
+  <p>Télécharge et installe depuis le site officiel. Au premier lancement, il te demande d'activer WSL 2 (tu l'as déjà).</p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="cm"># Vérifie que Docker tourne</span>
+<span class="kw">docker</span> --version
+<span class="str">Docker version 27.x.x</span>
+
+<span class="cm"># Vérifie WSL 2 backend</span>
+<span class="kw">docker</span> info | grep OSType
+<span class="str">OSType: linux</span></pre>
+  </div>
+</div>
+
+<!-- Étape 2 -->
+<div class="card card-blue">
+  <span class="step-num">2</span>
+  <h3>Extension Dev Containers</h3>
+  <p>Dans Cursor (ou VSCode), installe l'extension :</p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="cm"># Dans Cursor → Extensions → cherche :</span>
+<span class="str">Dev Containers</span>
+<span class="cm"># Par Microsoft — identifiant :</span>
+<span class="kw">ms-vscode-remote.remote-containers</span></pre>
+  </div>
+</div>
+
+<!-- Étape 3 -->
+<div class="card card-orange span-2">
+  <span class="step-num">3</span>
+  <h3>Crée le fichier de config dans ton projet</h3>
+  <p>À la racine de ton projet, crée un dossier <code>.devcontainer/</code> avec deux fichiers :</p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="cm"># .devcontainer/devcontainer.json</span>
+{
+  <span class="str">"name"</span>: <span class="str">"Dev Sandbox"</span>,
+  <span class="str">"build"</span>: { <span class="str">"dockerfile"</span>: <span class="str">"Dockerfile"</span> },
+  <span class="str">"customizations"</span>: {
+    <span class="str">"vscode"</span>: {
+      <span class="str">"extensions"</span>: [
+        <span class="str">"ms-vscode.cpptools"</span>
+      ]
+    }
+  },
+  <span class="str">"postCreateCommand"</span>: <span class="str">"echo '✅ Sandbox prête !'"</span>
+}</pre>
+  </div>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="cm"># .devcontainer/Dockerfile</span>
+<span class="kw">FROM</span> debian:bookworm-slim
+
+<span class="kw">RUN</span> apt-get update && apt-get install -y \
+    gcc \
+    make \
+    valgrind \
+    git \
+    curl \
+    python3 \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+<span class="cm"># Un user non-root pour la sécurité</span>
+<span class="kw">RUN</span> useradd -ms /bin/bash dev
+<span class="kw">USER</span> dev
+<span class="kw">WORKDIR</span> /home/dev/project</pre>
+  </div>
+</div>
+
+<!-- Étape 4 -->
+<div class="card card-green">
+  <span class="step-num">4</span>
+  <h3>Ouvre dans le container</h3>
+  <p>Dans Cursor :</p>
+  <ul>
+    <li><code>Ctrl+Shift+P</code></li>
+    <li>Tape <strong>"Reopen in Container"</strong></li>
+    <li>Clique → attend 30 secondes</li>
+    <li>T'es dans la sandbox !</li>
+  </ul>
+  <p style="margin-top:12px">La prochaine fois ça sera instantané — Docker cache le build.</p>
+</div>
+
+<!-- Étape 5 -->
+<div class="card card-purple">
+  <span class="step-num">5</span>
+  <h3>Vibecode normalement</h3>
+  <p>Tout marche comme avant :</p>
+  <ul>
+    <li>Terminal → dans le container</li>
+    <li>Fichiers → montés depuis ton projet</li>
+    <li>Extensions Cursor → fonctionnent</li>
+    <li>IA → exécute dans le container</li>
+    <li>npm/pip install → dans le container</li>
+  </ul>
+  <p style="margin-top:12px">La seule différence : rien ne touche ton Windows.</p>
+</div>
+
+<!-- Template 42 -->
+<div class="card card-blue span-2">
+  <div class="card-icon">🎓</div>
+  <h3>Template spécial 42</h3>
+  <p>Pour tes projets 42, voici un Dockerfile optimisé :</p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dot" style="background:#EF4444"></span><span class="terminal-dot" style="background:#EAB308"></span><span class="terminal-dot" style="background:#22C55E"></span></div>
+    <pre><span class="cm"># .devcontainer/Dockerfile (version 42)</span>
+<span class="kw">FROM</span> debian:bookworm-slim
+
+<span class="kw">RUN</span> apt-get update && apt-get install -y \
+    gcc \
+    clang \
+    make \
+    valgrind \
+    gdb \
+    git \
+    man-db \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+<span class="cm"># Compile flags style 42</span>
+<span class="kw">ENV</span> CFLAGS="-Wall -Wextra -Werror"
+
+<span class="kw">RUN</span> useradd -ms /bin/bash dev
+<span class="kw">USER</span> dev
+<span class="kw">WORKDIR</span> /home/dev/project</pre>
+  </div>
+</div>
+
+<!-- Règles d'or -->
+<div class="card card-orange span-2">
+  <div class="card-icon">🛡️</div>
+  <h3>Règles d'or de la sandbox</h3>
+  <ul>
+    <li><strong>Jamais d'API keys</strong> dans le container — utilise des env vars au lancement</li>
+    <li><strong>Jamais monter tout le disque</strong> — seul le dossier du projet est partagé</li>
+    <li><strong>User non-root</strong> dans le container — limite les dégâts</li>
+    <li><strong>Recréer régulièrement</strong> le container — un doute ? <code>docker compose down && docker compose up</code></li>
+    <li><strong>Pas de navigateur</strong> dans le container — le malware ne peut pas voler tes cookies</li>
+  </ul>
+</div>
+
+<!-- Takeaway -->
+<div class="card takeaway span-2">
+  <h3>🔒 Setup une fois, tranquille pour toujours</h3>
+  <p>5 minutes de setup. Ensuite chaque projet tourne dans sa bulle. Tu vibeocodes sans stress, ton PC reste propre, tes secrets sont en sécurité. Drop le dossier .devcontainer/ dans chaque projet et c'est réglé.</p>
+</div>
+
+</div>
+</div>
+
+<footer class="footer">Guide généré pour _loopy_ · Docker Desktop + Cursor Dev Containers</footer>
+
+<script>
+window.addEventListener('scroll',()=>{const p=(scrollY/(document.body.scrollHeight-innerHeight))*100;document.getElementById('progress-bar').style.width=p+'%'});
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*80);obs.unobserve(e.target)}})},{threshold:.1});
+document.querySelectorAll('.card').forEach(c=>obs.observe(c));
+</script>
+</body>
+</html>

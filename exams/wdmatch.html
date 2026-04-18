@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche R&eacute;vision &mdash; wdmatch &middot; Exam Rank 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0C0C14;
+  --bg2: #111119;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #E2E4E9;
+  --mid: #A0A4B0;
+  --muted: #6B6F7E;
+  --dim: #4A4D5A;
+  --cyan: #06D6A0;
+  --cyan2: #34EDBC;
+  --cyan-bg: rgba(6,214,160,0.08);
+  --cyan-border: rgba(6,214,160,0.22);
+  --purple: #A78BFA;
+  --purple2: #C4B5FD;
+  --purple-bg: rgba(167,139,250,0.08);
+  --purple-border: rgba(167,139,250,0.22);
+  --orange: #FB923C;
+  --orange2: #FDBA74;
+  --orange-bg: rgba(251,146,60,0.08);
+  --orange-border: rgba(251,146,60,0.22);
+  --red: #F87171;
+  --red2: #FCA5A5;
+  --red-bg: rgba(248,113,113,0.06);
+  --red-border: rgba(248,113,113,0.18);
+  --green: #34D399;
+  --green2: #6EE7B7;
+  --green-bg: rgba(52,211,153,0.08);
+  --green-border: rgba(52,211,153,0.22);
+  --gold: #FBBF24;
+  --gold-bg: rgba(251,191,36,0.08);
+  --gold-border: rgba(251,191,36,0.22);
+  --blue: #38BDF8;
+  --blue-bg: rgba(56,189,248,0.08);
+  --blue-border: rgba(56,189,248,0.22);
+  --gap: 16px;
+  --radius: 18px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-variant-ligatures: none; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--orange));
+  z-index: 9999; transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── HERO ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 70svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(6,214,160,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(167,139,250,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(251,146,60,0.08) 0%, transparent 50%),
+    var(--bg);
+  animation: heroShift 14s ease-in-out infinite alternate;
+}
+
+@keyframes heroShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(6deg) brightness(1.03); }
+  100% { filter: hue-rotate(-4deg) brightness(0.98); }
+}
+
+.hero-shape {
+  position: absolute; border-radius: 50%; opacity: 0.08;
+  animation: floatShape 8s ease-in-out infinite; pointer-events: none;
+}
+.hero-shape-1 { width:350px;height:350px;background:var(--cyan);top:-100px;right:-80px }
+.hero-shape-2 { width:220px;height:220px;background:var(--purple);bottom:-60px;left:-60px;animation-delay:-3s }
+.hero-shape-3 { width:140px;height:140px;background:var(--orange);top:35%;left:6%;opacity:0.05;animation-delay:-5s }
+
+@keyframes floatShape {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(8deg); }
+}
+
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+
+/* glow lines */
+.hero-glow {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.15; top: 40%; left: -50%;
+  animation: glowSlide 6s linear infinite;
+}
+.hero-glow-2 {
+  position: absolute; pointer-events: none;
+  width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  opacity: 0.1; top: 60%; left: -50%;
+  animation: glowSlide 8s linear infinite reverse;
+}
+@keyframes glowSlide {
+  0% { transform: translateX(-25%); }
+  100% { transform: translateX(25%); }
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 700px; }
+
+.hero-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  color: #0C0C14;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 6px 18px; border-radius: 30px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(40px, 9vw, 80px);
+  color: #fff; line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--cyan2) 0%, var(--purple2) 50%, var(--orange2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 16px; color: var(--muted);
+  margin-bottom: 28px; font-weight: 300;
+}
+
+.hero-stats {
+  display: flex; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+
+.hero-stat {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+
+.hero-mantra {
+  margin-top: 28px;
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--mid);
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  max-width: 600px;
+}
+.hero-mantra strong { color: var(--cyan2); }
+
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%;
+  transform: translateX(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--dim); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── STICKY NAV ────────────────────────────────────────────── */
+.sticky-nav {
+  position: sticky; top: 0;
+  background: rgba(12,12,20,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100; padding: 10px 20px;
+  display: flex; align-items: center; gap: 8px;
+  overflow-x: auto; white-space: nowrap;
+}
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.nav-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); flex-shrink: 0;
+}
+
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 600;
+  color: var(--cyan); text-decoration: none; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-pill:hover { background: var(--cyan); color: var(--bg); }
+.nav-pill .n {
+  width: 16px; height: 16px;
+  background: var(--cyan);
+  border-radius: 50%; color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.nav-pill:hover .n { background: rgba(0,0,0,0.3); color: var(--cyan2); }
+
+/* ─── MAIN ──────────────────────────────────────────────────── */
+.main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* ─── BENTO GRID ────────────────────────────────────────────── */
+.bento {
+  display: grid; grid-template-columns: 1fr;
+  gap: var(--gap); margin-bottom: 40px;
+}
+@media (min-width: 900px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+  .bento-wide { grid-column: 1 / -1; }
+}
+
+/* ─── BENTO CARD ────────────────────────────────────────────── */
+.bcard {
+  border-radius: var(--radius); padding: 28px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.45s ease-out, transform 0.45s ease-out, box-shadow 0.3s ease;
+}
+.bcard.in-view { opacity: 1; transform: translateY(0); }
+.bcard:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+.bcard-dark   { background: var(--card); border: 1px solid var(--border); }
+.bcard-cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); }
+.bcard-purple { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+.bcard-orange { background: var(--orange-bg); border: 1px solid var(--orange-border); }
+.bcard-green  { background: var(--green-bg); border: 1px solid var(--green-border); }
+.bcard-gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); }
+.bcard-blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+.bcard-glass  { background: rgba(255,255,255,0.02); border: 1px solid var(--border2); }
+
+/* ─── SECTION HEADINGS ──────────────────────────────────────── */
+.section-label {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.section-label.in-view { opacity: 1; transform: translateY(0); }
+
+.sec-num {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; flex-shrink: 0;
+}
+.sec-num.cyan   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan2); }
+.sec-num.purple { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple2); }
+.sec-num.orange { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange2); }
+.sec-num.red    { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red2); }
+.sec-num.green  { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green2); }
+.sec-num.gold   { background: var(--gold-bg); border: 1px solid var(--gold-border); color: var(--gold); }
+.sec-num.blue   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+
+.sec-info h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 900;
+}
+.sec-info p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ─── CODE BLOCK ────────────────────────────────────────────── */
+.code-block {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--border2);
+  background: #0A0A10; margin: 0;
+}
+.code-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-filename {
+  margin-left: 8px; font-size: 12px;
+  color: var(--dim); font-family: 'JetBrains Mono', monospace;
+}
+.code-block pre {
+  margin: 0; padding: 18px 22px; overflow-x: auto;
+  font-size: 13.5px; line-height: 1.8;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d1d5db; tab-size: 4;
+}
+.kw { color: var(--purple2); } .fn { color: var(--cyan2); } .tp { color: var(--orange2); }
+.num { color: var(--gold); } .op { color: #F472B6; }
+
+/* ─── FLASHCARD ─────────────────────────────────────────────── */
+.flashcard {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 0; margin-bottom: 12px;
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.flashcard:hover { border-color: var(--purple); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
+
+.flash-q {
+  padding: 18px 22px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.flash-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--purple-bg); border: 1px solid var(--purple-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; color: var(--purple);
+  transition: all 0.3s;
+}
+.flashcard.open .flash-icon { background: var(--purple); color: var(--bg); transform: rotate(45deg); }
+.flash-q-text { flex: 1; }
+.flash-hint { font-size: 11px; color: var(--dim); margin-top: 2px; font-weight: 400; }
+
+.flash-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 22px;
+  background: var(--purple-bg);
+  border-top: 1px solid transparent;
+}
+.flashcard.open .flash-a {
+  max-height: 300px;
+  padding: 16px 22px;
+  border-top-color: var(--purple-border);
+}
+.flash-a p { font-size: 13px; color: var(--mid); line-height: 1.7; }
+.flash-a code {
+  font-size: 12px; background: rgba(167,139,250,0.15);
+  padding: 2px 7px; border-radius: 4px; color: var(--purple2);
+}
+
+/* ─── PIEGE CARD ────────────────────────────────────────────── */
+.trap-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 20px 22px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.trap-card:hover { border-color: var(--orange); transform: translateX(4px); }
+
+.trap-tag {
+  display: inline-flex; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.tag-swap   { background: var(--cyan-bg); border: 1px solid var(--cyan-border); color: var(--cyan); }
+.tag-loop   { background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple); }
+.tag-logic  { background: var(--orange-bg); border: 1px solid var(--orange-border); color: var(--orange); }
+.tag-init   { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+.tag-type   { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+.tag-safety { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+
+.trap-label {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+
+.trap-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; flex-wrap: wrap;
+}
+.trap-bad {
+  font-size: 10px; font-weight: 800; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-good {
+  font-size: 10px; font-weight: 800; color: var(--green);
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.trap-code {
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  color: var(--mid); background: rgba(255,255,255,0.04);
+  padding: 4px 10px; border-radius: 6px;
+}
+
+.trap-rule {
+  font-size: 13px; color: var(--mid); line-height: 1.6;
+  padding: 10px 14px; margin-top: 8px;
+  background: var(--gold-bg); border: 1px solid var(--gold-border);
+  border-radius: 10px;
+}
+.trap-rule strong { color: var(--gold); }
+
+/* ─── PATTERN ───────────────────────────────────────────────── */
+.pattern-steps { list-style: none; counter-reset: step; }
+.pattern-steps li {
+  counter-increment: step; position: relative;
+  padding: 10px 0 10px 44px; font-size: 14px;
+  color: var(--mid); line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+.pattern-steps li:last-child { border-bottom: none; }
+.pattern-steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #0C0C14;
+}
+.pattern-steps code {
+  font-size: 12px; background: var(--cyan-bg);
+  border: 1px solid var(--cyan-border);
+  padding: 2px 7px; border-radius: 4px; color: var(--cyan2);
+}
+
+/* ─── EVOLUTION TIMELINE ────────────────────────────────────── */
+.evo-timeline { position: relative; padding-left: 24px; }
+.evo-timeline::before {
+  content: ''; position: absolute;
+  left: 7px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, var(--red), var(--orange), var(--green));
+  border-radius: 1px;
+}
+.evo-step {
+  position: relative; margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.evo-step::before {
+  content: ''; position: absolute;
+  left: -21px; top: 18px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.evo-step:nth-child(1)::before { background: var(--red); box-shadow: 0 0 8px rgba(248,113,113,0.4); }
+.evo-step:nth-child(2)::before { background: var(--orange); box-shadow: 0 0 8px rgba(251,146,60,0.4); }
+.evo-step:nth-child(3)::before { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+.evo-version {
+  font-size: 10px; font-weight: 700; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.evo-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: var(--mid); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.evo-fix {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 6px; margin-right: 4px; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+}
+.fix-bad  { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+.fix-good { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+
+/* ─── TRANSFER ──────────────────────────────────────────────── */
+.transfer-box {
+  background: var(--card2); border-radius: 14px;
+  padding: 28px; position: relative; overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.transfer-box::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, var(--gold), var(--orange));
+}
+.transfer-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: var(--bg); font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.transfer-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900; color: var(--text);
+  margin-bottom: 10px;
+}
+.transfer-desc {
+  font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px;
+}
+.transfer-desc strong { color: var(--orange2); }
+.transfer-proto {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--cyan2);
+  background: rgba(6,214,160,0.06);
+  border: 1px solid var(--cyan-border);
+  border-radius: 8px; padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.transfer-hint {
+  font-size: 12px; color: var(--dim); font-style: italic;
+}
+
+/* ─── CHECKLIST ─────────────────────────────────────────────── */
+.check-list { list-style: none; }
+.check-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; font-size: 14px; color: var(--mid);
+  border-bottom: 1px solid var(--border);
+}
+.check-list li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px; color: var(--dim);
+}
+.check-list code {
+  font-size: 11px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+}
+
+/* ─── FOOTER ────────────────────────────────────────────────── */
+.footer {
+  text-align: center; padding: 32px 20px;
+  font-size: 12px; color: var(--dim);
+  border-top: 1px solid var(--border);
+}
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: 16px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .bcard { padding: 20px; }
+  .sec-num { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+  .sec-info h2 { font-size: 20px; }
+  .hero-mantra { font-size: 11px; padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-shape hero-shape-1"></div>
+  <div class="hero-shape hero-shape-2"></div>
+  <div class="hero-shape hero-shape-3"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Exam Rank 02 &middot; Level 2</div>
+    <h1><span class="gradient-text">wdmatch</span></h1>
+    <p class="hero-sub">Deux pointeurs &mdash; check si s1 est sous-s&eacute;quence de s2</p>
+    <div class="hero-stats">
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1"/></svg> &Eacute;crit seul</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="#34D399" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg> Valid&eacute; completed</span>
+      <span class="hero-stat"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M7 5v4M5 7h4"/></svg> 2 pointeurs</span>
+      <span class="hero-stat">14/04/2026</span>
+    </div>
+    <div class="hero-mantra">
+      <strong>Mantra &rarr;</strong> <code style="color:var(--cyan2);background:rgba(6,214,160,0.1);padding:1px 6px;border-radius:4px">i</code> avance toujours, <code style="color:var(--purple2);background:rgba(167,139,250,0.1);padding:1px 6px;border-radius:4px">j</code> seulement quand &ccedil;a match
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4v12M5 11l5 5 5-5"/></svg>
+    SCROLL
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <span class="nav-label">Fiche</span>
+  <a href="#code" class="nav-pill"><span class="n">1</span>Code</a>
+  <a href="#flashcards" class="nav-pill"><span class="n">2</span>Flashcards</a>
+  <a href="#pieges" class="nav-pill"><span class="n">3</span>Pi&egrave;ges</a>
+  <a href="#pattern" class="nav-pill"><span class="n">4</span>Pattern</a>
+  <a href="#evolution" class="nav-pill"><span class="n">5</span>&Eacute;volution</a>
+  <a href="#transfert" class="nav-pill"><span class="n">6</span>Transfert</a>
+  <a href="#checklist" class="nav-pill"><span class="n">7</span>Checklist</a>
+</nav>
+
+<div class="main">
+
+<!-- 1 CODE FINAL -->
+<div id="code" class="section-label">
+  <div class="sec-num green">1</div>
+  <div class="sec-info">
+    <h2>Code final</h2>
+    <p>Compile avec -Wall -Wextra -Werror, tous tests OK</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide" style="padding:0">
+    <div class="code-block" style="border:none">
+      <div class="code-header">
+        <div class="code-dot" style="background:var(--red)"></div>
+        <div class="code-dot" style="background:var(--gold)"></div>
+        <div class="code-dot" style="background:var(--green)"></div>
+        <span class="code-filename">wdmatch.c</span>
+      </div>
+<pre><span class="kw">#include</span> &lt;unistd.h&gt;
+
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="kw">if</span> (argc != <span class="num">3</span>)
+	{
+		<span class="fn">write</span>(<span class="num">1</span>, <span class="op">"</span>\n<span class="op">"</span>, <span class="num">1</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+	<span class="tp">int</span> i = <span class="num">0</span>;
+	<span class="tp">int</span> j = <span class="num">0</span>;
+	<span class="kw">while</span> (argv[<span class="num">2</span>][i])
+	{
+		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == argv[<span class="num">2</span>][i])
+			j<span class="op">++</span>;
+		i<span class="op">++</span>;
+		<span class="kw">if</span> (argv[<span class="num">1</span>][j] == <span class="op">'</span>\0<span class="op">'</span>)
+		{
+			j = <span class="num">0</span>;
+			<span class="kw">while</span> (argv[<span class="num">1</span>][j])
+			{
+				<span class="fn">write</span>(<span class="num">1</span>, <span class="op">&amp;</span>argv[<span class="num">1</span>][j], <span class="num">1</span>);
+				j<span class="op">++</span>;
+			}
+			<span class="fn">write</span>(<span class="num">1</span>, <span class="op">"</span>\n<span class="op">"</span>, <span class="num">1</span>);
+			<span class="kw">return</span> <span class="num">0</span>;
+		}
+	}
+	<span class="fn">write</span>(<span class="num">1</span>, <span class="op">"</span>\n<span class="op">"</span>, <span class="num">1</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="bcard bcard-cyan">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">SUJET</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--text)">int main(int argc, char **argv);</strong><br><br>
+      Check si s1 s&apos;&eacute;crit avec les chars de s2,<br>
+      <strong style="color:var(--text)">en respectant l&apos;ordre</strong> de s2<br><br>
+      argc != 3 &rarr; <strong style="color:var(--text)">juste \n</strong><br>
+      match &rarr; print <strong style="color:var(--cyan2)">s1</strong> + \n<br>
+      no match &rarr; <strong style="color:var(--text)">juste \n</strong><br><br>
+      Allowed: write
+    </div>
+  </div>
+
+  <div class="bcard bcard-green">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">TESTS</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
+      <span style="color:var(--muted)">"faya" + "fgvvfdxcacpolhyghbreda"</span><br>&rarr; <strong style="color:var(--green2)">"faya" &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"faya" + "fgvvfdxcacpolhyghbred"</span><br>&rarr; <strong style="color:var(--green2)">"" (pas de 2&egrave;me 'a') &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"quarante deux" + "qfqfsudf arzgs…"</span><br>&rarr; <strong style="color:var(--green2)">"quarante deux" &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"error" + "rrerrrfiij…"</span><br>&rarr; <strong style="color:var(--green2)">"" (pas de 'o' dispo) &#10003;</strong><br><br>
+      <span style="color:var(--muted)">"zpadinton" + "paqefwtdjetyi…"</span><br>&rarr; <strong style="color:var(--green2)">"" (test officiel) &#10003;</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 2 FLASHCARDS -->
+<div id="flashcards" class="section-label">
+  <div class="sec-num purple">2</div>
+  <div class="sec-info">
+    <h2>Flashcards</h2>
+    <p>R&eacute;ponds dans ta t&ecirc;te AVANT de cliquer</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi la technique des deux pointeurs marche ?</div>
+        <div class="flash-hint">R&ocirc;les diff&eacute;rents...</div></div>
+      </div>
+      <div class="flash-a"><p><code>i</code> <strong>parcourt s2</strong> inconditionnellement (une fois) &mdash; c&apos;est la string de r&eacute;f&eacute;rence. <code>j</code> <strong>avance seulement quand le char de s1 correspond au char courant de s2</strong>. Si <code>j</code> atteint la fin de s1, c&apos;est qu&apos;on a trouv&eacute; tous les chars de s1 dans s2 <strong>dans l&apos;ordre</strong> &mdash; par construction.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Comment on d&eacute;tecte la fin d&apos;une string en C ?</div>
+        <div class="flash-hint">Terminator...</div></div>
+      </div>
+      <div class="flash-a"><p>Toute string C se termine par le caract&egrave;re <strong>null byte</strong> : <code>'\0'</code> (valeur ASCII 0). Tester la fin = tester <code>str[i] == '\0'</code> ou son &eacute;quivalent concis <code>!str[i]</code>. C&apos;est <strong>strictement &eacute;quivalent</strong> &agrave; <code>while (str[i])</code> vs <code>while (str[i] != '\0')</code>.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi reset <code>j = 0</code> avant d&apos;imprimer s1 ?</div>
+        <div class="flash-hint">R&eacute;utilisation...</div></div>
+      </div>
+      <div class="flash-a"><p><strong>Double usage de <code>j</code></strong> : d&apos;abord curseur de match (avance quand s1[j] == s2[i]), ensuite <strong>curseur d&apos;impression</strong> pour parcourir s1 et afficher char par char. &Eacute;conomie d&apos;une variable &mdash; une seule sert pour deux r&ocirc;les s&eacute;quentiels.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Si s1 est vide <code>""</code>, que se passe-t-il ?</div>
+        <div class="flash-hint">Match ou pas...</div></div>
+      </div>
+      <div class="flash-a"><p>Au premier tour de la boucle, <code>j = 0</code> et <code>argv[1][0] = '\0'</code> d&eacute;j&agrave;. Le check <code>if (argv[1][j] == '\0')</code> fire imm&eacute;diatement &rarr; on entre dans la branche "print s1". Mais s1 est vide, donc le <code>while (argv[1][j])</code> ne tourne pas. Seul <code>\n</code> est &eacute;crit. <strong>Output identique &agrave; "no match"</strong> &mdash; donc peu importe la voie logique prise.</p></div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('open')">
+      <div class="flash-q">
+        <div class="flash-icon">+</div>
+        <div><div class="flash-q-text">Pourquoi <code>argc != 3</code> en premier ?</div>
+        <div class="flash-hint">Cas limites...</div></div>
+      </div>
+      <div class="flash-a"><p>Toujours <strong>check les cas limites AVANT</strong> d&apos;acc&eacute;der aux donn&eacute;es. Si <code>argc != 3</code>, <code>argv[1]</code> ou <code>argv[2]</code> peuvent &ecirc;tre <code>NULL</code> &rarr; segfault garanti. Le sujet exige ce comportement d&eacute;fensif et &ccedil;a sauve de toutes sortes de crashs.</p></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 3 PIEGES -->
+<div id="pieges" class="section-label">
+  <div class="sec-num orange">3</div>
+  <div class="sec-info">
+    <h2>Pi&egrave;ges d&eacute;jou&eacute;s</h2>
+    <p>4 pi&egrave;ges &mdash; chaque carte = une le&ccedil;on grav&eacute;e</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-logic">RETURN</span>
+    <div class="trap-label">PI&Egrave;GE #1</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">return 0</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">return 0;</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> oublier le point-virgule apr&egrave;s <code>return 0</code> &rarr; erreur de compilation. Erreur faite sous pression, facile &agrave; rep&eacute;rer dans les premi&egrave;res lignes de gcc.</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-swap">RETURN FINAL</span>
+    <div class="trap-label">PI&Egrave;GE #2</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">// main se termine sans return</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">write("\n"); return 0; // apr&egrave;s le while</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> si on rentre jamais dans la branche "match", le programme doit quand m&ecirc;me <strong>&eacute;crire \n</strong> et <strong>return 0</strong>. Sans return final apr&egrave;s le while, comportement Undefined en C (m&ecirc;me si gcc force un return 0 par d&eacute;faut).</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-type">CONFUSION i/j</span>
+    <div class="trap-label">PI&Egrave;GE #3</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">while (argv[1][i])  // boucler sur s1</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">while (argv[2][i])  // boucler sur s2</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> c&apos;est <strong>s2 (la "source")</strong> qu&apos;on parcourt, pas s1. <code>i</code> sur s2, <code>j</code> sur s1. Inversion classique qui fait tout planter silencieusement (pas de warning gcc, juste des tests qui fail).</div>
+  </div>
+
+  <div class="bcard bcard-glass">
+    <span class="trap-tag tag-safety">ORDRE DES STRINGS</span>
+    <div class="trap-label">PI&Egrave;GE #4</div>
+    <div class="trap-row"><span class="trap-bad">&#10005;</span><code class="trap-code">is_subseq(s2, s1)  // s1 contient-il s2 ?</code></div>
+    <div class="trap-row"><span class="trap-good">&#10003;</span><code class="trap-code">is_subseq(s1, s2)  // s2 contient-il s1 ?</code></div>
+    <div class="trap-rule"><strong>Le pi&egrave;ge :</strong> <strong>s1 est ce qu&apos;on cherche</strong>, <strong>s2 est l&apos;endroit o&ugrave; on cherche</strong>. Le sujet dit "&eacute;crire la premi&egrave;re string avec des chars de la seconde" &rarr; s1 est le cible, s2 est la source.</div>
+  </div>
+
+</div>
+
+<!-- 4 PATTERN -->
+<div id="pattern" class="section-label">
+  <div class="sec-num cyan">4</div>
+  <div class="sec-info">
+    <h2>Pattern r&eacute;utilisable</h2>
+    <p>Deux pointeurs asynchrones &mdash; <code>i</code> avance toujours, <code>j</code> avance conditionnellement</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-purple bento-wide">
+    <ol class="pattern-steps">
+      <li><code>argc != 3</code> &rarr; write <code>\n</code> + return 0</li>
+      <li>Init <code>i = 0</code> (curseur s2), <code>j = 0</code> (curseur s1)</li>
+      <li>While <code>argv[2][i]</code> (parcours s2 jusqu&apos;au bout) :
+        <ul style="margin-top:8px;padding-left:20px">
+          <li>Si <code>s1[j] == s2[i]</code> &rarr; <code>j++</code> (match)</li>
+          <li><code>i++</code> (toujours)</li>
+          <li>Si <code>s1[j] == '\0'</code> &rarr; on a tout match &rarr; print s1 + \n + return</li>
+        </ul>
+      </li>
+      <li>Apr&egrave;s le while : no match total &rarr; write <code>\n</code> + return</li>
+    </ol>
+  </div>
+  <div class="bcard bcard-cyan bento-wide">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px">PATTERN TWO-POINTER ASYNC</div>
+    <div style="font-size:14px;color:var(--mid);line-height:1.8">
+      <strong style="color:var(--cyan2)">wdmatch</strong> &mdash; s1 est-il sous-s&eacute;quence de s2 ?<br>
+      <strong style="color:var(--cyan2)">is_subsequence</strong> &mdash; g&eacute;n&eacute;ralisation (retourne 1/0)<br>
+      <strong style="color:var(--cyan2)">strstr-like</strong> &mdash; mais pour les sous-s&eacute;quences, pas les sous-strings<br>
+      <strong style="color:var(--cyan2)">inter/union</strong> &mdash; m&ecirc;me philosophie 2-pointers, conditions diff&eacute;rentes<br>
+      <strong style="color:var(--purple2)">Cl&eacute;</strong> &mdash; un pointeur <strong>rapide</strong> qui parcourt tout, un pointeur <strong>lent</strong> qui avance seulement quand condition v&eacute;rifi&eacute;e
+    </div>
+  </div>
+</div>
+
+<!-- 5 EVOLUTION -->
+<div id="evolution" class="section-label">
+  <div class="sec-num gold">5</div>
+  <div class="sec-info">
+    <h2>&Eacute;volution du code</h2>
+    <p>2 versions &mdash; de "logique posée" &agrave; "code final"</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-dark bento-wide">
+    <div class="evo-timeline">
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION 1 &mdash; logique pos&eacute;e, pas finie</div>
+        <div class="evo-code">int main(int argc, char **argv)
+{
+    if (argc != 3)
+    {
+        write(1, "\n", 1);
+        return 0                            // bug: ; manquant
+    }
+    int i = 0;
+    int j = 0;
+    while (argv[2][i])
+    {
+        if (argv[1][j] == argv[2][i])
+            j++;
+        i++;
+    }
+    // PAS de return final, PAS de print, PAS de \n
+}</div>
+        <div><span class="evo-fix fix-bad">Logique 2-pointers correcte du premier coup &#10003;</span></div>
+        <div><span class="evo-fix fix-bad"><code>return 0</code> sans <code>;</code> &rarr; erreur compilation</span></div>
+        <div><span class="evo-fix fix-bad">Pas de check de fin de match, pas de print, pas de return final</span></div>
+      </div>
+
+      <div class="evo-step">
+        <div class="evo-version">VERSION FINALE &#10003; (&eacute;crite seul)</div>
+        <div class="evo-code">while (argv[2][i])
+{
+    if (argv[1][j] == argv[2][i])
+        j++;
+    i++;
+    if (argv[1][j] == '\0')
+    {
+        j = 0;
+        while (argv[1][j])
+        {
+            write(1, &amp;argv[1][j], 1);
+            j++;
+        }
+        write(1, "\n", 1);
+        return 0;
+    }
+}
+write(1, "\n", 1);
+return 0;</div>
+        <div><span class="evo-fix fix-good">Ajout du check <code>argv[1][j] == '\0'</code> au bon endroit &#10003;</span></div>
+        <div><span class="evo-fix fix-good">Double usage de <code>j</code> (match puis print) &#10003;</span></div>
+        <div><span class="evo-fix fix-good">Return final + \n pour le cas "no match" &#10003;</span></div>
+        <div><span class="evo-fix fix-good">Compile -Wall -Wextra -Werror clean, tous tests OK &#10003;</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 6 TRANSFERT -->
+<div id="transfert" class="section-label">
+  <div class="sec-num red">6</div>
+  <div class="sec-info">
+    <h2>Exercices de transfert</h2>
+    <p>M&ecirc;me pattern, exo diff&eacute;rent &mdash; solidifie l&apos;apprentissage</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bento-wide" style="padding:0;border:none;box-shadow:none;background:transparent">
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 1</div>
+      <div class="transfer-title">inter</div>
+      <div class="transfer-desc">Afficher les chars qui apparaissent dans <strong>s1 ET s2</strong>, dans l&apos;ordre de s1, sans doublons. Utilise le pattern "check si pr&eacute;sent" que tu peux d&eacute;river de wdmatch.</div>
+      <div class="transfer-proto">// "padinton" + "paqefwtdjetytjneytj"<br>// &rarr; "padint"</div>
+      <div class="transfer-hint">Indice : pour chaque char de s1, v&eacute;rifier s&apos;il est dans s2 ET s&apos;il n&apos;a pas d&eacute;j&agrave; &eacute;t&eacute; affich&eacute; (scanner s1 avant l&apos;index courant).</div>
+    </div>
+
+    <div class="transfer-box" style="margin-bottom:16px">
+      <div class="transfer-tag">CHALLENGE 2</div>
+      <div class="transfer-title">union</div>
+      <div class="transfer-desc">Afficher les chars qui apparaissent dans <strong>s1 OU s2</strong>, dans l&apos;ordre d&apos;apparition (s1 d&apos;abord, puis chars nouveaux de s2), sans doublons.</div>
+      <div class="transfer-proto">// "zpadinton" + "paqefwtdjety…"<br>// &rarr; "zpadintoqefwjy"</div>
+      <div class="transfer-hint">Indice : parcourir s1 puis s2, pour chaque char v&eacute;rifier s&apos;il a d&eacute;j&agrave; &eacute;t&eacute; affich&eacute; avant.</div>
+    </div>
+
+    <div class="transfer-box">
+      <div class="transfer-tag">CHALLENGE 3</div>
+      <div class="transfer-title">is_subsequence (g&eacute;n&eacute;ralisation)</div>
+      <div class="transfer-desc">M&ecirc;me logique que wdmatch, mais la fonction <strong>retourne 1 ou 0</strong> au lieu d&apos;imprimer. Utile comme brique de base.</div>
+      <div class="transfer-proto">int is_subsequence(char *s1, char *s2);</div>
+      <div class="transfer-hint">Indice : identique &agrave; wdmatch, mais <code>return (s1[j] == '\0')</code> &agrave; la fin &mdash; pas besoin de print.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 7 CHECKLIST -->
+<div id="checklist" class="section-label">
+  <div class="sec-num gold">7</div>
+  <div class="sec-info">
+    <h2>Checklist exam</h2>
+    <p>V&eacute;rifie avant chaque submit</p>
+  </div>
+</div>
+
+<div class="bento" style="margin-bottom:48px">
+  <div class="bcard bcard-gold bento-wide">
+    <ul class="check-list">
+      <li><span class="check-icon">&#9744;</span> <code>argc != 3</code> &rarr; write <strong style="color:var(--text)">\n</strong> + return 0</li>
+      <li><span class="check-icon">&#9744;</span> 2 index : <code>i</code> pour <strong style="color:var(--text)">argv[2]</strong> (source), <code>j</code> pour <strong style="color:var(--text)">argv[1]</strong> (cible)</li>
+      <li><span class="check-icon">&#9744;</span> <code>while (argv[2][i])</code> &mdash; loop sur s2, pas s1</li>
+      <li><span class="check-icon">&#9744;</span> <code>i++</code> <strong style="color:var(--text)">toujours</strong>, <code>j++</code> seulement si match</li>
+      <li><span class="check-icon">&#9744;</span> Check <code>argv[1][j] == '\0'</code> <strong style="color:var(--text)">apr&egrave;s</strong> i++ et if</li>
+      <li><span class="check-icon">&#9744;</span> Si match &rarr; reset <code>j = 0</code>, print s1 avec while, write <code>\n</code>, return 0</li>
+      <li><span class="check-icon">&#9744;</span> Apr&egrave;s le while principal &rarr; write <code>\n</code> + return 0 <strong style="color:var(--text)">(cas no-match)</strong></li>
+      <li><span class="check-icon">&#9744;</span> Compile <code>gcc -Wall -Wextra -Werror</code> sans warning</li>
+      <li><span class="check-icon">&#9744;</span> Tester : <strong style="color:var(--text)">faya/fgvvfdxcacpolhyghbreda</strong>, <strong style="color:var(--text)">faya/…bred</strong>, <strong style="color:var(--text)">error/rrer…</strong>, sans args, 1 arg</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">42 Prof</div>
+  Exam Rank 02 &middot; Fiche g&eacute;n&eacute;r&eacute;e le 14/04/2026
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.bcard, .section-label').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>
