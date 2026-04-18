@@ -3,326 +3,389 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>fprime — comprendre avant de coder</title>
+<title>fprime — the zine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,700;0,900;1,700&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Shadows+Into+Light&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --cream: #FBF6EF;
-  --cream-d: #F3ECE0;
-  --peach: #FFA98A;
-  --peach-d: #F58560;
-  --peach-l: #FFE8DD;
-  --mint: #9DCFB4;
-  --mint-d: #6FAF91;
-  --mint-l: #DCF0E5;
-  --lavender: #C4B3E0;
-  --lavender-d: #9B82C7;
-  --lavender-l: #EDE6F7;
-  --sun: #FFD88A;
-  --sun-l: #FFF3D6;
-  --hl: #FFE96B;           /* surligneur jaune — touche zine */
-  --ink: #2C2A3E;
-  --ink-soft: #57556B;
-  --muted: #9C98B3;
-  --line: #EAE3D5;
-  --paper: #FFFFFF;
-  --radius: 18px;
-  --radius-s: 12px;
+  --paper: #FBF6EB;
+  --paper-d: #F1E9D5;
+  --paper-e: #E8DEC5;
+  --ink: #222030;
+  --ink-soft: #51506A;
+  --muted: #9A98AF;
+  --hl-yellow: #FFE96B;
+  --hl-yellow-d: #FFD93D;
+  --hl-mint: #BFE6CC;
+  --hl-pink: #FFCACA;
+  --hl-blue: #BDD7F0;
+  --hl-purple: #D9CAF0;
+  --accent: #FF7755;
+  --accent-d: #D54F2F;
+  --leaf: #6FAF84;
+  --cool: #5C92BF;
+  --warm: #E89A38;
 }
 
 html { scroll-behavior: smooth; }
+
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: var(--cream);
+  font-family: 'Patrick Hand', 'Kalam', cursive;
+  background: var(--paper);
   color: var(--ink);
-  line-height: 1.7;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  position: relative;
 }
 
-/* léger grain papier */
+/* paper grain + slight yellowed photocopy tint */
 body::before {
   content: "";
   position: fixed; inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.28;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.16 0 0 0 0 0.24 0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' seed='9'/><feColorMatrix values='0 0 0 0 0.14 0 0 0 0 0.13 0 0 0 0 0.2 0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.06;
+  background: radial-gradient(ellipse at 50% 50%, transparent 40%, #8B7D5F 130%);
 }
 
 #progress-bar {
   position: fixed;
   top: 0; left: 0;
-  height: 3px;
+  height: 5px;
   width: 0%;
-  background: var(--hl);
+  background: var(--hl-yellow);
   z-index: 9999;
   transition: width 0.1s linear;
 }
 
-/* SVG defs for tree roughness — subtle */
-.svg-defs { position: absolute; width: 0; height: 0; }
+/* SVG defs */
+.svg-defs { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+/* ──────── HEADER BAND ──────── */
+.band {
+  position: relative;
+  z-index: 3;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.band-l { color: var(--hl-yellow); }
+.band-r { color: rgba(255,255,255,0.5); }
 
 /* ──────── HERO ──────── */
 .hero {
   position: relative;
-  padding: 88px 24px 72px;
-  text-align: center;
-  overflow: hidden;
   z-index: 2;
+  padding: 50px 24px 46px;
+  text-align: center;
+  border-bottom: 3px dashed var(--ink);
 }
-.hero-deco-1, .hero-deco-2, .hero-deco-3 {
+
+.hero-stars {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
+  font-family: 'Kalam', cursive;
+  color: var(--accent);
+  font-size: 28px;
   pointer-events: none;
+  user-select: none;
 }
-.hero-deco-1 { top: -40px; left: -20px; width: 280px; height: 280px; background: var(--peach-l); opacity: 0.8; }
-.hero-deco-2 { top: 20px; right: -40px; width: 220px; height: 220px; background: var(--mint-l); opacity: 0.9; }
-.hero-deco-3 { bottom: -60px; left: 30%; width: 320px; height: 200px; background: var(--lavender-l); opacity: 0.7; }
+.hero-stars.s1 { top: 20px; left: 15%; transform: rotate(-15deg); }
+.hero-stars.s2 { top: 40px; right: 12%; transform: rotate(20deg); color: var(--warm); }
+.hero-stars.s3 { bottom: 60px; left: 10%; transform: rotate(10deg); color: var(--leaf); font-size: 22px; }
+.hero-stars.s4 { bottom: 40px; right: 16%; transform: rotate(-20deg); color: var(--cool); font-size: 26px; }
 
-.hero-content { position: relative; max-width: 740px; margin: 0 auto; z-index: 1; }
-
-.hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 40px;
-  padding: 8px 18px 8px 10px;
-  margin-bottom: 28px;
-  box-shadow: 0 4px 14px rgba(44,42,62,0.05);
-}
-.hero-kicker-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--peach);
-  box-shadow: 0 0 0 4px var(--peach-l);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-}
-.hero-kicker-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--ink-soft);
-  letter-spacing: 0.5px;
-}
-
-.hero h1 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(44px, 8vw, 88px);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  margin-bottom: 18px;
-  color: var(--ink);
-}
-/* surligneur jaune sur le mot clé */
-.hero h1 .mark {
-  background: linear-gradient(180deg, transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%);
-  padding: 0 6px;
-  font-style: italic;
+.hero-title {
+  font-family: 'Kalam', cursive;
   font-weight: 700;
+  font-size: clamp(56px, 11vw, 120px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
   color: var(--ink);
+  display: inline-block;
+  position: relative;
+}
+.hero-title .word {
+  display: inline-block;
+  transform: rotate(-2deg);
+  background: linear-gradient(180deg, transparent 52%, var(--hl-yellow) 52%, var(--hl-yellow) 92%, transparent 92%);
+  padding: 0 10px;
+  font-style: italic;
+}
+.hero-title .underline-draw {
+  position: absolute;
+  bottom: -16px;
+  left: 10%;
+  width: 80%;
 }
 
 .hero-sub {
-  font-size: 19px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: clamp(18px, 2.5vw, 22px);
   color: var(--ink-soft);
-  font-weight: 400;
-  max-width: 580px;
-  margin: 0 auto 28px;
-  line-height: 1.6;
+  margin: 28px auto 24px;
+  max-width: 640px;
+  line-height: 1.5;
+}
+.hero-sub .hl {
+  background: var(--hl-pink);
+  padding: 0 6px;
+  border-radius: 3px;
 }
 
-.hero-hand {
-  font-family: 'Caveat', cursive;
-  font-size: 26px;
-  color: var(--peach-d);
-  font-weight: 700;
-  display: inline-block;
-  transform: rotate(-1.5deg);
-  margin-bottom: 22px;
-}
-
-.hero-pills {
+/* the character row */
+.charrow {
   display: inline-flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 12px;
+  max-width: 520px;
+  text-align: left;
 }
-.pill {
+.charrow-svg { width: 100px; height: 100px; flex-shrink: 0; }
+.bubble {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 8px 16px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--ink-soft);
-  box-shadow: 0 2px 6px rgba(44,42,62,0.04);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 14px 18px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+  line-height: 1.45;
 }
-.pill.accent { background: var(--peach-l); border-color: var(--peach); color: var(--peach-d); font-weight: 600; }
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: -14px; top: 24px;
+  width: 0; height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 16px solid var(--ink);
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: -10px; top: 26px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 13px solid var(--paper);
+}
 
-/* ──────── CONTAINER ──────── */
-.container {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+.hero-meta {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.metapill {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 5px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 22px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.metapill:nth-child(1) { transform: rotate(-2deg); }
+.metapill:nth-child(2) { transform: rotate(1.5deg); background: var(--hl-mint); }
+.metapill:nth-child(3) { transform: rotate(-1deg); background: var(--hl-yellow); }
+.metapill:nth-child(4) { transform: rotate(2deg); background: var(--hl-blue); }
+
+/* ──────── MAIN ──────── */
+main {
   position: relative;
   z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 50px 24px 60px;
 }
 
-.section { margin-bottom: 68px; position: relative; }
-
-.section-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.section-label-num {
-  font-family: 'Caveat', cursive;
-  font-weight: 700;
-  font-size: 28px;
-  color: var(--peach-d);
-  line-height: 1;
-}
-.section-label-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+/* section */
+.section {
+  margin-bottom: 60px;
+  position: relative;
 }
 
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+  position: relative;
+}
+.bignum-svg {
+  flex-shrink: 0;
+  width: 78px;
+  height: 78px;
+  margin-top: -8px;
+}
 .section h2 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: clamp(28px, 4.5vw, 40px);
+  font-size: clamp(26px, 4.6vw, 40px);
   color: var(--ink);
-  margin-bottom: 20px;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  padding-top: 8px;
 }
-/* surligneur jaune sur UN mot clé dans le titre */
-.section h2 .mark {
-  background: linear-gradient(180deg, transparent 60%, var(--hl) 60%, var(--hl) 94%, transparent 94%);
+.section h2 .hl {
+  background: linear-gradient(180deg, transparent 58%, var(--hl-yellow) 58%, var(--hl-yellow) 94%, transparent 94%);
   padding: 0 4px;
   font-style: italic;
 }
-.section h2 em {
-  font-style: italic;
-  color: var(--lavender-d);
-}
+.section h2 .hl-mint { background: linear-gradient(180deg, transparent 58%, var(--hl-mint) 58%, var(--hl-mint) 94%, transparent 94%); padding: 0 4px; font-style: italic; }
+.section h2 .hl-pink { background: linear-gradient(180deg, transparent 58%, var(--hl-pink) 58%, var(--hl-pink) 94%, transparent 94%); padding: 0 4px; font-style: italic; }
+.section h2 .hl-blue { background: linear-gradient(180deg, transparent 58%, var(--hl-blue) 58%, var(--hl-blue) 94%, transparent 94%); padding: 0 4px; font-style: italic; }
 
-.section p {
+.section > p {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 19px;
   color: var(--ink-soft);
-  font-size: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  line-height: 1.55;
 }
-.section p strong { color: var(--ink); font-weight: 600; }
+.section > p strong { color: var(--ink); font-weight: 700; }
+.section code, .section > p code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--paper-e);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 14px;
+  color: var(--accent-d);
+  font-weight: 500;
+  border: 1px solid var(--paper-e);
+}
 
-/* annotation manuscrite sous un bloc — rare */
-.annotation {
+/* inline drawn illustration beside text */
+.illus-inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 4px;
+}
+
+/* margin doodle (scribble pointing to text) */
+.scribble {
+  position: absolute;
   font-family: 'Caveat', cursive;
   font-size: 22px;
-  color: var(--peach-d);
-  margin-top: 14px;
-  padding-left: 18px;
+  color: var(--accent-d);
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ──────── connecting zigzag arrow between sections ──────── */
+.connector {
+  display: block;
+  width: 100%;
+  height: 70px;
+  margin: -20px 0 -10px;
   position: relative;
-  display: inline-block;
-  transform: rotate(-0.5deg);
 }
-.annotation::before {
-  content: "↑";
-  position: absolute;
-  left: -2px;
-  top: -2px;
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  color: var(--peach);
-}
+.connector svg { width: 100%; height: 100%; display: block; }
 
-/* ──────── CARD ──────── */
-.card {
-  background: var(--paper);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(44,42,62,0.05);
-  border: 1px solid var(--line);
-  margin-bottom: 16px;
+/* ──────── TERMINAL with frame ──────── */
+.term-wrap {
+  position: relative;
+  margin: 18px 0;
 }
-
-/* ──────── CONCRETE TERMINAL ──────── */
-.concrete-first {
-  background: linear-gradient(135deg, var(--ink) 0%, #3A3854 100%);
-  border-radius: var(--radius);
-  padding: 0;
+.terminal {
+  background: #1C1A28;
+  border-radius: 12px;
   overflow: hidden;
-  margin: 24px 0;
-  box-shadow: 0 14px 40px rgba(44,42,62,0.18);
-  position: relative;
-}
-.concrete-first::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--peach), var(--sun), var(--mint), var(--lavender));
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  transform: rotate(-0.4deg);
 }
 .term-head {
+  background: #262333;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.term-dot { width: 11px; height: 11px; border-radius: 50%; }
+.term-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.3); }
 .term-dot.r { background: #FF6B6B; }
 .term-dot.y { background: #FFD26A; }
 .term-dot.g { background: #7ECE7E; }
 .term-title {
   margin-left: auto;
-  color: rgba(255,255,255,0.5);
   font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.45);
   font-size: 12px;
 }
 .term-body {
-  padding: 24px;
+  padding: 24px 22px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
-  line-height: 1.85;
-  color: #E8E4F0;
+  line-height: 1.95;
+  color: #E9E5F0;
 }
-.t-p { color: #9DCFB4; }
+.t-p { color: #9DD6A8; }
 .t-n { color: #FFD88A; }
-.t-ok { color: #9DCFB4; font-weight: 700; }
+.t-r { color: #FF9F7A; font-weight: 700; }
+.t-m { color: #7D7B95; font-style: italic; }
+.t-v { color: #B8C9E0; }
+.t-ok { color: #9DD6A8; font-weight: 700; }
 .t-ko { color: #FF8B6B; font-weight: 700; }
-.t-m { color: #8D89A8; font-style: italic; }
-.t-v { color: #C4B3E0; }
-.t-r { color: #FFA98A; }
+
+.caption {
+  font-family: 'Caveat', cursive;
+  font-size: 26px;
+  color: var(--accent-d);
+  margin-top: 12px;
+  padding-left: 20px;
+  position: relative;
+  transform: rotate(-1deg);
+  display: inline-block;
+}
+.caption-arrow {
+  position: absolute;
+  left: -10px; top: -10px;
+  width: 26px; height: 26px;
+}
 
 /* ──────── PRIMES ──────── */
-.primes-vis {
+.primes-card {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 28px 24px;
-  box-shadow: 0 4px 20px rgba(44,42,62,0.04);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 26px;
+  box-shadow: 6px 6px 0 var(--ink);
+  margin: 16px 0;
+  position: relative;
+  transform: rotate(0.3deg);
 }
 .primes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+  gap: 12px;
   margin-bottom: 18px;
 }
 .pbox {
@@ -330,436 +393,517 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-s);
-  font-family: 'Fraunces', serif;
+  border-radius: 10px;
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 26px;
   position: relative;
-  transition: transform 0.25s;
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
 }
-.pbox:hover { transform: translateY(-2px); }
-.pbox.yes {
-  background: var(--mint-l);
-  color: var(--mint-d);
-  border: 2px solid var(--mint);
-}
-.pbox.no {
-  background: var(--cream);
-  color: var(--muted);
-  border: 1.5px dashed var(--line);
-}
+.pbox.yes { background: var(--hl-mint); color: var(--ink); }
+.pbox.yes:nth-child(1) { transform: rotate(-2deg); }
+.pbox.yes:nth-child(2) { transform: rotate(1.5deg); }
+.pbox.yes:nth-child(4) { transform: rotate(-1deg); }
+.pbox.yes:nth-child(6) { transform: rotate(1deg); }
+.pbox.yes:nth-child(10) { transform: rotate(-1.5deg); }
+.pbox.yes:nth-child(12) { transform: rotate(0.8deg); }
+.pbox.no { background: var(--paper-d); color: var(--muted); }
+.pbox.no:nth-child(3) { transform: rotate(0.5deg); }
+.pbox.no:nth-child(5) { transform: rotate(-1deg); }
+.pbox.no:nth-child(7) { transform: rotate(1.2deg); }
+.pbox.no:nth-child(8) { transform: rotate(-0.5deg); }
+.pbox.no:nth-child(9) { transform: rotate(1deg); }
+.pbox.no:nth-child(11) { transform: rotate(-1.5deg); }
 .pbox.no::after {
   content: "";
   position: absolute;
-  left: 15%; right: 15%;
-  top: 50%;
-  height: 1.5px;
+  left: 12%; right: 12%;
+  top: 52%;
+  height: 2.5px;
   background: var(--muted);
-  transform: rotate(-12deg);
-  opacity: 0.6;
+  transform: rotate(-16deg);
+  border-radius: 2px;
 }
-.primes-legend {
+
+.legend {
   display: flex;
   gap: 22px;
-  font-size: 13px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
   color: var(--ink-soft);
   justify-content: center;
+  align-items: center;
 }
-.pl-item { display: flex; align-items: center; gap: 8px; }
-.pl-chip { width: 14px; height: 14px; border-radius: 4px; border: 2px solid; }
-.pl-chip.ok { background: var(--mint-l); border-color: var(--mint); }
-.pl-chip.ko { background: var(--cream); border-color: var(--line); border-style: dashed; }
+.legend-item { display: flex; align-items: center; gap: 10px; }
+.legend-chip { width: 22px; height: 22px; border-radius: 5px; border: 2px solid var(--ink); box-shadow: 1.5px 1.5px 0 var(--ink); }
+.legend-chip.ok { background: var(--hl-mint); }
+.legend-chip.ko { background: var(--paper-d); position: relative; }
+.legend-chip.ko::after { content: ""; position: absolute; left: 15%; right: 15%; top: 50%; height: 2px; background: var(--muted); transform: rotate(-15deg); }
 
-.note-handwritten {
+.handnote {
   font-family: 'Caveat', cursive;
-  font-size: 22px;
-  color: var(--lavender-d);
-  margin-top: 22px;
+  font-size: 26px;
+  color: var(--ink);
   text-align: center;
-  padding: 10px 20px;
-  background: var(--lavender-l);
-  border-radius: 40px;
+  margin-top: 24px;
+  padding: 10px 22px;
   display: inline-block;
-  transform: rotate(-0.8deg);
+  background: var(--hl-blue);
+  border: 2.5px solid var(--ink);
+  border-radius: 30px;
+  transform: rotate(-1.5deg);
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 /* ──────── TREE ──────── */
-.tree-wrap {
+.tree-card {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 40px 20px;
-  margin-top: 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(44,42,62,0.04);
-}
-.tree-svg {
-  width: 100%;
-  max-width: 520px;
-  display: block;
-  margin: 0 auto;
-  height: auto;
-}
-.tree-result {
-  margin-top: 32px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 32px 16px 24px;
+  margin: 18px 0;
+  box-shadow: 6px 6px 0 var(--ink);
   text-align: center;
-  font-family: 'Fraunces', serif;
-  font-weight: 700;
-  font-size: 28px;
-  color: var(--ink);
+  transform: rotate(-0.3deg);
 }
-.tree-result .eq { color: var(--peach-d); font-style: italic; margin: 0 6px; }
-.tree-result .mark { background: linear-gradient(180deg, transparent 60%, var(--hl) 60%, var(--hl) 94%, transparent 94%); padding: 0 4px; }
+.tree-svg { width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto; }
+.tree-result {
+  margin-top: 24px;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 36px;
+  color: var(--ink);
+  transform: rotate(-0.8deg);
+  display: inline-block;
+}
+.tree-result .eq { color: var(--accent-d); font-style: italic; padding: 0 10px; }
+.tree-result .hl { background: var(--hl-yellow); padding: 0 6px; }
 
-/* ──────── ALGO STEPS ──────── */
-.stepgrid { display: grid; gap: 14px; }
+/* ──────── STEPS ──────── */
+.stepgrid { display: grid; gap: 16px; margin-top: 18px; }
 .stepcard {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
   padding: 22px 24px;
   display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 18px;
+  grid-template-columns: 74px 1fr;
+  gap: 16px;
   align-items: start;
-  transition: all 0.25s;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(44,42,62,0.05);
 }
-.stepcard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(44,42,62,0.08);
-}
-.stepcard::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-}
-.stepcard.c1::before { background: var(--peach); }
-.stepcard.c2::before { background: var(--mint); }
-.stepcard.c3::before { background: var(--sun); }
-.stepcard.c4::before { background: var(--lavender); }
+.stepcard:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.stepcard:nth-child(1) { transform: rotate(-0.6deg); }
+.stepcard:nth-child(2) { transform: rotate(0.4deg); background: var(--hl-mint); }
+.stepcard:nth-child(3) { transform: rotate(-0.4deg); background: var(--hl-yellow); }
+.stepcard:nth-child(4) { transform: rotate(0.5deg); background: var(--hl-pink); }
 
-.step-n {
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  font-size: 38px;
-  line-height: 1;
-  color: var(--ink);
-  opacity: 0.25;
-}
+.stepnum-svg { width: 74px; height: 74px; flex-shrink: 0; }
+
 .step-body h3 {
-  font-family: 'Fraunces', serif;
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 19px;
-  margin-bottom: 6px;
+  font-size: 22px;
+  margin-bottom: 4px;
   color: var(--ink);
+  line-height: 1.15;
 }
 .step-body p {
-  font-size: 15px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
   color: var(--ink-soft);
+  line-height: 1.5;
   margin-bottom: 0;
 }
 .step-body code {
   font-family: 'JetBrains Mono', monospace;
-  background: var(--cream);
-  color: var(--peach-d);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  background: rgba(34,32,48,0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
 }
 
-/* ──────── EDGE CASES ──────── */
+/* ──────── EDGES (post-its) ──────── */
 .edges {
   display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-.edge {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  padding: 18px 20px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-  align-items: center;
-  transition: transform 0.2s;
+  margin-top: 18px;
 }
-.edge:hover { transform: translateX(4px); }
-.edge-io {
+.sticky {
+  background: var(--hl-yellow);
+  border: 3px solid var(--ink);
+  padding: 18px 20px;
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+  min-height: 140px;
+}
+.sticky::before {
+  content: "";
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 60px; height: 18px;
+  background: rgba(34,32,48,0.15);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.sticky:nth-child(1) { transform: rotate(-1.5deg); }
+.sticky:nth-child(2) { transform: rotate(1deg); background: var(--hl-pink); }
+.sticky:nth-child(3) { transform: rotate(-0.8deg); background: var(--hl-mint); }
+.sticky:nth-child(4) { transform: rotate(1.3deg); background: var(--hl-blue); }
+
+.sticky-io {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  margin: 4px 0 12px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  gap: 10px;
   flex-wrap: wrap;
 }
-.edge-in { background: var(--cream); padding: 6px 10px; border-radius: 6px; color: var(--ink); }
-.edge-arrow { color: var(--peach); font-size: 18px; }
-.edge-out { background: var(--peach-l); padding: 6px 10px; border-radius: 6px; color: var(--peach-d); font-weight: 600; }
-.edge-why { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
-.edge-why code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  background: var(--cream);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--peach-d);
+.sticky-in { background: var(--paper); padding: 4px 9px; border-radius: 4px; border: 2px solid var(--ink); box-shadow: 1.5px 1.5px 0 var(--ink); }
+.sticky-arrow { font-family: 'Kalam', cursive; font-size: 22px; color: var(--ink); font-weight: 700; }
+.sticky-out { background: var(--ink); color: var(--paper); padding: 4px 9px; border-radius: 4px; font-weight: 700; }
+.sticky-why {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.45;
 }
+.sticky-why code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); padding: 1px 5px; border-radius: 3px; border: 1.5px solid var(--ink); }
 
-/* ──────── TRICK CARD ──────── */
+/* ──────── TRICK BOX ──────── */
 .trick {
-  background: var(--lavender-l);
-  border: 2px solid var(--lavender);
-  border-radius: var(--radius);
-  padding: 24px 26px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 26px 26px 22px;
   margin: 16px 0;
+  box-shadow: 6px 6px 0 var(--accent);
   position: relative;
+  transform: rotate(-0.3deg);
 }
-.trick-tag {
+.trick-badge {
   position: absolute;
-  top: -12px;
+  top: -18px;
   left: 20px;
-  background: var(--lavender-d);
-  color: #fff;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  background: var(--accent);
+  color: var(--paper);
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 22px;
+  border: 2.5px solid var(--ink);
+  font-size: 17px;
+  transform: rotate(-4deg);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .trick h4 {
-  font-family: 'Fraunces', serif;
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 18px;
-  color: var(--ink);
+  font-size: 21px;
   margin-bottom: 10px;
   margin-top: 6px;
+  color: var(--ink);
+  line-height: 1.25;
 }
-.trick p { color: var(--ink-soft); font-size: 15px; margin-bottom: 0; }
+.trick p {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
 .trick code {
   font-family: 'JetBrains Mono', monospace;
+  background: var(--hl-yellow);
+  padding: 1px 6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
   font-size: 13px;
-  background: var(--paper);
-  padding: 2px 8px;
-  border-radius: 5px;
-  color: var(--lavender-d);
+  color: var(--ink);
+  font-weight: 600;
 }
 .trick-code {
-  background: var(--ink);
-  color: #E8E4F0;
-  padding: 14px 16px;
-  border-radius: var(--radius-s);
+  background: #1C1A28;
+  color: #E9E5F0;
+  padding: 16px 18px;
+  border-radius: 10px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  margin-top: 14px;
-  line-height: 1.7;
+  font-size: 13.5px;
+  line-height: 1.85;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
 }
-.trick-code .kw { color: var(--mint); }
-.trick-code .str { color: var(--sun); }
-.trick-code .cm { color: var(--muted); font-style: italic; }
+.trick-code .kw { color: #A5D8A8; }
+.trick-code .str { color: #FFD88A; }
+.trick-code .cm { color: #7D7B95; font-style: italic; }
 
 /* ──────── SKELETON ──────── */
 .skel {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
 }
-.skel-card {
+.skelcard {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  padding: 20px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 22px 18px 18px;
+  box-shadow: 4px 4px 0 var(--ink);
   position: relative;
-  transition: all 0.25s;
 }
-.skel-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(44,42,62,0.08);
-}
-.skel-letter {
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  font-size: 32px;
-  color: var(--peach-d);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-.skel-card h4 {
-  font-family: 'Fraunces', serif;
+.skelcard:nth-child(1) { transform: rotate(-1deg); }
+.skelcard:nth-child(2) { transform: rotate(0.7deg); background: var(--hl-mint); }
+.skelcard:nth-child(3) { transform: rotate(-0.6deg); background: var(--hl-yellow); }
+.skelcard:nth-child(4) { transform: rotate(1deg); background: var(--hl-pink); }
+.skelletter {
+  position: absolute;
+  top: -18px;
+  right: 18px;
+  background: var(--ink);
+  color: var(--hl-yellow);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 6px;
+  font-size: 24px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
 }
-.skel-card p { font-size: 14px; color: var(--ink-soft); margin-bottom: 0; }
-.skel-card code {
+.skelcard h4 {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 19px;
+  margin-bottom: 6px;
+  margin-top: 2px;
+  line-height: 1.15;
+}
+.skelcard p {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.skelcard code {
   font-family: 'JetBrains Mono', monospace;
-  background: var(--cream);
-  color: var(--peach-d);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: var(--paper);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  font-weight: 600;
 }
 
 /* ──────── TAKEAWAY ──────── */
 .takeaway {
-  margin-top: 48px;
-  padding: 40px 28px;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--peach) 0%, var(--sun) 100%);
-  text-align: center;
+  margin-top: 60px;
+  padding: 36px 32px 32px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 18px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 14px 40px rgba(255,169,138,0.25);
+  box-shadow: 8px 8px 0 var(--accent);
+  transform: rotate(-0.5deg);
+  border: 3px solid var(--ink);
 }
-.takeaway::before {
-  content: "";
+.takeaway-star {
   position: absolute;
-  top: -30px; right: -30px;
-  width: 140px; height: 140px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 50%;
+  top: 12px; right: 24px;
+  width: 60px; height: 60px;
 }
-.takeaway::after {
-  content: "";
-  position: absolute;
-  bottom: -40px; left: -20px;
-  width: 110px; height: 110px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 50%;
-}
-.takeaway-label {
+.takeaway-tag {
   font-family: 'Caveat', cursive;
-  font-size: 22px;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 4px;
-  position: relative;
+  font-size: 24px;
+  color: var(--hl-yellow);
+  margin-bottom: 6px;
 }
 .takeaway h3 {
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  font-size: clamp(26px, 4vw, 38px);
-  color: #fff;
-  line-height: 1.15;
-  position: relative;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: clamp(26px, 4vw, 36px);
+  line-height: 1.2;
   margin-bottom: 14px;
 }
-.takeaway h3 .mark {
-  background: linear-gradient(180deg, transparent 60%, rgba(255,255,255,0.35) 60%, rgba(255,255,255,0.35) 94%, transparent 94%);
-  padding: 0 4px;
+.takeaway h3 .hl {
+  background: linear-gradient(180deg, transparent 58%, var(--accent) 58%, var(--accent) 94%, transparent 94%);
+  padding: 0 6px;
   font-style: italic;
 }
 .takeaway p {
-  position: relative;
-  font-size: 16px;
-  color: rgba(255,255,255,0.92);
-  max-width: 520px;
-  margin: 0 auto;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 19px;
+  color: rgba(255,255,255,0.85);
+  max-width: 580px;
+  line-height: 1.5;
 }
 .takeaway code {
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  padding: 2px 6px;
-  border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  background: rgba(255,255,255,0.12);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--hl-yellow);
 }
 
 /* ──────── FOOTER ──────── */
 footer {
   text-align: center;
-  padding: 40px 24px;
-  color: var(--muted);
-  font-size: 12px;
-  border-top: 1px solid var(--line);
-  margin-top: 40px;
+  padding: 60px 24px 40px;
   position: relative;
   z-index: 2;
+  border-top: 3px dashed var(--ink);
+  margin-top: 30px;
 }
-footer a { color: var(--peach-d); text-decoration: none; }
 .footer-sig {
   font-family: 'Caveat', cursive;
-  font-size: 22px;
-  color: var(--ink-soft);
-  margin-bottom: 4px;
-  transform: rotate(-1deg);
+  font-size: 32px;
+  color: var(--ink);
+  transform: rotate(-2deg);
   display: inline-block;
+  font-weight: 700;
 }
+.footer-meta {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.footer-meta a { color: var(--accent-d); text-decoration: none; font-weight: 600; }
 
-.fade {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s, transform 0.6s;
+/* fade in */
+.fade { opacity: 0; transform: translateY(20px); transition: opacity 0.6s, transform 0.6s; }
+.fade.visible { opacity: 1; transform: translateY(0); }
+
+/* peek character — returning in margin */
+.peek {
+  position: absolute;
+  right: -10px;
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
 }
-.fade.visible {
-  opacity: 1;
-  transform: translateY(0);
+@media (max-width: 900px) {
+  .peek { display: none; }
 }
 
 @media (max-width: 600px) {
-  .hero { padding: 60px 20px 50px; }
-  .container { padding: 32px 16px 60px; }
-  .primes-grid { grid-template-columns: repeat(5, 1fr); }
-  .tree-wrap { padding: 20px 8px; }
-  .edge { grid-template-columns: 1fr; gap: 10px; }
+  .hero { padding: 40px 18px 30px; }
+  main { padding: 30px 16px 40px; }
+  .section-head { gap: 10px; }
+  .bignum-svg { width: 56px; height: 56px; }
+  .stepcard { grid-template-columns: 52px 1fr; padding: 18px 20px; gap: 12px; }
+  .stepnum-svg { width: 52px; height: 52px; }
+  .primes-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .hero-title { font-size: 54px; }
 }
 </style>
 </head>
 <body>
 
-<!-- SVG defs : slight roughness only for tree -->
+<!-- SVG defs -->
 <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="slight-rough" x="-3%" y="-3%" width="106%" height="106%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="5"/>
-      <feDisplacementMap in="SourceGraphic" scale="1.5"/>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+    <filter id="rougher" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" scale="4"/>
     </filter>
   </defs>
 </svg>
 
 <div id="progress-bar"></div>
 
+<!-- banner -->
+<div class="band">
+  <span class="band-l">★ the fprime zine — level 3 — rank 02</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-deco-1"></div>
-  <div class="hero-deco-2"></div>
-  <div class="hero-deco-3"></div>
-  <div class="hero-content">
-    <div class="hero-kicker">
-      <div class="hero-kicker-dot"></div>
-      <div class="hero-kicker-text">42 · rank 02 · level 3</div>
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <span class="hero-stars s3">✧</span>
+  <span class="hero-stars s4">✦</span>
+
+  <div class="hero-title">
+    <span class="word">fprime</span>
+    <svg class="underline-draw" viewBox="0 0 300 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M3,6 Q30,2 60,6 T120,6 T180,6 T240,6 T297,6" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+    </svg>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:34px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;margin-bottom:8px;">(the zine)</div>
+
+  <p class="hero-sub">Décomposer un nombre en facteurs premiers. <span class="hl">pas de magie</span>, juste une boucle bien propre. Tu vas voir, c'est moins chaud qu'on le pense.</p>
+
+  <div class="charrow">
+    <svg class="charrow-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <!-- loopy mascot -->
+      <g filter="url(#rough)">
+        <!-- head -->
+        <circle cx="60" cy="48" r="26" fill="#FFD88A" stroke="#222030" stroke-width="2.5"/>
+        <!-- hair tuft -->
+        <path d="M42,28 Q50,18 60,22 Q70,18 78,28 Q76,32 74,30 Q66,24 60,28 Q54,24 46,30 Q44,32 42,28 Z" fill="#5C4B30" stroke="#222030" stroke-width="2"/>
+        <!-- eyes -->
+        <circle cx="51" cy="48" r="2.5" fill="#222030"/>
+        <circle cx="69" cy="48" r="2.5" fill="#222030"/>
+        <!-- blush -->
+        <ellipse cx="46" cy="56" rx="4" ry="2.5" fill="#FFCACA" opacity="0.7"/>
+        <ellipse cx="74" cy="56" rx="4" ry="2.5" fill="#FFCACA" opacity="0.7"/>
+        <!-- smile -->
+        <path d="M50,58 Q60,66 70,58" fill="none" stroke="#222030" stroke-width="2.2" stroke-linecap="round"/>
+        <!-- body -->
+        <path d="M38,74 L38,106 Q38,114 46,114 L74,114 Q82,114 82,106 L82,74 Z" fill="#FF7755" stroke="#222030" stroke-width="2.5"/>
+        <!-- waving arm -->
+        <path d="M82,82 Q100,74 104,60" fill="none" stroke="#222030" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="104" cy="58" r="4" fill="#FFD88A" stroke="#222030" stroke-width="2"/>
+      </g>
+    </svg>
+    <div class="bubble">
+      yo ! on va casser ce problème ensemble.<br>
+      prends un café, je te guide.
     </div>
-    <h1>fprime,<br><span class="mark">enfin</span> pigé.</h1>
-    <p class="hero-sub">Décomposer un nombre en facteurs premiers. En vrai, c'est moins chaud que le nom le laisse croire. Promis.</p>
-    <div class="hero-pills">
-      <span class="pill">printf</span>
-      <span class="pill">atoi</span>
-      <span class="pill accent">~40 lignes</span>
-      <span class="pill">10 min</span>
-    </div>
+  </div>
+
+  <div class="hero-meta">
+    <span class="metapill">printf only</span>
+    <span class="metapill">atoi only</span>
+    <span class="metapill">~40 lignes</span>
+    <span class="metapill">10 min ☕</span>
   </div>
 </section>
 
-<main class="container">
+<main>
 
-  <!-- 01 CONCRETE -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">01</span>
-      <span class="section-label-text">concret d'abord</span>
-    </div>
-    <h2>Le programme doit faire <span class="mark">ça</span>.</h2>
-    <p>On commence par le résultat avant de comprendre le comment. C'est toujours plus simple dans ce sens.</p>
+<!-- 1 CONCRETE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-6 40 40)">1</text>
+    </svg>
+    <h2>voilà ce que <span class="hl">le programme fait</span>.</h2>
+  </div>
+  <p>Pas de théorie d'abord. <strong>On regarde le résultat.</strong> 6 comportements possibles — c'est tout.</p>
 
-    <div class="concrete-first">
+  <div class="term-wrap">
+    <div class="terminal">
       <div class="term-head">
         <div class="term-dot r"></div>
         <div class="term-dot y"></div>
@@ -771,318 +915,400 @@ footer a { color: var(--peach-d); text-decoration: none; }
 <span class="t-r">2*3*7</span><br><br>
 <span class="t-p">$</span> ./fprime <span class="t-n">225225</span><br>
 <span class="t-r">3*3*5*5*7*11*13</span><br><br>
-<span class="t-p">$</span> ./fprime <span class="t-n">9539</span>     <span class="t-m"># celui-là est premier</span><br>
+<span class="t-p">$</span> ./fprime <span class="t-n">9539</span>     <span class="t-m"># lui est déjà premier</span><br>
 <span class="t-r">9539</span><br><br>
 <span class="t-p">$</span> ./fprime <span class="t-n">1</span><br>
 <span class="t-r">1</span><br><br>
-<span class="t-p">$</span> ./fprime              <span class="t-m"># sans argument : juste un \n</span><br>
+<span class="t-p">$</span> ./fprime              <span class="t-m"># pas d'arg → juste \n</span><br>
 <br>
-<span class="t-p">$</span> ./fprime <span class="t-n">42 21</span>     <span class="t-m"># trop d'args : pareil, juste un \n</span><br>
+<span class="t-p">$</span> ./fprime <span class="t-n">42 21</span>     <span class="t-m"># trop d'args → pareil</span><br>
       </div>
     </div>
-    <div class="annotation">6 comportements à capter. Rien de plus.</div>
-  </section>
+  </div>
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    6 cas. pas un de plus. mémorise ça.
+  </div>
+</section>
 
-  <!-- 02 WHAT IS A PRIME -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">02</span>
-      <span class="section-label-text">la base</span>
+<!-- zigzag connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M80,10 Q120,30 160,20 T240,30 T320,20 T380,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="378,40 371,38 374,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">ok, et c'est quoi un "premier" d'ailleurs ?</text>
+  </svg>
+</div>
+
+<!-- 2 PRIMES -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(3 40 40)">2</text>
+    </svg>
+    <h2>un nombre premier c'est <span class="hl-mint">quoi, au juste</span> ?</h2>
+  </div>
+  <p>Un nombre divisible <strong>uniquement par 1 et par lui-même</strong>. Pas de reste. Un atome mathématique — indivisible.</p>
+
+  <div class="primes-card">
+    <div class="primes-grid">
+      <div class="pbox yes">2</div>
+      <div class="pbox yes">3</div>
+      <div class="pbox no">4</div>
+      <div class="pbox yes">5</div>
+      <div class="pbox no">6</div>
+      <div class="pbox yes">7</div>
+      <div class="pbox no">8</div>
+      <div class="pbox no">9</div>
+      <div class="pbox no">10</div>
+      <div class="pbox yes">11</div>
+      <div class="pbox no">12</div>
+      <div class="pbox yes">13</div>
     </div>
-    <h2>Un nombre <em>premier</em> c'est quoi, déjà ?</h2>
-    <p>Un nombre qui <strong>ne se divise proprement que par 1 et par lui-même</strong>. Pas de reste. C'est un "atome" mathématique : indivisible.</p>
-
-    <div class="primes-vis">
-      <div class="primes-grid">
-        <div class="pbox yes">2</div>
-        <div class="pbox yes">3</div>
-        <div class="pbox no">4</div>
-        <div class="pbox yes">5</div>
-        <div class="pbox no">6</div>
-        <div class="pbox yes">7</div>
-        <div class="pbox no">8</div>
-        <div class="pbox no">9</div>
-        <div class="pbox no">10</div>
-        <div class="pbox yes">11</div>
-        <div class="pbox no">12</div>
-        <div class="pbox yes">13</div>
-      </div>
-      <div class="primes-legend">
-        <div class="pl-item"><span class="pl-chip ok"></span> premier</div>
-        <div class="pl-item"><span class="pl-chip ko"></span> composé</div>
-      </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-chip ok"></span> premier</div>
+      <div class="legend-item"><span class="legend-chip ko"></span> composé</div>
     </div>
+  </div>
 
-    <div style="text-align:center;">
-      <div class="note-handwritten">les premiers : 2, 3, 5, 7, 11, 13, 17... infinis.</div>
-    </div>
-  </section>
+  <div style="text-align:center;">
+    <div class="handnote">2, 3, 5, 7, 11, 13, 17, 19... ils sont infinis 🌊</div>
+  </div>
+</section>
 
-  <!-- 03 DECOMPOSITION -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">03</span>
-      <span class="section-label-text">décomposer</span>
-    </div>
-    <h2>Casser un nombre en <span class="mark">morceaux premiers</span>.</h2>
-    <p>Tu prends un nombre. Tu le divises par un premier, tu continues avec le reste, jusqu'à avoir que des premiers. <strong>Y'a qu'une seule façon de le faire</strong> — c'est un truc unique à chaque nombre, comme une empreinte.</p>
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M320,10 Q270,35 220,22 T140,30 T60,20 T20,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="22,40 29,38 26,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">maintenant, on casse 42 en morceaux.</text>
+  </svg>
+</div>
 
-    <div class="tree-wrap">
-      <svg class="tree-svg" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-            <feOffset dy="3" result="off"/>
-            <feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer>
-            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
+<!-- 3 TREE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFCACA" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-4 40 40)">3</text>
+    </svg>
+    <h2>décomposer = <span class="hl-pink">casser en morceaux</span>.</h2>
+  </div>
+  <p>On divise par le plus petit premier possible. On recommence avec le quotient. Jusqu'à n'avoir que des premiers. Y'a <strong>qu'une seule façon</strong> de le faire par nombre — c'est son empreinte.</p>
 
-        <!-- curly arrows, slight roughness -->
-        <g filter="url(#slight-rough)">
-          <path d="M260,78 Q180,100 150,140" stroke="#C4B3E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <polygon points="148,138 154,142 144,148" fill="#C4B3E0"/>
+  <div class="tree-card">
+    <svg class="tree-svg" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg">
+      <!-- arrows -->
+      <path d="M260,78 Q190,110 145,155" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="6,4" filter="url(#rough)"/>
+      <text x="180" y="115" font-family="Caveat, cursive" font-size="24" fill="#D54F2F" font-weight="700" transform="rotate(-12 180 115)">÷2</text>
+      <polygon points="142,152 150,154 145,162" fill="#222030" filter="url(#rough)"/>
 
-          <path d="M260,78 Q340,100 370,140" stroke="#C4B3E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <polygon points="370,140 376,148 366,142" fill="#C4B3E0"/>
+      <path d="M260,78 Q330,110 375,155" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="6,4" filter="url(#rough)"/>
+      <polygon points="375,155 378,163 368,156" fill="#222030" filter="url(#rough)"/>
 
-          <path d="M370,208 Q290,230 260,270" stroke="#C4B3E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <polygon points="258,268 264,272 254,278" fill="#C4B3E0"/>
+      <path d="M375,220 Q305,250 265,290" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="6,4" filter="url(#rough)"/>
+      <text x="310" y="252" font-family="Caveat, cursive" font-size="24" fill="#D54F2F" font-weight="700" transform="rotate(-12 310 252)">÷3</text>
+      <polygon points="263,287 271,289 266,297" fill="#222030" filter="url(#rough)"/>
 
-          <path d="M370,208 Q440,230 440,270" stroke="#C4B3E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <polygon points="440,270 446,278 434,272" fill="#C4B3E0"/>
-        </g>
+      <path d="M375,220 Q430,250 440,290" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="6,4" filter="url(#rough)"/>
+      <polygon points="440,290 443,298 434,291" fill="#222030" filter="url(#rough)"/>
 
-        <text x="200" y="108" font-family="Caveat, cursive" font-size="22" fill="#9B82C7" font-weight="700">÷2</text>
-        <text x="310" y="238" font-family="Caveat, cursive" font-size="22" fill="#9B82C7" font-weight="700">÷3</text>
+      <!-- annotations -->
+      <text x="95" y="140" font-family="Caveat, cursive" font-size="20" fill="#6FAF84" font-weight="700" transform="rotate(-8 95 140)">plus petit</text>
+      <text x="95" y="158" font-family="Caveat, cursive" font-size="20" fill="#6FAF84" font-weight="700" transform="rotate(-8 95 158)">premier →</text>
 
-        <!-- nodes with soft shadow -->
-        <g filter="url(#soft)">
-          <circle cx="260" cy="50" r="34" fill="#FFA98A"/>
-          <text x="260" y="58" text-anchor="middle" font-family="Fraunces, serif" font-weight="900" font-size="22" fill="#fff">42</text>
-        </g>
+      <!-- nodes -->
+      <circle cx="260" cy="50" r="34" fill="#FF7755" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="260" y="60" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="28" fill="#FBF6EB">42</text>
 
-        <g filter="url(#soft)">
-          <circle cx="140" cy="175" r="28" fill="#9DCFB4"/>
-          <text x="140" y="183" text-anchor="middle" font-family="Fraunces, serif" font-weight="900" font-size="20" fill="#fff">2</text>
-          <text x="140" y="220" text-anchor="middle" font-family="Caveat, cursive" font-size="16" fill="#6FAF91" font-weight="700">premier ✓</text>
-        </g>
+      <circle cx="130" cy="185" r="28" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="130" y="194" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="24" fill="#222030">2</text>
+      <text x="130" y="230" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#6FAF84" font-weight="700">prime ✓</text>
 
-        <g filter="url(#soft)">
-          <circle cx="370" cy="175" r="28" fill="#FFD88A"/>
-          <text x="370" y="183" text-anchor="middle" font-family="Fraunces, serif" font-weight="900" font-size="20" fill="#5a4a20">21</text>
-        </g>
+      <circle cx="375" cy="185" r="28" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="375" y="194" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="24" fill="#222030">21</text>
 
-        <g filter="url(#soft)">
-          <circle cx="250" cy="298" r="26" fill="#9DCFB4"/>
-          <text x="250" y="306" text-anchor="middle" font-family="Fraunces, serif" font-weight="900" font-size="18" fill="#fff">3</text>
-        </g>
+      <circle cx="255" cy="320" r="26" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="255" y="329" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="22" fill="#222030">3</text>
 
-        <g filter="url(#soft)">
-          <circle cx="440" cy="298" r="26" fill="#9DCFB4"/>
-          <text x="440" y="306" text-anchor="middle" font-family="Fraunces, serif" font-weight="900" font-size="18" fill="#fff">7</text>
-        </g>
+      <circle cx="440" cy="320" r="26" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="440" y="329" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="22" fill="#222030">7</text>
+
+      <!-- curly brace under leaves -->
+      <path d="M105,355 Q105,345 130,345 Q130,340 260,340 Q260,345 285,345" stroke="#222030" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+    </svg>
+
+    <div class="tree-result">42 <span class="eq">=</span> <span class="hl">2 × 3 × 7</span></div>
+  </div>
+</section>
+
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50,10 Q110,35 170,20 T280,30 T360,20 T385,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="383,40 376,38 379,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">et l'algo alors ? en 4 gestes seulement.</text>
+  </svg>
+</div>
+
+<!-- 4 ALGO -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#E89A38" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(5 40 40)">4</text>
+    </svg>
+    <h2>l'algo, <span class="hl">en 4 gestes</span>.</h2>
+  </div>
+  <p>Oublie le C pour l'instant. Voilà ce que ton programme doit <em>faire</em>. <strong>Rien de plus.</strong></p>
+
+  <div class="stepgrid">
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-3 40 40)">#1</text>
       </svg>
-
-      <div class="tree-result">
-        42 <span class="eq">=</span> <span class="mark">2 × 3 × 7</span>
+      <div class="step-body">
+        <h3>commence par diviser par 2</h3>
+        <p>Le plus petit premier. Tu testes : <code>n % 2 == 0</code> ?</p>
       </div>
     </div>
-  </section>
 
-  <!-- 04 ALGORITHM -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">04</span>
-      <span class="section-label-text">l'algo dans ta tête</span>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(2 40 40)">#2</text>
+      </svg>
+      <div class="step-body">
+        <h3>tant que ça divise, tu restes</h3>
+        <p>Si <code>n=8</code> → 2, 2, 2. Même diviseur tant que ça marche. Pas besoin d'avancer.</p>
+      </div>
     </div>
-    <h2>4 mouvements. <span class="mark">Pas plus.</span></h2>
-    <p>Oublie le C pour l'instant. Voilà ce que le programme <em>fait</em>, dans l'ordre. Aucune magie.</p>
 
-    <div class="stepgrid">
-
-      <div class="stepcard c1">
-        <div class="step-n">1</div>
-        <div class="step-body">
-          <h3>Commence par diviser par 2</h3>
-          <p>C'est le plus petit premier. Tu testes : <code>n % 2 == 0</code> ?</p>
-        </div>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-2 40 40)">#3</text>
+      </svg>
+      <div class="step-body">
+        <h3>quand ça divise plus, tu ++</h3>
+        <p>2 → 3 → 4 → 5... Pas besoin de tester si le diviseur est premier. Si les 2 sont épuisés, <strong>4 divisera jamais rien</strong>. Le test se fait tout seul.</p>
       </div>
-
-      <div class="stepcard c2">
-        <div class="step-n">2</div>
-        <div class="step-body">
-          <h3>Tant que ça divise, tu restes sur le même</h3>
-          <p>Si <code>n = 8</code>, tu divises par 2, puis encore par 2, puis encore par 2. Tu écris <code>2*2*2</code>. Pas besoin de changer de diviseur tant que ça marche.</p>
-        </div>
-      </div>
-
-      <div class="stepcard c3">
-        <div class="step-n">3</div>
-        <div class="step-body">
-          <h3>Quand ça divise plus, tu incrémentes</h3>
-          <p>2 → 3 → 4 → 5... <strong>Pas besoin de tester si le diviseur est premier lui-même</strong>. Si tu as épuisé les 2, alors 4 ne divisera jamais rien non plus. Le test se fait tout seul.</p>
-        </div>
-      </div>
-
-      <div class="stepcard c4">
-        <div class="step-n">4</div>
-        <div class="step-body">
-          <h3>Tu t'arrêtes quand n vaut 1</h3>
-          <p>Terminé. Tous les facteurs sont sortis. <code>printf("\n")</code> et tchao.</p>
-        </div>
-      </div>
-
     </div>
-  </section>
 
-  <!-- 05 TRACE -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">05</span>
-      <span class="section-label-text">l'algo qui tourne</span>
-    </div>
-    <h2>Regarde 42 se faire <em>démonter</em> en direct.</h2>
-    <p>Chaque ligne = une itération de boucle. Tu suis le chemin du programme comme un débugueur mental.</p>
-
-    <div class="concrete-first">
-      <div class="term-head">
-        <div class="term-dot r"></div>
-        <div class="term-dot y"></div>
-        <div class="term-dot g"></div>
-        <div class="term-title">trace · ./fprime 42</div>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(3 40 40)">#4</text>
+      </svg>
+      <div class="step-body">
+        <h3>stop quand n vaut 1</h3>
+        <p>C'est fini. <code>printf("\n")</code> et tchao.</p>
       </div>
-      <div class="term-body">
-<span class="t-m">// départ : n = 42, div = 2</span><br>
+    </div>
+
+  </div>
+</section>
+
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M340,10 Q270,35 200,22 T100,30 T30,20 T15,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="17,40 24,38 21,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">voyons l'algo tourner pour de vrai.</text>
+  </svg>
+</div>
+
+<!-- 5 TRACE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#D9CAF0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-5 40 40)">5</text>
+    </svg>
+    <h2>42 qui se fait <span class="hl-pink">démonter en live</span>.</h2>
+  </div>
+  <p>Suis le programme, ligne par ligne. Chaque ligne = une itération.</p>
+
+  <div class="terminal">
+    <div class="term-head">
+      <div class="term-dot r"></div>
+      <div class="term-dot y"></div>
+      <div class="term-dot g"></div>
+      <div class="term-title">trace · ./fprime 42</div>
+    </div>
+    <div class="term-body">
+<span class="t-m">// start: n=42, div=2</span><br>
 <span class="t-v">42 % 2</span> == 0 ? <span class="t-ok">YES</span> → print <span class="t-r">"2"</span>, n = <span class="t-n">21</span><br>
-<span class="t-v">21 % 2</span> == 0 ? <span class="t-ko">no</span> → div++<br>
+<span class="t-v">21 % 2</span> == 0 ? <span class="t-ko">no</span>  → div++ (3)<br>
 <span class="t-v">21 % 3</span> == 0 ? <span class="t-ok">YES</span> → print <span class="t-r">"*3"</span>, n = <span class="t-n">7</span><br>
-<span class="t-v">7 % 3</span> == 0 ? <span class="t-ko">no</span> → div++<br>
-<span class="t-v">7 % 4</span> == 0 ? <span class="t-ko">no</span> → div++<br>
-<span class="t-v">7 % 5</span> == 0 ? <span class="t-ko">no</span> → div++<br>
-<span class="t-v">7 % 6</span> == 0 ? <span class="t-ko">no</span> → div++<br>
+<span class="t-v">7 % 3</span> == 0 ? <span class="t-ko">no</span>  → div++ (4)<br>
+<span class="t-v">7 % 4</span> == 0 ? <span class="t-ko">no</span>  → div++ (5)<br>
+<span class="t-v">7 % 5</span> == 0 ? <span class="t-ko">no</span>  → div++ (6)<br>
+<span class="t-v">7 % 6</span> == 0 ? <span class="t-ko">no</span>  → div++ (7)<br>
 <span class="t-v">7 % 7</span> == 0 ? <span class="t-ok">YES</span> → print <span class="t-r">"*7"</span>, n = <span class="t-n">1</span><br>
-<span class="t-m">// n == 1 → on sort. print "\n"</span><br><br>
-<span class="t-p">final output →</span> <span class="t-r">2*3*7</span>
-      </div>
+<span class="t-m">// n == 1 → exit. print "\n"</span><br><br>
+<span class="t-p">output:</span> <span class="t-r">2*3*7</span>
     </div>
-    <div class="annotation">t'as suivi ? l'algo c'est juste ça, répété.</div>
-  </section>
+  </div>
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    t'as suivi ? l'algo c'est juste ça, répété.
+  </div>
+</section>
 
-  <!-- 06 EDGE CASES -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">06</span>
-      <span class="section-label-text">les pièges du sujet</span>
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40,10 Q110,35 180,22 T270,30 T350,20 T385,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="383,40 376,38 379,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">attention aux 4 pièges du sujet.</text>
+  </svg>
+</div>
+
+<!-- 6 EDGES -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(4 40 40)">6</text>
+    </svg>
+    <h2>4 pièges <span class="hl-mint">à pas oublier</span>.</h2>
+  </div>
+  <p>Avant même la factorisation, le sujet demande de gérer ces 4 inputs. Si tu les rates, le test tombe.</p>
+
+  <div class="edges">
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">./fprime</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">\n</span>
+      </div>
+      <div class="sticky-why">Zéro argument → juste un newline.</div>
     </div>
-    <h2>4 cas spéciaux à <span class="mark">pas oublier</span>.</h2>
-    <p>Avant même la factorisation, le sujet te demande de gérer ces 4 inputs particuliers. Si tu les oublies, le test échoue direct.</p>
 
-    <div class="edges">
-      <div class="edge">
-        <div class="edge-io">
-          <span class="edge-in">./fprime</span>
-          <span class="edge-arrow">→</span>
-          <span class="edge-out">\n</span>
-        </div>
-        <div class="edge-why">Zéro argument → juste un newline.</div>
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">./fprime 42 21</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">\n</span>
       </div>
-
-      <div class="edge">
-        <div class="edge-io">
-          <span class="edge-in">./fprime 42 21</span>
-          <span class="edge-arrow">→</span>
-          <span class="edge-out">\n</span>
-        </div>
-        <div class="edge-why">Plus d'un arg → pareil. La règle : <code>argc != 2</code>.</div>
-      </div>
-
-      <div class="edge">
-        <div class="edge-io">
-          <span class="edge-in">./fprime 1</span>
-          <span class="edge-arrow">→</span>
-          <span class="edge-out">1</span>
-        </div>
-        <div class="edge-why">1 n'a pas de facteurs premiers, affiche 1 direct.</div>
-      </div>
-
-      <div class="edge">
-        <div class="edge-io">
-          <span class="edge-in">./fprime 9539</span>
-          <span class="edge-arrow">→</span>
-          <span class="edge-out">9539</span>
-        </div>
-        <div class="edge-why">9539 est premier. L'algo va incrémenter <code>div</code> jusqu'à 9539, qui divise, et c'est fini.</div>
-      </div>
+      <div class="sticky-why">Plus d'un arg → pareil. Règle : <code>argc != 2</code>.</div>
     </div>
-  </section>
 
-  <!-- 07 SEPARATOR TRICK -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">07</span>
-      <span class="section-label-text">le piège visuel</span>
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">./fprime 1</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">1</span>
+      </div>
+      <div class="sticky-why">1 n'a pas de facteurs. Affiche 1 direct.</div>
     </div>
-    <h2>Le séparateur <em>*</em> t'emmerde ?</h2>
-    <p>Regarde : <strong>2*3*7</strong>, pas <strong>2*3*7*</strong>. Il y a <code>n-1</code> étoiles pour <code>n</code> facteurs. Classique trap.</p>
 
-    <div class="trick">
-      <div class="trick-tag">✦ le move</div>
-      <h4>Imprime le <code>*</code> AVANT chaque facteur — sauf le premier.</h4>
-      <p>Tu gardes un flag <code>first = 1</code>. Dès qu'il est à 0, tu préfixes chaque nombre par <code>*</code>. Simple.</p>
-      <div class="trick-code">
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">./fprime 9539</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">9539</span>
+      </div>
+      <div class="sticky-why">9539 est premier. <code>div</code> grimpe jusqu'à 9539 et stop.</div>
+    </div>
+  </div>
+</section>
+
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M360,10 Q290,35 220,22 T120,30 T50,20 T18,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="20,40 27,38 24,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">ok et comment on gère le "*" à l'affichage ?</text>
+  </svg>
+</div>
+
+<!-- 7 TRICK -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BDD7F0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-3 40 40)">7</text>
+    </svg>
+    <h2>le piège du <span class="hl">séparateur</span>.</h2>
+  </div>
+  <p>Regarde bien : <strong>2*3*7</strong>, pas <strong>2*3*7*</strong>. Il y a <code>n-1</code> étoiles pour <code>n</code> facteurs. Classique trap.</p>
+
+  <div class="trick">
+    <div class="trick-badge">✦ le move ✦</div>
+    <h4>Imprime le <code>*</code> AVANT chaque facteur, sauf le premier.</h4>
+    <p>Tu gardes un flag <code>first = 1</code>. Dès qu'il passe à 0, tu préfixes chaque nombre par <code>*</code>. Simple, efficace, pas de buffer.</p>
+    <div class="trick-code">
 <span class="cm">// pseudo-C</span><br>
 <span class="kw">if</span> (first) { printf(<span class="str">"%d"</span>, div); first = 0; }<br>
 <span class="kw">else</span>       { printf(<span class="str">"*%d"</span>, div); }
-      </div>
     </div>
-  </section>
-
-  <!-- 08 SKELETON -->
-  <section class="section fade">
-    <div class="section-label">
-      <span class="section-label-num">08</span>
-      <span class="section-label-text">par où commencer</span>
-    </div>
-    <h2>Ton squelette mental.</h2>
-    <p>Avant d'ouvrir <code style="font-family:'JetBrains Mono',monospace;background:var(--cream);color:var(--peach-d);padding:1px 6px;border-radius:4px;font-size:14px;">fprime.c</code>, tu connais déjà l'ossature. Quand tu tapes, t'as plus qu'à remplir les cases.</p>
-
-    <div class="skel">
-      <div class="skel-card">
-        <div class="skel-letter">A</div>
-        <h4>Check argc</h4>
-        <p>Si <code>argc != 2</code> → <code>printf("\n")</code> et <code>return 0</code>.</p>
-      </div>
-      <div class="skel-card">
-        <div class="skel-letter">B</div>
-        <h4>Parse l'int</h4>
-        <p><code>int n = atoi(argv[1])</code>.</p>
-      </div>
-      <div class="skel-card">
-        <div class="skel-letter">C</div>
-        <h4>Boucle</h4>
-        <p><code>div = 2</code>. Tant que <code>n > 1</code>. Inner : tant que <code>n % div == 0</code>, divise + print.</p>
-      </div>
-      <div class="skel-card">
-        <div class="skel-letter">D</div>
-        <h4>Print final</h4>
-        <p>Un <code>printf("\n")</code> à la toute fin, après la boucle.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- TAKEAWAY -->
-  <div class="takeaway fade">
-    <div class="takeaway-label">la règle d'or</div>
-    <h3>Si tu peux pas l'expliquer <span class="mark">à voix haute</span>,<br>tu peux pas le coder.</h3>
-    <p>Prends une feuille. Trace l'arbre de <code>100</code> ou <code>30</code>. Quand ton cerveau fait le chemin sans hésiter, t'es prêt à ouvrir <code>fprime.c</code>.</p>
   </div>
+</section>
+
+<!-- connector -->
+<div class="connector">
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40,10 Q110,35 180,22 T270,30 T350,20 T385,40" stroke="#222030" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5,4" filter="url(#rough)"/>
+    <polygon points="383,40 376,38 379,46" fill="#222030"/>
+    <text x="200" y="60" text-anchor="middle" font-family="Caveat, cursive" font-size="18" fill="#51506A" font-style="italic">ton plan avant de taper du code ↓</text>
+  </svg>
+</div>
+
+<!-- 8 SKEL -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(2 40 40)">8</text>
+    </svg>
+    <h2>par où <span class="hl-mint">t'attaques</span>.</h2>
+  </div>
+  <p>Avant d'ouvrir <code>fprime.c</code>, tu connais la charpente. Tu tapes, tu remplis les cases.</p>
+
+  <div class="skel">
+    <div class="skelcard">
+      <div class="skelletter">A</div>
+      <h4>check argc</h4>
+      <p>Si <code>argc != 2</code> → <code>printf("\n")</code> + <code>return 0</code>.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">B</div>
+      <h4>parse l'int</h4>
+      <p><code>int n = atoi(argv[1])</code>.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">C</div>
+      <h4>boucle</h4>
+      <p><code>div=2</code>. Tant que <code>n &gt; 1</code>. Inner : tant que <code>n % div == 0</code>, print + divise.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">D</div>
+      <h4>newline final</h4>
+      <p><code>printf("\n")</code> après la boucle.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAKEAWAY -->
+<div class="takeaway fade">
+  <svg class="takeaway-star" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30,5 L36,22 L54,22 L39,32 L44,49 L30,40 L16,49 L21,32 L6,22 L24,22 Z" fill="#FFE96B" stroke="#FBF6EB" stroke-width="1.5" filter="url(#rough)"/>
+  </svg>
+  <div class="takeaway-tag">la règle d'or ★</div>
+  <h3>si tu peux pas l'expliquer <span class="hl">à voix haute</span>,<br>tu peux pas le coder.</h3>
+  <p>Prends une feuille. Trace l'arbre de <code>30</code> ou <code>100</code>. Quand ton cerveau fait le chemin sans hésiter, t'es prêt à taper <code>fprime.c</code>.</p>
+</div>
 
 </main>
 
 <footer>
   <div class="footer-sig">bon courage loopy ✌</div>
-  <div>rank 02 · level 3 · avril 2026 · <a href="https://github.com/terminal-42s/42_examshell">terminal-42s/42_examshell</a></div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="https://github.com/terminal-42s/42_examshell">examshell</a></div>
 </footer>
 
 <script>
@@ -1091,13 +1317,11 @@ window.addEventListener('scroll', () => {
   document.getElementById('progress-bar').style.width = pct + '%';
 });
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.1 });
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
 
-document.querySelectorAll('.fade').forEach(el => observer.observe(el));
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
 </script>
 
 </body>
