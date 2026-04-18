@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<!--
+  ═══════════════════════════════════════════════════════════════════════════
+  APPRENTISSAGE ZINE — TEMPLATE
+  ═══════════════════════════════════════════════════════════════════════════
+  Pour créer un nouveau zine : copie ce fichier, renomme-le
+  (ex: `push_swap.html`), et remplis les [[BRACKETS]].
+
+  ─── STRUCTURE ───
+  1. <band>        — petit bandeau noir : série / rank / auteur
+  2. <hero>        — titre géant, sous-titre, mascotte + bulle, metapills
+  3. <section>     — une par chapitre. commence par <section-head>
+                     (gros cercle numéroté + h2 surligné) puis du contenu.
+                     le POST-IT se place EN DIRECT dans la section, en
+                     position:absolute top-right (voir zine.css .connector-note).
+  4. <takeaway>    — bloc final noir avec la règle d'or
+  5. <footer>      — signature + meta
+
+  ─── COMPOSANTS DISPO (cherche le 🧩 dans le HTML) ───
+  🧩 terminal        — faux terminal macOS avec 3 pastilles
+  🧩 primes-card     — grille de cases (listes "oui/non", enum...)
+  🧩 handnote        — post-it rond accent
+  🧩 stepgrid        — suite d'étapes numérotées colorées
+  🧩 edges / sticky  — grille de post-its input→output pour cas limites
+  🧩 trick           — encadré "astuce" avec badge accent
+  🧩 caption         — annotation manuscrite sous un élément
+  🧩 connector-note  — POST-IT à droite du titre (dans la section)
+
+  ─── PALETTE ───
+  var(--paper)    crème (fond)         var(--hl-yellow)  highlight principal
+  var(--ink)      noir-bleuté (texte)  var(--hl-mint)    mint (success)
+  var(--accent)   orange Loopy         var(--hl-pink)    rose (danger / attn)
+  var(--accent-d) orange foncé (lien)  var(--hl-blue)    bleu (info)
+                                       var(--hl-purple)  lavande (neutre)
+
+  ─── TYPO ───
+  Kalam        : titres + gros chiffres
+  Patrick Hand : body
+  Caveat       : notes manuscrites
+  JetBrains    : code + terminal
+  ═══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[[TITRE]] — the zine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="zine.css?v=2">
+</head>
+<body>
+
+<!-- SVG defs : filtre "rough" pour bords organiques. garde tel quel. -->
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+    <filter id="rougher" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" scale="4"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<!-- ═════════ BANDEAU ═════════ -->
+<div class="band">
+  <span class="band-l">★ the apprentissage zine — [[SÉRIE / RANK]]</span>
+  <span class="band-r">by loopy · [[ANNÉE]]</span>
+</div>
+
+<!-- ═════════ HERO ═════════ -->
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <span class="hero-stars s3">✧</span>
+  <span class="hero-stars s4">✦</span>
+
+  <div class="hero-title">
+    <span class="word">[[titre]]</span>
+    <svg class="underline-draw" viewBox="0 0 300 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M3,6 Q30,2 60,6 T120,6 T180,6 T240,6 T297,6" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+    </svg>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:34px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;margin-bottom:8px;">(the zine)</div>
+
+  <p class="hero-sub">[[phrase d'accroche en 1 ligne.]] <span class="hl">[[mot-clé]]</span> [[fin de la phrase.]]</p>
+
+  <!-- 🧩 Loopy + bulle de bienvenue -->
+  <div class="charrow">
+    <svg class="charrow-svg" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#rough)">
+        <ellipse cx="60" cy="120" rx="28" ry="3" fill="#222030" opacity="0.15"/>
+        <path d="M40,36 C18,40 18,80 42,84 C68,88 74,60 58,54 C44,49 38,64 52,70 C64,74 72,66 74,56 C78,34 58,22 40,36 Z"
+              fill="#FF7755" stroke="#222030" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M48,62 C46,67 52,71 58,68" fill="none" stroke="#222030" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+        <path d="M58,36 Q56,20 68,14" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="12" r="4" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <circle cx="50" cy="48" r="3.2" fill="#FBF6EB" stroke="#222030" stroke-width="1.8"/>
+        <circle cx="50.8" cy="48.6" r="1.4" fill="#222030"/>
+        <path d="M64,47 Q68,44 72,48" stroke="#222030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M54,58 Q60,63 65,58" stroke="#222030" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="42" cy="58" rx="3" ry="2" fill="#FFCACA" opacity="0.8"/>
+        <path d="M46,92 L42,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M66,92 L70,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M36,114 Q42,118 50,114 Z" fill="#222030"/>
+        <path d="M64,114 Q70,118 78,114 Z" fill="#222030"/>
+        <path d="M80,58 Q96,48 100,34" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="100" cy="32" r="4.5" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <path d="M104,22 L108,18" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+        <path d="M108,30 L113,30" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div class="bubble">
+      [[message d'intro — court, amical.]]
+    </div>
+  </div>
+
+  <!-- metapills : contraintes / durée estimée / tags -->
+  <div class="hero-meta">
+    <span class="metapill">[[tag 1]]</span>
+    <span class="metapill">[[tag 2]]</span>
+    <span class="metapill">[[tag 3]]</span>
+    <span class="metapill">[[~X min ☕]]</span>
+  </div>
+</section>
+
+<main>
+
+<!-- ═════════ SECTION 1 ═════════
+     structure type :
+       <section class="section fade">
+         <div class="section-head"> svg + h2 </div>
+         <div class="connector-note rotL">...</div>  ← post-it à droite du titre
+         <p>contenu...</p>
+         ...composants...
+       </section>
+     alterne rotL / rotR pour le zigzag. 
+-->
+<section class="section fade">
+  <div class="section-head">
+    <!-- 🧩 gros numéro. change fill= pour varier : FFE96B jaune · BFE6CC mint ·
+         FFCACA pink · BDD7F0 blue · D9CAF0 purple · FF7755 orange · E89A38 warm -->
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-6 40 40)">1</text>
+    </svg>
+    <h2>[[titre section]] <span class="hl">[[mot surligné]]</span>.</h2>
+  </div>
+  <!-- 🧩 POST-IT (optionnel) — teaser / question / remarque manuscrite. 
+       classes : .rotL (rotation -3°) ou .rotR (+2.5°). alterne d'une section à l'autre. -->
+  <div class="connector-note rotL">[[remarque courte]]<br><span class="hl">[[mot clé]]</span> ?</div>
+  <p>[[texte d'intro. utilise <strong>gras</strong> pour les notions-clés, <code>code</code> pour le technique.]]</p>
+
+  <!-- 🧩 TERMINAL — exemples concrets d'exécution -->
+  <div class="term-wrap">
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+        <div class="term-title">loopy@42 ~ $</div>
+      </div>
+      <div class="term-body">
+<span class="t-p">$</span> [[command]] <span class="t-n">[[arg]]</span><br>
+<span class="t-r">[[output]]</span><br><br>
+<span class="t-p">$</span> [[autre command]]   <span class="t-m"># commentaire</span><br>
+<span class="t-r">[[output 2]]</span><br>
+      </div>
+    </div>
+  </div>
+  <!-- 🧩 caption manuscrite sous un élément -->
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    [[note manuscrite ici.]]
+  </div>
+</section>
+
+<!-- ═════════ SECTION 2 ═════════ -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(3 40 40)">2</text>
+    </svg>
+    <h2>[[titre section 2]] <span class="hl-mint">[[mot]]</span> ?</h2>
+  </div>
+  <div class="connector-note rotR">[[et si...]] <span class="hl">[[keyword]]</span> ?</div>
+  <p>[[paragraphe explicatif.]]</p>
+
+  <!-- 🧩 primes-card : grille de cases avec oui/non. parfait pour listes d'exemples -->
+  <div class="primes-card">
+    <div class="primes-grid">
+      <div class="pbox yes">A</div>
+      <div class="pbox yes">B</div>
+      <div class="pbox no">C</div>
+      <div class="pbox yes">D</div>
+      <div class="pbox no">E</div>
+      <div class="pbox yes">F</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-chip ok"></span> [[valide]]</div>
+      <div class="legend-item"><span class="legend-chip ko"></span> [[pas valide]]</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <div class="handnote">[[punchline manuscrite 🌊]]</div>
+  </div>
+</section>
+
+<!-- ═════════ SECTION 3 : étapes ═════════ -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#E89A38" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(5 40 40)">3</text>
+    </svg>
+    <h2>[[titre]], <span class="hl">en 4 gestes</span>.</h2>
+  </div>
+  <div class="connector-note rotL">[[annonce des étapes]]<br><span class="hl">[[mot]]</span> ↓</div>
+  <p>[[intro]]</p>
+
+  <!-- 🧩 stepgrid : étapes numérotées, bg qui change par position -->
+  <div class="stepgrid">
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-3 40 40)">#1</text>
+      </svg>
+      <div class="step-body">
+        <h3>[[étape 1]]</h3>
+        <p>[[description, avec <code>code</code> si besoin.]]</p>
+      </div>
+    </div>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(2 40 40)">#2</text>
+      </svg>
+      <div class="step-body">
+        <h3>[[étape 2]]</h3>
+        <p>[[texte]]</p>
+      </div>
+    </div>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-2 40 40)">#3</text>
+      </svg>
+      <div class="step-body">
+        <h3>[[étape 3]]</h3>
+        <p>[[texte]]</p>
+      </div>
+    </div>
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(3 40 40)">#4</text>
+      </svg>
+      <div class="step-body">
+        <h3>[[étape 4]]</h3>
+        <p>[[texte]]</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ SECTION 4 : astuce + sticky ═════════ -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BDD7F0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-3 40 40)">4</text>
+    </svg>
+    <h2>[[titre astuce]] <span class="hl-blue">[[mot]]</span>.</h2>
+  </div>
+  <div class="connector-note rotR">[[teaser de l'astuce]]<br><span class="hl">[[mot]]</span> !</div>
+  <p>[[contexte du piège / astuce.]]</p>
+
+  <!-- 🧩 TRICK : encadré orange avec badge -->
+  <div class="trick">
+    <div class="trick-badge">✦ le move ✦</div>
+    <h4>[[titre de l'astuce en 1 phrase.]]</h4>
+    <p>[[explication courte.]] Garde <code>[[variable]]</code>, simple et efficace.</p>
+    <div class="trick-code">
+<span class="cm">// pseudo-code</span><br>
+<span class="kw">if</span> ([[condition]]) { [[action]]; }<br>
+<span class="kw">else</span>       { [[fallback]]; }
+    </div>
+  </div>
+
+  <!-- 🧩 EDGES : post-its input→output pour les cas limites -->
+  <div class="edges">
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">[[input]]</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">[[output]]</span>
+      </div>
+      <div class="sticky-why">[[explication.]]</div>
+    </div>
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">[[input 2]]</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">[[output 2]]</span>
+      </div>
+      <div class="sticky-why">[[pourquoi.]] Règle : <code>[[cond]]</code>.</div>
+    </div>
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">[[input 3]]</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">[[output 3]]</span>
+      </div>
+      <div class="sticky-why">[[note]].</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ TAKEAWAY FINAL ═════════ -->
+<div class="takeaway fade">
+  <svg class="takeaway-star" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30,5 L36,22 L54,22 L39,32 L44,49 L30,40 L16,49 L21,32 L6,22 L24,22 Z" fill="#FFE96B" stroke="#FBF6EB" stroke-width="1.5" filter="url(#rough)"/>
+  </svg>
+  <div class="takeaway-tag">la règle d'or ★</div>
+  <h3>[[règle d'or — phrase punchy,<br>avec <span class="hl">[[mot clé]]</span>.]]</h3>
+  <p>[[paragraphe final : que faire maintenant.]] <code>[[commande / fichier]]</code>.</p>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">[[message signature ✌]]</div>
+  <div class="footer-meta">[[meta]] · <a href="#">[[lien]]</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
