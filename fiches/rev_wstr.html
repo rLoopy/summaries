@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rev_wstr — the zine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ the apprentissage zine — rank 02 · level 3</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <span class="hero-stars s3">✧</span>
+  <span class="hero-stars s4">✦</span>
+
+  <div class="hero-title">
+    <span class="word">rev_wstr</span>
+    <svg class="underline-draw" viewBox="0 0 300 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M3,6 Q30,2 60,6 T120,6 T180,6 T240,6 T297,6" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+    </svg>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:34px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;margin-bottom:8px;">(the zine)</div>
+
+  <p class="hero-sub">Inverser l'ordre des mots dans une string. <span class="hl">pas de printf</span>, juste <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">write</code>.</p>
+
+  <div class="charrow">
+    <svg class="charrow-svg" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#rough)">
+        <ellipse cx="60" cy="120" rx="28" ry="3" fill="#222030" opacity="0.15"/>
+        <path d="M40,36 C18,40 18,80 42,84 C68,88 74,60 58,54 C44,49 38,64 52,70 C64,74 72,66 74,56 C78,34 58,22 40,36 Z"
+              fill="#FF7755" stroke="#222030" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M48,62 C46,67 52,71 58,68" fill="none" stroke="#222030" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+        <path d="M58,36 Q56,20 68,14" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="12" r="4" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <circle cx="50" cy="48" r="3.2" fill="#FBF6EB" stroke="#222030" stroke-width="1.8"/>
+        <circle cx="50.8" cy="48.6" r="1.4" fill="#222030"/>
+        <path d="M64,47 Q68,44 72,48" stroke="#222030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M54,58 Q60,63 65,58" stroke="#222030" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="42" cy="58" rx="3" ry="2" fill="#FFCACA" opacity="0.8"/>
+        <path d="M46,92 L42,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M66,92 L70,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M36,114 Q42,118 50,114 Z" fill="#222030"/>
+        <path d="M64,114 Q70,118 78,114 Z" fill="#222030"/>
+        <path d="M80,58 Q96,48 100,34" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="100" cy="32" r="4.5" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <path d="M104,22 L108,18" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+        <path d="M108,30 L113,30" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div class="bubble">
+      yo ! exo pur string manipulation.<br>
+      zéro math, 100% logique de pointeur.
+    </div>
+  </div>
+
+  <div class="hero-meta">
+    <span class="metapill">write only</span>
+    <span class="metapill">malloc / free</span>
+    <span class="metapill">~35 lignes</span>
+    <span class="metapill">15 min ☕</span>
+  </div>
+</section>
+
+<main>
+
+<!-- 1 CONCRETE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-6 40 40)">1</text>
+    </svg>
+    <h2>voilà ce que <span class="hl">le programme fait</span>.</h2>
+  </div>
+  <p>Pas de théorie d'abord. <strong>On regarde le résultat.</strong> 4 comportements à capter.</p>
+
+  <div class="term-wrap">
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+        <div class="term-title">loopy@42 ~ $</div>
+      </div>
+      <div class="term-body">
+<span class="t-p">$</span> ./rev_wstr <span class="t-n">"Wingardium Leviosa"</span><br>
+<span class="t-r">Leviosa Wingardium</span><br><br>
+<span class="t-p">$</span> ./rev_wstr <span class="t-n">"You hate people! But I love gatherings."</span><br>
+<span class="t-r">gatherings. love I But people! hate You</span><br><br>
+<span class="t-p">$</span> ./rev_wstr <span class="t-n">"abcdefghijklm"</span>    <span class="t-m"># un seul mot</span><br>
+<span class="t-r">abcdefghijklm</span><br><br>
+<span class="t-p">$</span> ./rev_wstr                     <span class="t-m"># pas d'arg → juste \n</span><br>
+<br>
+      </div>
+    </div>
+  </div>
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    4 cas. même séparateur (un seul espace), ordre des mots inversé.
+  </div>
+</section>
+
+<!-- 2 WHAT'S A WORD -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(3 40 40)">2</text>
+    </svg>
+    <h2>c'est quoi un <span class="hl-mint">"mot"</span>, au juste ?</h2>
+  </div>
+  <div class="connector-note rotL">attention : <span class="hl">espaces <em>OU</em> tabs</span> comme séparateur !</div>
+  <p>Un <strong>mot</strong> = un groupe de caractères <strong>délimité par des espaces et/ou des tabs</strong>, ou par le début/la fin de la string.</p>
+  <p>Dans le sujet officiel c'est précisé : <code>' '</code> ET <code>'\t'</code> peuvent séparer. Les tests n'utilisent qu'un espace simple entre mots (pas de tabs multiples), mais ton code doit gérer les deux.</p>
+
+  <div class="primes-card">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-family:'Kalam',cursive;font-weight:700;font-size:28px;margin-bottom:16px;">
+      <span style="background:var(--hl-mint);border:2.5px solid var(--ink);border-radius:10px;padding:6px 14px;box-shadow:2px 2px 0 var(--ink);transform:rotate(-1.5deg);">Wingardium</span>
+      <span style="background:var(--paper-d);border:2px dashed var(--ink);border-radius:10px;padding:6px 14px;color:var(--muted);font-size:22px;transform:rotate(0.5deg);">␣</span>
+      <span style="background:var(--hl-mint);border:2.5px solid var(--ink);border-radius:10px;padding:6px 14px;box-shadow:2px 2px 0 var(--ink);transform:rotate(1deg);">Leviosa</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-chip ok"></span> mot</div>
+      <div class="legend-item"><span class="legend-chip ko"></span> séparateur (space ou tab)</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <div class="handnote">un mot, un bloc. un séparateur, rien à print.</div>
+  </div>
+</section>
+
+<!-- 3 STRATEGY -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFCACA" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-4 40 40)">3</text>
+    </svg>
+    <h2>la stratégie : <span class="hl-pink">parcourir à l'envers</span>.</h2>
+  </div>
+  <p>Plutôt que de découper la string en tableau de mots (malloc, copies, etc.), on <strong>walk à l'envers</strong> sur la string originale et on print chaque mot dès qu'on le trouve.</p>
+  <p>Avantage : <strong>zéro malloc nécessaire</strong> (même si malloc est autorisé). On utilise juste deux index (start et end) et on <code>write</code> des segments de la string originale.</p>
+
+  <div class="trick">
+    <div class="trick-badge">✦ l'idée ✦</div>
+    <h4>Deux pointeurs : <code>end</code> (droite du mot) et <code>start</code> (gauche du mot).</h4>
+    <p>Tu pars de la fin de la string. Tu skip les séparateurs vers la gauche. Quand tu touches un char réel → c'est la <code>end</code> du mot. Tu continues vers la gauche jusqu'à retrouver un séparateur (ou le début) → c'est le <code>start</code>. Tu <code>write</code> le segment <code>[start .. end]</code>. Tu continues.</p>
+  </div>
+</section>
+
+<!-- 4 ALGO -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#E89A38" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(5 40 40)">4</text>
+    </svg>
+    <h2>l'algo, <span class="hl">en 5 gestes</span>.</h2>
+  </div>
+  <div class="connector-note rotR">même logique que fprime : <span class="hl">comprends avant</span> de coder</div>
+  <p>Oublie le C. Voilà ce que ton programme <em>fait</em>, pas à pas.</p>
+
+  <div class="stepgrid">
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-3 40 40)">#1</text>
+      </svg>
+      <div class="step-body">
+        <h3>trouve la longueur de la string</h3>
+        <p>Boucle <code>while (argv[1][i])</code> pour obtenir <code>len</code>. Position-toi à <code>i = len - 1</code>.</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(2 40 40)">#2</text>
+      </svg>
+      <div class="step-body">
+        <h3>skip les séparateurs vers la gauche</h3>
+        <p>Tant que <code>str[i] == ' '</code> ou <code>'\t'</code>, décrémente <code>i</code>. Si <code>i &lt; 0</code> → fini.</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-2 40 40)">#3</text>
+      </svg>
+      <div class="step-body">
+        <h3>marque la fin du mot, cherche le début</h3>
+        <p><code>end = i</code>. Ensuite, tant que <code>str[i]</code> n'est pas un séparateur ET <code>i &gt;= 0</code>, décrémente. À la sortie, le mot commence à <code>i + 1</code>.</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(3 40 40)">#4</text>
+      </svg>
+      <div class="step-body">
+        <h3>write le mot + un espace si besoin</h3>
+        <p><code>write(1, &amp;str[i+1], end - i)</code>. Si c'est <strong>pas le dernier mot écrit</strong>, ajoute <code>write(1, " ", 1)</code> après.</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="36" fill="#222030" transform="rotate(-3 40 40)">#5</text>
+      </svg>
+      <div class="step-body">
+        <h3>boucle jusqu'à <code>i &lt; 0</code>, puis newline</h3>
+        <p>Tu recommences à l'étape 2. Quand tu sors de la boucle, <code>write(1, "\n", 1)</code>. Fini.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 5 TRACE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#D9CAF0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-5 40 40)">5</text>
+    </svg>
+    <h2>"Wingardium Leviosa" <span class="hl-pink">démonté en live</span>.</h2>
+  </div>
+  <p>String : <code>"Wingardium Leviosa"</code> · indexes 0 à 17. Un espace à l'index 10.</p>
+
+  <div class="terminal">
+    <div class="term-head">
+      <div class="term-dot r"></div>
+      <div class="term-dot y"></div>
+      <div class="term-dot g"></div>
+      <div class="term-title">trace · rev_wstr "Wingardium Leviosa"</div>
+    </div>
+    <div class="term-body">
+<span class="t-m">// start: len=18, i=17 ('a')</span><br>
+<span class="t-v">str[17] = 'a'</span> → pas séparateur, <span class="t-ok">word end = 17</span><br>
+walk back: str[16]='s', str[15]='o', ... str[11]='L'<br>
+<span class="t-v">str[10] = ' '</span> → <span class="t-ko">STOP</span>. word start = 11<br>
+<span class="t-r">write(1, &amp;str[11], 17-10)</span> → "Leviosa"<br>
+<span class="t-r">write(1, " ", 1)</span> → (pas le premier mot imprimé? non, c'est le premier ici...)<br><br>
+<span class="t-m">// i = 10, skip séparateur</span><br>
+<span class="t-v">str[10] = ' '</span> → skip, i=9<br>
+<span class="t-v">str[9] = 'm'</span> → pas séparateur, <span class="t-ok">word end = 9</span><br>
+walk back: str[8]='u', ... str[0]='W'<br>
+<span class="t-v">i = -1</span> → <span class="t-ko">STOP</span>. word start = 0<br>
+<span class="t-r">write(1, " ", 1)</span> → espace AVANT le prochain mot<br>
+<span class="t-r">write(1, &amp;str[0], 9-(-1))</span> → "Wingardium"<br><br>
+<span class="t-m">// i = -1 → exit. write("\n")</span><br><br>
+<span class="t-p">output:</span> <span class="t-r">Leviosa Wingardium</span>
+    </div>
+  </div>
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    l'espace se met AVANT chaque mot sauf le premier imprimé.
+  </div>
+</section>
+
+<!-- 6 EDGE CASES -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(4 40 40)">6</text>
+    </svg>
+    <h2>les pièges à <span class="hl-mint">pas oublier</span>.</h2>
+  </div>
+  <p>Le sujet est piégeux côté edge cases. Lis bien ces 4 points.</p>
+
+  <div class="edges">
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">./rev_wstr</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">\n</span>
+      </div>
+      <div class="sticky-why">Pas d'argument ou plus d'un arg → juste un newline. Règle : <code>argc != 2</code>.</div>
+    </div>
+
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">"abc"</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">abc</span>
+      </div>
+      <div class="sticky-why">Un seul mot → juste ce mot + newline. Pas d'espace.</div>
+    </div>
+
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">"a\tb"</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">b a</span>
+      </div>
+      <div class="sticky-why">Les <code>\t</code> sont aussi séparateurs. Teste les deux (<code>' '</code> ET <code>'\t'</code>).</div>
+    </div>
+
+    <div class="sticky">
+      <div class="sticky-io">
+        <span class="sticky-in">"hi bye"</span>
+        <span class="sticky-arrow">→</span>
+        <span class="sticky-out">bye hi</span>
+      </div>
+      <div class="sticky-why">Séparateur entre mots = un seul espace en sortie, peu importe l'input.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 WRITE TRAP -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BDD7F0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-3 40 40)">7</text>
+    </svg>
+    <h2>le piège de <span class="hl-blue">write</span>.</h2>
+  </div>
+  <p>Pas de <code>printf</code>, pas de <code>puts</code>, pas de <code>strlen</code>. Les fonctions autorisées : <code>write</code>, <code>malloc</code>, <code>free</code>. C'est tout.</p>
+
+  <div class="trick">
+    <div class="trick-badge">✦ rappel ✦</div>
+    <h4>Signature : <code>write(int fd, const void *buf, size_t count)</code></h4>
+    <p><code>fd = 1</code> (stdout). <code>buf</code> = un pointeur vers les bytes à écrire. <code>count</code> = combien de bytes. Tu écris des <strong>bouts de la string originale</strong>, pas besoin de copier.</p>
+    <div class="trick-code">
+<span class="cm">// un seul char</span><br>
+write(1, <span class="str">"\n"</span>, 1);<br>
+write(1, <span class="str">" "</span>, 1);<br><br>
+<span class="cm">// un segment de la string originale</span><br>
+<span class="cm">// &str[start] = adresse du char n°start</span><br>
+<span class="cm">// end - start + 1 = longueur du mot</span><br>
+write(1, &amp;str[start], end - start + 1);
+    </div>
+  </div>
+</section>
+
+<!-- 8 SKEL -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(2 40 40)">8</text>
+    </svg>
+    <h2>par où <span class="hl-mint">t'attaques</span>.</h2>
+  </div>
+  <div class="connector-note rotL">squelette en commentaires <span class="hl">d'abord</span> !</div>
+  <p>Avant d'ouvrir <code>rev_wstr.c</code>, tu connais l'ossature. Quand tu tapes, tu remplis les cases.</p>
+
+  <div class="skel">
+    <div class="skelcard">
+      <div class="skelletter">A</div>
+      <h4>check argc</h4>
+      <p>Si <code>argc != 2</code> → <code>write(1, "\n", 1)</code> + <code>return 0</code>.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">B</div>
+      <h4>get length</h4>
+      <p><code>while (argv[1][i]) i++</code>. À la sortie, <code>i = len</code>. Ensuite <code>i--</code> pour pointer sur le dernier char.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">C</div>
+      <h4>outer loop : tant que <code>i &gt;= 0</code></h4>
+      <p>skip spaces/tabs (décrémente). Mark <code>end = i</code>. Walk back jusqu'à séparateur ou <code>i &lt; 0</code>. Ensuite <code>write</code> le segment + un espace avant si c'est pas le premier.</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">D</div>
+      <h4>newline final</h4>
+      <p><code>write(1, "\n", 1)</code> après la boucle.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAKEAWAY -->
+<div class="takeaway fade">
+  <svg class="takeaway-star" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30,5 L36,22 L54,22 L39,32 L44,49 L30,40 L16,49 L21,32 L6,22 L24,22 Z" fill="#FFE96B" stroke="#FBF6EB" stroke-width="1.5" filter="url(#rough)"/>
+  </svg>
+  <div class="takeaway-tag">la règle d'or ★</div>
+  <h3>trace l'algo sur papier<br>avec <span class="hl">"Wingardium Leviosa"</span>.</h3>
+  <p>Dessine les 18 cases indexées (0 à 17). Fais les mouvements d'<code>i</code> en surlignant. Quand ton cerveau fait le chemin sans hésiter, t'es prêt à taper <code>rev_wstr.c</code>.</p>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">go loopy ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="https://github.com/terminal-42s/42_examshell">examshell</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
