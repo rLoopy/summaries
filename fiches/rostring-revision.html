@@ -109,34 +109,58 @@ main { max-width: 900px !important; padding-top: 20px !important; }
 
 <!-- 💾 CODE MINIMAL -->
 <div class="revision-card a">
-  <div class="rev-title"><span class="emoji">💾</span> code minimal (35 lignes)</div>
-  <div class="rev-card-code"><span class="cm">// setup</span>
-<span class="kw">int</span> i = <span class="num">0</span>, start, end, w_start, printed = <span class="num">0</span>;
-<span class="kw">if</span> (argc &lt; <span class="num">2</span>) { write(<span class="num">1</span>,<span class="str">"\n"</span>,<span class="num">1</span>); <span class="kw">return</span> <span class="num">0</span>; }
-<span class="kw">char</span> *str = argv[<span class="num">1</span>];
+  <div class="rev-title"><span class="emoji">💾</span> code final</div>
+  <div class="rev-card-code">#include &lt;unistd.h&gt;
 
-<span class="cm">// STEP 1 : bornes du 1er mot</span>
-<span class="kw">while</span> (str[i] == <span class="str">' '</span> || str[i] == <span class="str">'\t'</span>) i++;
-start = i;
-<span class="kw">while</span> (str[i] && str[i] != <span class="str">' '</span> && str[i] != <span class="str">'\t'</span>) i++;
-end = i;
+<span class="tp">int</span>	main(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="tp">int</span>		i = <span class="num">0</span>;
+	<span class="tp">char</span>	*str;
+	<span class="tp">int</span>		start;
+	<span class="tp">int</span>		end;
+	<span class="tp">int</span>		w_start;
+	<span class="tp">int</span>		printed = <span class="num">0</span>;
 
-<span class="cm">// STEP 2 : les autres mots</span>
-<span class="kw">while</span> (str[i]) {
-    <span class="kw">while</span> (str[i] == <span class="str">' '</span> || str[i] == <span class="str">'\t'</span>) i++;
-    <span class="kw">if</span> (str[i]) {
-        <span class="kw">if</span> (printed) write(<span class="num">1</span>,<span class="str">" "</span>,<span class="num">1</span>);
-        w_start = i;
-        <span class="kw">while</span> (str[i] && str[i] != <span class="str">' '</span> && str[i] != <span class="str">'\t'</span>) i++;
-        write(<span class="num">1</span>, &str[w_start], i - w_start);
-        printed = <span class="num">1</span>;
-    }
-}
+	<span class="kw">if</span> (argc &lt; <span class="num">2</span>)
+	{
+		write(<span class="num">1</span>, <span class="str">&quot;\n&quot;</span>, <span class="num">1</span>);
+		<span class="kw">return</span> (<span class="num">0</span>);
+	}
+	str = argv[<span class="num">1</span>];
 
-<span class="cm">// STEP 3 : 1er mot à la fin</span>
-<span class="kw">if</span> (printed) write(<span class="num">1</span>, <span class="str">" "</span>, <span class="num">1</span>);
-write(<span class="num">1</span>, &str[start], end - start);
-write(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);</div>
+	<span class="cm">/* ═══ STEP 1 : bornes du premier mot ═══ */</span>
+	<span class="kw">while</span> (str[i] == <span class="str">&#x27; &#x27;</span> || str[i] == <span class="str">&#x27;\t&#x27;</span>)
+		i++;
+	start = i;
+	<span class="kw">while</span> (str[i] &amp;&amp; str[i] != <span class="str">&#x27; &#x27;</span> &amp;&amp; str[i] != <span class="str">&#x27;\t&#x27;</span>)
+		i++;
+	end = i;
+
+	<span class="cm">/* ═══ STEP 2 : write tous les mots après le premier ═══ */</span>
+	<span class="kw">while</span> (str[i])
+	{
+		<span class="kw">while</span> (str[i] == <span class="str">&#x27; &#x27;</span> || str[i] == <span class="str">&#x27;\t&#x27;</span>)
+			i++;
+		<span class="kw">if</span> (str[i])
+		{
+			<span class="kw">if</span> (printed)
+				write(<span class="num">1</span>, <span class="str">&quot; &quot;</span>, <span class="num">1</span>);
+			w_start = i;
+			<span class="kw">while</span> (str[i] &amp;&amp; str[i] != <span class="str">&#x27; &#x27;</span> &amp;&amp; str[i] != <span class="str">&#x27;\t&#x27;</span>)
+				i++;
+			write(<span class="num">1</span>, &amp;str[w_start], i - w_start);
+			printed = <span class="num">1</span>;
+		}
+	}
+
+	<span class="cm">/* ═══ STEP 3 : premier mot à la fin ═══ */</span>
+	<span class="kw">if</span> (printed)
+		write(<span class="num">1</span>, <span class="str">&quot; &quot;</span>, <span class="num">1</span>);
+	write(<span class="num">1</span>, &amp;str[start], end - start);
+	write(<span class="num">1</span>, <span class="str">&quot;\n&quot;</span>, <span class="num">1</span>);
+
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
 </div>
 
 <!-- 🎨 PATTERNS CLÉS -->

@@ -128,29 +128,57 @@ main { max-width: 900px !important; padding-top: 20px !important; }
 
 <!-- 💾 CODE -->
 <div class="revision-card a">
-  <div class="rev-title"><span class="emoji">💾</span> code complet (35 lignes)</div>
-  <div class="rev-card-code"><span class="tp">char</span> *ft_itoa(<span class="tp">int</span> nbr) {
-    <span class="tp">char</span> *result;  <span class="tp">long</span> n, tmp;  <span class="tp">int</span> len, signe, i;
-    len = <span class="num">1</span>; signe = <span class="num">1</span>; n = nbr;
-    <span class="kw">if</span> (nbr == <span class="num">0</span>) {                     <span class="cm">// cas spécial</span>
-        result = malloc(<span class="num">2</span>);
-        <span class="kw">if</span> (!result) <span class="kw">return</span> (<span class="kw">NULL</span>);
-        result[<span class="num">0</span>] = <span class="str">'0'</span>; result[<span class="num">1</span>] = <span class="str">'\0'</span>;
-        <span class="kw">return</span> (result);
-    }
-    <span class="kw">if</span> (n &lt; <span class="num">0</span>) { signe=-<span class="num">1</span>; n=-n; len++; }   <span class="cm">// INT_MIN trap (long)</span>
-    tmp = n;
-    <span class="kw">while</span> (tmp &gt;= <span class="num">10</span>) { len++; tmp /= <span class="num">10</span>; } <span class="cm">// count digits</span>
-    result = malloc(len + <span class="num">1</span>);
-    <span class="kw">if</span> (!result) <span class="kw">return</span> (<span class="kw">NULL</span>);
-    result[len] = <span class="str">'\0'</span>;
-    i = len - <span class="num">1</span>;
-    <span class="kw">while</span> (n &gt; <span class="num">0</span>) {                          <span class="cm">// fill right to left</span>
-        result[i--] = n % <span class="num">10</span> + <span class="str">'0'</span>;
-        n /= <span class="num">10</span>;
-    }
-    <span class="kw">if</span> (signe == -<span class="num">1</span>) result[<span class="num">0</span>] = <span class="str">'-'</span>;
-    <span class="kw">return</span> (result);
+  <div class="rev-title"><span class="emoji">💾</span> code final</div>
+  <div class="rev-card-code">#include &lt;stdlib.h&gt;
+
+<span class="tp">char</span>	*ft_itoa(<span class="tp">int</span> nbr)
+{
+	<span class="tp">char</span>	*result;
+	<span class="tp">long</span>	n;
+	<span class="tp">long</span>	tmp;
+	<span class="tp">int</span>		len;
+	<span class="tp">int</span>		signe;
+	<span class="tp">int</span>		i;
+
+	len = <span class="num">1</span>;
+	signe = <span class="num">1</span>;
+	n = nbr;
+	<span class="kw">if</span> (nbr == <span class="num">0</span>)
+	{
+		result = malloc(<span class="num">2</span>);
+		<span class="kw">if</span> (!result)
+			<span class="kw">return</span> (<span class="kw">NULL</span>);
+		result[<span class="num">0</span>] = <span class="str">&#x27;0&#x27;</span>;
+		result[<span class="num">1</span>] = <span class="str">&#x27;\0&#x27;</span>;
+		<span class="kw">return</span> (result);
+	}
+	<span class="kw">if</span> (n &lt; <span class="num">0</span>)
+	{
+		signe = -<span class="num">1</span>;
+		n = -n;
+		len += <span class="num">1</span>;
+	}
+	tmp = n;
+	<span class="kw">while</span> (tmp &gt;= <span class="num">10</span>)
+	{
+		len++;
+		tmp /= <span class="num">10</span>;
+	}
+	result = malloc(len + <span class="num">1</span>);
+	<span class="kw">if</span> (!result)
+		<span class="kw">return</span> (<span class="kw">NULL</span>);
+
+	result[len] = <span class="str">&#x27;\0&#x27;</span>;
+	i = len - <span class="num">1</span>;
+	<span class="kw">while</span> (n &gt; <span class="num">0</span>)
+	{
+		result[i--] = n % <span class="num">10</span> + <span class="str">&#x27;0&#x27;</span>;
+		n /= <span class="num">10</span>;
+	}
+
+	<span class="kw">if</span> (signe == -<span class="num">1</span>)
+		result[<span class="num">0</span>] = <span class="str">&#x27;-&#x27;</span>;
+	<span class="kw">return</span> (result);
 }</div>
 </div>
 
