@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ft_itoa — the zine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+<style>
+.digit-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.digit-cell {
+  width: 44px;
+  height: 56px;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  background: var(--paper);
+  box-shadow: 2px 2px 0 var(--ink);
+  position: relative;
+}
+.digit-cell .d { font-size: 22px; color: var(--ink); }
+.digit-cell .idx { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.digit-cell.empty { background: var(--paper-d); border-style: dashed; }
+.digit-cell.empty .d { color: var(--muted); content: '?'; }
+.digit-cell.filled { background: var(--hl-mint); }
+.digit-cell.sign { background: var(--hl-pink); }
+.digit-cell.term { background: var(--ink); color: var(--paper); }
+.digit-cell.term .d { color: var(--paper); font-size: 14px; }
+
+.arrow-down {
+  text-align: center;
+  font-size: 24px;
+  color: var(--accent-d);
+  margin: -4px 0;
+}
+
+.ascii-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.ascii-item {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  text-align: center;
+}
+.ascii-item .left { color: var(--ink); font-weight: 700; }
+.ascii-item .arr { color: var(--muted); margin: 0 4px; }
+.ascii-item .right { color: var(--accent-d); font-weight: 700; }
+
+.overflow-box {
+  background: var(--hl-pink);
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 14px 0;
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(-0.3deg);
+  position: relative;
+}
+.overflow-box::before {
+  content: "⚠";
+  position: absolute;
+  top: -16px; left: 16px;
+  background: var(--accent);
+  color: #fff;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.overflow-box h4 {
+  font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: 19px; margin-bottom: 10px; margin-top: 4px;
+}
+.overflow-box p {
+  font-family: 'Patrick Hand', cursive; font-size: 16px; margin-bottom: 10px;
+  line-height: 1.45;
+}
+.overflow-box code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--paper);
+  padding: 1px 6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ the apprentissage zine — rank 02 · level 3</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <span class="hero-stars s3">✧</span>
+  <span class="hero-stars s4">✦</span>
+
+  <div class="hero-title">
+    <span class="word">ft_itoa</span>
+    <svg class="underline-draw" viewBox="0 0 300 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M3,6 Q30,2 60,6 T120,6 T180,6 T240,6 T297,6" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+    </svg>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:34px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;margin-bottom:8px;">int → string ↓</div>
+
+  <p class="hero-sub">Transformer un <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">int</code> en string allouée avec malloc. <span class="hl">Seule fonction autorisée : malloc</span>. Un piège overflow sournois au milieu.</p>
+
+  <div class="charrow">
+    <svg class="charrow-svg" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#rough)">
+        <ellipse cx="60" cy="120" rx="28" ry="3" fill="#222030" opacity="0.15"/>
+        <path d="M40,36 C18,40 18,80 42,84 C68,88 74,60 58,54 C44,49 38,64 52,70 C64,74 72,66 74,56 C78,34 58,22 40,36 Z"
+              fill="#FF7755" stroke="#222030" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M48,62 C46,67 52,71 58,68" fill="none" stroke="#222030" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+        <path d="M58,36 Q56,20 68,14" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="12" r="4" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <circle cx="50" cy="48" r="3.2" fill="#FBF6EB" stroke="#222030" stroke-width="1.8"/>
+        <circle cx="50.8" cy="48.6" r="1.4" fill="#222030"/>
+        <path d="M64,47 Q68,44 72,48" stroke="#222030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M54,58 Q60,63 65,58" stroke="#222030" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="42" cy="58" rx="3" ry="2" fill="#FFCACA" opacity="0.8"/>
+        <path d="M46,92 L42,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M66,92 L70,114" stroke="#222030" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M36,114 Q42,118 50,114 Z" fill="#222030"/>
+        <path d="M64,114 Q70,118 78,114 Z" fill="#222030"/>
+        <path d="M80,58 Q96,48 100,34" stroke="#222030" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <circle cx="100" cy="32" r="4.5" fill="#FFE96B" stroke="#222030" stroke-width="2"/>
+        <path d="M104,22 L108,18" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+        <path d="M108,30 L113,30" stroke="#D54F2F" stroke-width="2" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div class="bubble">
+      ce coup-ci, pas de write.<br>
+      tu dois <strong>malloc</strong> une string et renvoyer son adresse.
+    </div>
+  </div>
+
+  <div class="hero-meta">
+    <span class="metapill">malloc only</span>
+    <span class="metapill">char *</span>
+    <span class="metapill">~35 lignes</span>
+    <span class="metapill">20 min ☕</span>
+  </div>
+</section>
+
+<main>
+
+<!-- 1 WHAT IT DOES -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-6 40 40)">1</text>
+    </svg>
+    <h2>voilà ce que <span class="hl">la fonction fait</span>.</h2>
+  </div>
+  <p>Tu passes un <code>int</code>, elle te retourne un <code>char *</code> qui pointe sur une string fraîchement <strong>malloc'ée</strong>.</p>
+
+  <div class="term-wrap">
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+        <div class="term-title">exemples</div>
+      </div>
+      <div class="term-body">
+<span class="t-p">ft_itoa(</span><span class="t-n">42</span><span class="t-p">)</span>       → <span class="t-r">"42"</span><br>
+<span class="t-p">ft_itoa(</span><span class="t-n">0</span><span class="t-p">)</span>        → <span class="t-r">"0"</span><br>
+<span class="t-p">ft_itoa(</span><span class="t-n">-123</span><span class="t-p">)</span>     → <span class="t-r">"-123"</span><br>
+<span class="t-p">ft_itoa(</span><span class="t-n">2147483647</span><span class="t-p">)</span> → <span class="t-r">"2147483647"</span>   <span class="t-m">// INT_MAX</span><br>
+<span class="t-p">ft_itoa(</span><span class="t-n">-2147483648</span><span class="t-p">)</span>→ <span class="t-r">"-2147483648"</span>  <span class="t-m">// INT_MIN, le piège !</span>
+      </div>
+    </div>
+  </div>
+  <div class="caption">
+    <svg class="caption-arrow" viewBox="0 0 30 30"><path d="M5,25 Q8,8 22,5" stroke="#D54F2F" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="22,5 19,10 16,4" fill="#D54F2F"/></svg>
+    null-terminée (finit par '\0'), de longueur variable selon le nombre.
+  </div>
+</section>
+
+<!-- 2 WHY HARD -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFCACA" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(3 40 40)">2</text>
+    </svg>
+    <h2>3 pièges à <span class="hl-pink">connaître avant</span>.</h2>
+  </div>
+  <p>Ce qui rend l'exo plus mathy que rostring :</p>
+
+  <div class="stepgrid">
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="34" fill="#222030" transform="rotate(-3 40 40)">🔢</text>
+      </svg>
+      <div class="step-body">
+        <h3>on connaît pas la longueur au départ</h3>
+        <p><code>42</code> fait 2 chars, <code>1000000</code> en fait 7, <code>-9</code> en fait 2. <strong>Faut compter les digits avant de malloc</strong>.</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="34" fill="#222030" transform="rotate(2 40 40)">±</text>
+      </svg>
+      <div class="step-body">
+        <h3>gérer le signe</h3>
+        <p>Si le nombre est négatif, faut rajouter <code>'-'</code> au début et bosser avec sa valeur absolue. <strong>MAIS</strong> voir piège #3...</p>
+      </div>
+    </div>
+
+    <div class="stepcard">
+      <svg class="stepnum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#222030" stroke-width="2.5" stroke-dasharray="3,3" filter="url(#rough)"/>
+        <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="30" fill="#222030" transform="rotate(-2 40 40)">💥</text>
+      </svg>
+      <div class="step-body">
+        <h3>le piège <code>INT_MIN</code></h3>
+        <p>Si <code>nbr = -2147483648</code>, faire <code>-nbr</code> <strong>overflow</strong> parce que <code>+2147483648</code> tient pas dans un <code>int</code> signé (max = 2147483647). Solution : passer par un <code>long</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 INT_MIN DEEP DIVE -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#D9CAF0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-4 40 40)">3</text>
+    </svg>
+    <h2>focus : le piège <span class="hl-blue">INT_MIN</span>.</h2>
+  </div>
+  <p>Un <code>int</code> signé sur 32 bits peut contenir : <strong>−2 147 483 648 à +2 147 483 647</strong>. Remarque que les négatifs descendent <em>un cran plus bas</em> que les positifs ne montent.</p>
+
+  <div class="overflow-box">
+    <h4>Le bug classique</h4>
+    <p>Si tu fais :</p>
+    <pre style="font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--paper);padding:10px;border-radius:6px;border:1.5px solid var(--ink);">
+int nbr = -2147483648;
+int n = -nbr;       // ⚠ overflow !
+// n contient... -2147483648 (pas ce qu'on voulait)</pre>
+    <p>Pourquoi ? Parce que <code>+2 147 483 648</code> n'existe pas dans le monde des <code>int</code>. Quand tu dépasses INT_MAX, tu <em>wrap</em> autour et tu retombes sur INT_MIN.</p>
+  </div>
+
+  <div class="trick">
+    <div class="trick-badge">✦ le fix ✦</div>
+    <h4>Copier dans un <code>long</code> (64 bits)</h4>
+    <p>Un <code>long</code> va de ±9.2 × 10¹⁸. Le <code>+2147483648</code> y rentre les doigts dans le nez.</p>
+    <div class="trick-code">
+<span class="kw">long</span> n = nbr;   <span class="cm">// copie auto int → long, pas de problème</span><br>
+<span class="kw">if</span> (n &lt; <span class="num">0</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;n = -n;    <span class="cm">// ok, long peut contenir +2147483648</span>
+    </div>
+  </div>
+</section>
+
+<!-- 4 ASCII -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(4 40 40)">4</text>
+    </svg>
+    <h2>convertir un digit en <span class="hl-mint">caractère</span>.</h2>
+  </div>
+  <p>Un int <code>7</code> n'est PAS la même chose que le caractère <code>'7'</code>. Un char <code>'0'</code> vaut <strong>48</strong> en ASCII, <code>'1'</code> vaut <strong>49</strong>, etc.</p>
+
+  <p>Pour convertir un digit (0-9) en son caractère : <strong>ajouter <code>'0'</code></strong>.</p>
+
+  <div class="ascii-table">
+    <div class="ascii-item"><span class="left">0</span><span class="arr">+ '0' =</span><span class="right">'0'</span></div>
+    <div class="ascii-item"><span class="left">1</span><span class="arr">+ '0' =</span><span class="right">'1'</span></div>
+    <div class="ascii-item"><span class="left">2</span><span class="arr">+ '0' =</span><span class="right">'2'</span></div>
+    <div class="ascii-item"><span class="left">5</span><span class="arr">+ '0' =</span><span class="right">'5'</span></div>
+    <div class="ascii-item"><span class="left">7</span><span class="arr">+ '0' =</span><span class="right">'7'</span></div>
+    <div class="ascii-item"><span class="left">9</span><span class="arr">+ '0' =</span><span class="right">'9'</span></div>
+  </div>
+
+  <div style="text-align:center;">
+    <div class="handnote">pour extraire le dernier digit : <code>n % 10</code>. pour le virer : <code>n / 10</code>.</div>
+  </div>
+</section>
+
+<!-- 5 TRACE ON 42 -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#E89A38" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(5 40 40)">5</text>
+    </svg>
+    <h2>construire <span class="hl">"42"</span> étape par étape.</h2>
+  </div>
+  <p>L'astuce : on remplit la string <strong>de DROITE à GAUCHE</strong> parce que <code>n % 10</code> donne le <strong>dernier</strong> digit en premier.</p>
+
+  <p><strong>Début</strong> : n = 42, len = 2 (compté avant). Malloc 3 bytes. Place un '\0' tout à droite.</p>
+  <div class="digit-row">
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">0</div></div>
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">1</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">2</div></div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+  <p><strong>Tour 1</strong> : i=1, n=42. <code>42 % 10 = 2</code>, <code>'0' + 2 = '2'</code>. result[1] = '2'. n devient 42/10 = 4.</p>
+  <div class="digit-row">
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">0</div></div>
+    <div class="digit-cell filled"><div class="d">2</div><div class="idx">1</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">2</div></div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+  <p><strong>Tour 2</strong> : i=0, n=4. <code>4 % 10 = 4</code>, <code>'0' + 4 = '4'</code>. result[0] = '4'. n devient 4/10 = 0.</p>
+  <div class="digit-row">
+    <div class="digit-cell filled"><div class="d">4</div><div class="idx">0</div></div>
+    <div class="digit-cell filled"><div class="d">2</div><div class="idx">1</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">2</div></div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+  <p><strong>Sortie</strong> : n = 0, le while s'arrête. String = <code>"42\0"</code> ✓</p>
+</section>
+
+<!-- 6 TRACE ON -123 -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BDD7F0" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-3 40 40)">6</text>
+    </svg>
+    <h2>cas négatif : <span class="hl-blue">"-123"</span>.</h2>
+  </div>
+  <p>Mêmes étapes, mais avec une case de plus pour le <code>'-'</code> au début.</p>
+
+  <p><strong>Début</strong> : nbr = -123. Copie en long, flag negative=1, n devient 123. len = 4 (3 digits + 1 pour '-'). Malloc 5 bytes.</p>
+  <div class="digit-row">
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">0</div></div>
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">1</div></div>
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">2</div></div>
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">3</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">4</div></div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+  <p>Fill de droite à gauche : i=3, n=123 → result[3]='3', n=12 ... result[2]='2', n=1 ... result[1]='1', n=0, stop.</p>
+  <div class="digit-row">
+    <div class="digit-cell empty"><div class="d">?</div><div class="idx">0</div></div>
+    <div class="digit-cell filled"><div class="d">1</div><div class="idx">1</div></div>
+    <div class="digit-cell filled"><div class="d">2</div><div class="idx">2</div></div>
+    <div class="digit-cell filled"><div class="d">3</div><div class="idx">3</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">4</div></div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+  <p><strong>Dernière étape</strong> : <code>if (negative) result[0] = '-'</code>. String = <code>"-123\0"</code> ✓</p>
+  <div class="digit-row">
+    <div class="digit-cell sign"><div class="d">-</div><div class="idx">0</div></div>
+    <div class="digit-cell filled"><div class="d">1</div><div class="idx">1</div></div>
+    <div class="digit-cell filled"><div class="d">2</div><div class="idx">2</div></div>
+    <div class="digit-cell filled"><div class="d">3</div><div class="idx">3</div></div>
+    <div class="digit-cell term"><div class="d">\0</div><div class="idx">4</div></div>
+  </div>
+</section>
+
+<!-- 7 ALGO -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(2 40 40)">7</text>
+    </svg>
+    <h2>l'algo complet <span class="hl">en 7 étapes</span>.</h2>
+  </div>
+  <p>Ordre chronologique dans le code :</p>
+
+  <div class="skel">
+    <div class="skelcard">
+      <div class="skelletter">1</div>
+      <h4>setup</h4>
+      <p>len=1, negative=0, n=nbr (en long)</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">2</div>
+      <h4>cas nbr=0</h4>
+      <p>malloc 2, <code>"0\0"</code>, return direct</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">3</div>
+      <h4>signe</h4>
+      <p>si n&lt;0 : negative=1, n=-n, len++</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">4</div>
+      <h4>count digits</h4>
+      <p><code>while (tmp &gt;= 10) len++, tmp/=10</code></p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">5</div>
+      <h4>malloc</h4>
+      <p><code>malloc(len+1)</code> + check NULL</p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">6</div>
+      <h4>fill</h4>
+      <p>while n&gt;0 : <code>result[i--]=n%10+'0'; n/=10</code></p>
+    </div>
+    <div class="skelcard">
+      <div class="skelletter">7</div>
+      <h4>signe '-'</h4>
+      <p>si negative : <code>result[0]='-'</code>. return result</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAKEAWAY -->
+<div class="takeaway fade">
+  <svg class="takeaway-star" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30,5 L36,22 L54,22 L39,32 L44,49 L30,40 L16,49 L21,32 L6,22 L24,22 Z" fill="#FFE96B" stroke="#FBF6EB" stroke-width="1.5" filter="url(#rough)"/>
+  </svg>
+  <div class="takeaway-tag">la règle d'or ★</div>
+  <h3>pense à la <span class="hl">string À L'ENVERS</span>.</h3>
+  <p>Pour extraire les digits un par un, t'es obligé de partir par la fin. <code>n % 10</code> donne le dernier, <code>n / 10</code> l'enlève. Remplis <code>result</code> de droite à gauche, ajoute le <code>-</code> en dernier si besoin, et laisse toujours <code>'\0'</code> à la fin.</p>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">respire, c'est pas la mer à boire ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="https://github.com/terminal-42s/42_examshell">examshell</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
