@@ -329,7 +329,14 @@ function renderFrame(f) {
   if (line) {
     line.classList.add('active');
     if (f.tag === 'bug') line.classList.add('bug');
-    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scroll ONLY inside the code-panel, never the page.
+    const panel = line.closest('.code-panel');
+    if (panel) {
+      const pr = panel.getBoundingClientRect();
+      const lr = line.getBoundingClientRect();
+      const offset = (lr.top - pr.top) - (panel.clientHeight / 2) + (line.clientHeight / 2);
+      panel.scrollBy({ top: offset, behavior: 'smooth' });
+    }
   }
   setVar('v-size', f.vars.size);
   setVar('v-i', f.vars.i);
