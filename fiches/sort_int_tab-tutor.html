@@ -95,7 +95,7 @@ main { max-width: 1400px !important; }
   <span class="hero-stars s2">★</span>
   <div class="hero-title"><span class="word">sort_int_tab</span></div>
   <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">debug mode ↓</div>
-  <p class="hero-sub">Ton code <b>actuel</b>, exécuté pas à pas. Structure et comparaison sont bonnes, mais 2 bugs subtils peuvent déclencher une <b>boucle infinie</b> ♾️. Regarde <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">swaped</code> et <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">i</code>. <span class="hl">3 scénarios</span>.</p>
+  <p class="hero-sub">Ton code <b>corrigé</b>, exécuté pas à pas. Regarde les 2 resets <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">swaped = 0; i = 0;</code> en haut de chaque passe faire leur taf. <span class="hl">3 scénarios</span> (dont l'ex-cas-bug <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">[3,1,2]</code> qui marche maintenant).</p>
 </section>
 
 <main>
@@ -150,13 +150,13 @@ main { max-width: 1400px !important; }
     <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
   </div>
 
-  <div class="bugs-card">
-    <h3>🐛 Les 2 bugs qui restent (et qui font boucler à l'infini)</h3>
+  <div class="bugs-card" style="border-color:#6FAF84;">
+    <h3 style="color:#2f8b4d;">✅ Ce que font les 2 resets en haut de chaque passe</h3>
     <ol>
-      <li><b><code>swaped = 0</code> au mauvais endroit</b> (ligne 11) : il est DANS le while intérieur → il s'écrase à chaque paire visitée. Il devrait être <b>avant</b> le while intérieur, une seule fois par passe, pour signaler "personne n'a swapé pendant cette passe".</li>
-      <li><b><code>i</code> jamais reset entre les passes</b> : <code>i = 0</code> n'est fait qu'une fois dans les déclarations. Après la première passe, <code>i = size</code> et y reste. Quand l'outer reboucle, l'inner ne rentre plus → mais <code>swaped</code> reste à 1 (du dernier swap) → <b>boucle infinie</b> ♾️.</li>
+      <li><b><code>swaped = 0</code></b> : "hypothèse de départ, personne ne bougera cette passe". Si un swap arrive → remis à 1. Comme ça, à la fin de la passe, <code>swaped</code> résume <i>la passe entière</i>.</li>
+      <li><b><code>i = 0</code></b> : le doigt repart au début du tableau. Sans ça, la 2e passe ne rentrerait plus dans l'inner (<code>i</code> coincé à <code>size</code>).</li>
     </ol>
-    <div class="fix">💡 Le fix : sors <code>swaped = 0</code> avant le while intérieur, et ajoute <code>i = 0</code> juste en dessous. Comme ça chaque passe repart de zéro et peut vraiment déclarer "rien n'a bougé".</div>
+    <div class="fix">🎯 Bonus : <code>if (size &lt; 2) return ;</code> en tête protège contre <code>size == 0</code> (underflow unsigned sur <code>size - 1</code> → UINT_MAX → segfault).</div>
   </div>
 </section>
 
@@ -171,15 +171,19 @@ main { max-width: 1400px !important; }
 const CODE = [
   '<span class="tp">void</span> <span class="fn">sort_int_tab</span>(<span class="tp">int</span> *tab, <span class="tp">unsigned int</span> size)',
   '{',
-  '\t<span class="tp">unsigned int</span> i = <span class="num">0</span>;',
+  '\t<span class="tp">unsigned int</span> i;',
   '\t<span class="tp">int</span> tmp;',
-  '\t<span class="tp">int</span> swaped = <span class="num">1</span>;',
+  '\t<span class="tp">int</span> swaped;',
   '',
+  '\t<span class="kw">if</span> (size &lt; <span class="num">2</span>)',
+  '\t\t<span class="kw">return</span> ;',
+  '\tswaped = <span class="num">1</span>;',
   '\t<span class="kw">while</span> (swaped)',
   '\t{',
+  '\t\tswaped = <span class="num">0</span>;',
+  '\t\ti = <span class="num">0</span>;',
   '\t\t<span class="kw">while</span> (i &lt; size - <span class="num">1</span>)',
   '\t\t{',
-  '\t\t\tswaped = <span class="num">0</span>;',
   '\t\t\t<span class="kw">if</span> (tab[i] &gt; tab[i + <span class="num">1</span>])',
   '\t\t\t{',
   '\t\t\t\ttmp = tab[i];',
@@ -196,23 +200,24 @@ const CODE = [
 const LN = {
   sig: 1,
   declI: 3, declTmp: 4, declSwaped: 5,
-  outerW: 7,
-  innerW: 9,
-  swapedReset: 11,
-  ifCmp: 12,
-  tmpAssign: 14, tabI: 15, tabNext: 16, swapedSet: 17,
-  iInc: 19,
-  end: 22,
+  guardIf: 7, guardRet: 8,
+  swapedInit: 9,
+  outerW: 10,
+  swapedReset: 12,
+  iReset: 13,
+  innerW: 14,
+  ifCmp: 16,
+  tmpAssign: 18, tabI: 19, tabNext: 20, swapedSet: 21,
+  iInc: 23,
+  end: 26,
 };
 
 function genFrames(initialTab) {
   const frames = [];
   const tab = [...initialTab];
   const size = tab.length;
-  let i, tmp = null, swaped;
-  const MAX_PASSES = 3;
+  let i = null, tmp = null, swaped = null;
   let passCount = 0;
-  let infinite = false;
 
   const snap = (line, tag, desc, hi = {}) => frames.push({
     line, tag, desc,
@@ -222,44 +227,44 @@ function genFrames(initialTab) {
   });
 
   snap(LN.sig, 'enter', `Entrée sort_int_tab(tab=[${tab.join(',')}], size=${size})`);
+  snap(LN.declI, 'assign', `unsigned int i (pas encore assigné)`);
+  snap(LN.declTmp, 'assign', `int tmp`);
+  snap(LN.declSwaped, 'assign', `int swaped (pas encore assigné)`);
 
-  i = 0;
-  snap(LN.declI, 'assign', `unsigned int i = 0 (c'est la SEULE fois où i est mis à 0)`);
-  snap(LN.declTmp, 'assign', `int tmp (pas init)`);
+  // Guard
+  snap(LN.guardIf, 'check', `size < 2 ? → ${size < 2 ? 'OUI' : 'non'}`);
+  if (size < 2) {
+    snap(LN.guardRet, 'exit', `return ; (rien à trier, sort direct)`);
+    snap(LN.end, 'exit', `Fin. tab=[${tab.join(',')}]. Aucune modification.`);
+    return frames;
+  }
+
   swaped = 1;
-  snap(LN.declSwaped, 'assign', `int swaped = 1 (pour entrer dans le while)`);
+  snap(LN.swapedInit, 'assign', `swaped = 1 (force l'entrée dans le while extérieur)`);
 
-  while (swaped && passCount < MAX_PASSES) {
+  while (swaped) {
     passCount++;
     snap(LN.outerW, 'check',
-      `OUTER passe #${passCount} : while(swaped=${swaped}) ? → OUI, on entre`,
-      { i: i < size ? i : null });
+      `OUTER passe #${passCount} : while(swaped=${swaped}) → OUI, on entre`);
 
-    // If i never got reset and we're past pass 1, inner will be skipped entirely
-    if (passCount > 1 && i >= size - 1) {
-      snap(LN.innerW, 'bug',
-        `INNER : while(i=${i} < size-1=${size-1}) ? → FAUX. i n'a JAMAIS été remis à 0 entre les passes → on saute tout le corps.`,
-        {});
-      snap(LN.outerW, 'bug',
-        `Retour OUTER : swaped est toujours ${swaped} (l'inner n'a rien fait, donc rien ne l'a reset). La condition while(swaped) sera TOUJOURS vraie. ♾️ BOUCLE INFINIE.`);
-      infinite = true;
-      break;
-    }
+    swaped = 0;
+    snap(LN.swapedReset, 'assign',
+      `swaped = 0 — "hypothèse : rien ne bougera cette passe". Si un swap arrive → remis à 1.`);
+
+    i = 0;
+    snap(LN.iReset, 'assign',
+      `i = 0 — le doigt repart au début du tableau.`,
+      { i });
 
     while (i < size - 1) {
       snap(LN.innerW, 'check',
-        `INNER : while(i=${i} < size-1=${size-1}) ? → OUI`,
-        { i, next: i+1 });
-
-      swaped = 0;
-      snap(LN.swapedReset, 'bug',
-        `swaped = 0. ⚠️ Ce reset est DANS l'inner → il s'écrase à CHAQUE paire, pas une fois par passe. Du coup swaped ne résume plus "rien n'a bougé pendant cette passe", juste "rien n'a bougé sur la DERNIÈRE paire".`,
+        `INNER : while(i=${i} < size-1=${size-1}) → OUI`,
         { i, next: i+1 });
 
       const a = tab[i], b = tab[i+1];
       const cond = a > b;
       snap(LN.ifCmp, 'check',
-        `Compare tab[${i}]=${a} > tab[${i+1}]=${b} ? → ${cond}`,
+        `Compare tab[${i}]=${a} > tab[${i+1}]=${b} ? → ${cond ? 'OUI, swap' : 'non, on passe'}`,
         { i, next: i+1 });
 
       if (cond) {
@@ -268,38 +273,33 @@ function genFrames(initialTab) {
         tab[i] = tab[i+1];
         snap(LN.tabI, 'assign', `tab[${i}] = tab[${i+1}] = ${tab[i]}`, { i, next: i+1, swap: true });
         tab[i+1] = tmp;
-        snap(LN.tabNext, 'assign', `tab[${i+1}] = tmp = ${tmp} · swap fait`, { i, next: i+1, swap: true });
+        snap(LN.tabNext, 'assign', `tab[${i+1}] = tmp = ${tmp} · swap fait ✓`, { i, next: i+1, swap: true });
         swaped = 1;
-        snap(LN.swapedSet, 'assign', `swaped = 1 (un swap a eu lieu sur cette paire)`, { i, next: i+1 });
+        snap(LN.swapedSet, 'assign', `swaped = 1 (qqch a bougé cette passe)`, { i, next: i+1 });
       }
 
       i++;
-      snap(LN.iInc, 'exec', `i++ → i=${i}`, { i: i < size ? i : null, next: (i+1) < size ? i+1 : null });
+      snap(LN.iInc, 'exec', `i++ → i=${i}`,
+        { i: i < size ? i : null, next: (i+1) < size ? i+1 : null });
     }
 
     snap(LN.innerW, 'check',
-      `INNER sort : while(i=${i} < size-1=${size-1}) ? → non. Fin de la passe #${passCount}. swaped=${swaped} (valeur finale = état du DERNIER compare).`);
+      `INNER sort : i=${i} < size-1=${size-1} → non. Passe #${passCount} terminée, swaped=${swaped}.`);
   }
 
-  if (!infinite) {
-    snap(LN.outerW, 'check', `Retour OUTER : while(swaped=${swaped}) ? → non, on sort du while.`);
-    const sortedOk = [...initialTab].sort((a,b)=>a-b).join(',') === tab.join(',');
-    snap(LN.end, sortedOk ? 'exit' : 'bug',
-      sortedOk
-        ? `Fin. tab=[${tab.join(',')}]. ✅ trié. (Lucky : la dernière paire visitée n'a pas swap → swaped est resté à 0 → outer sort.)`
-        : `Fin. tab=[${tab.join(',')}]. ❌ PAS entièrement trié — une seule passe a eu lieu, pas assez pour finir le tri.`);
-  } else {
-    snap(LN.end, 'bug',
-      `💀 En vrai : timeout du tester / segfault / process killé. tab=[${tab.join(',')}] (état au moment du freeze).`);
-  }
+  snap(LN.outerW, 'check', `OUTER : while(swaped=${swaped}) → non, aucun swap cette passe → on sort.`);
+  snap(LN.end, 'exit',
+    `Fin. tab=[${tab.join(',')}]. ✅ trié en ${passCount} passe${passCount>1?'s':''}.`);
 
   return frames;
 }
 
 const EXAMPLES = [
-  { label: '[2,1,3]  → lucky ✅', tab: [2,1,3] },
-  { label: '[3,1,2]  → ♾️ infinite', tab: [3,1,2] },
-  { label: '[1,4,3,2,5]  → partiel ❌', tab: [1,4,3,2,5] },
+  { label: '[3,1,2]  (2 passes)', tab: [3,1,2] },
+  { label: '[2,1,3]  (2 passes)', tab: [2,1,3] },
+  { label: '[5,4,3,2,1]  (worst case)', tab: [5,4,3,2,1] },
+  { label: '[42]  (size=1)', tab: [42] },
+  { label: '[]  (size=0)', tab: [] },
 ];
 
 let frames = [], cur = 0, playing = false, playTimer = null;
