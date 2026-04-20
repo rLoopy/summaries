@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rev_wstr — fiche de révision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+<style>
+main { max-width: 900px !important; padding-top: 20px !important; }
+.revision-card {
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 16px;
+  padding: 24px 26px; box-shadow: 5px 5px 0 var(--ink);
+  margin-bottom: 20px;
+}
+.revision-card.a { transform: rotate(-0.2deg); }
+.revision-card.b { background: var(--hl-mint); transform: rotate(0.2deg); }
+.revision-card.c { background: var(--hl-pink); transform: rotate(-0.3deg); }
+.revision-card.d { background: var(--hl-blue); transform: rotate(0.3deg); }
+.rev-title {
+  font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: 22px; margin-bottom: 14px;
+  color: var(--ink); display: flex; align-items: center; gap: 10px;
+}
+.rev-title .emoji { font-size: 26px; }
+.rev-card-code {
+  background: #1C1A28; color: #E9E5F0;
+  padding: 14px 16px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  line-height: 1.75; border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre;
+}
+.rev-card-code .kw { color: #A5D8A8; }
+.rev-card-code .str { color: #FFD88A; }
+.rev-card-code .cm { color: #7D7B95; font-style: italic; }
+.rev-card-code .num { color: #FFB380; }
+.rev-card-code .tp { color: #79B8D8; }
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px; line-height: 1.5;
+  padding: 8px 12px 8px 36px; position: relative;
+  color: var(--ink);
+  border-bottom: 1px dashed rgba(34,32,48,0.2);
+}
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before {
+  content: "→"; position: absolute; left: 12px;
+  color: var(--accent-d); font-weight: 700; font-size: 18px;
+}
+.bullets li code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--paper); padding: 1px 6px;
+  border-radius: 3px; border: 1.5px solid var(--ink);
+  font-size: 13px; font-weight: 600;
+}
+.bullets li strong { color: var(--accent-d); }
+.key-insight {
+  background: var(--ink); color: var(--paper);
+  padding: 16px 20px; border-radius: 10px;
+  font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: 19px; text-align: center; line-height: 1.4;
+  box-shadow: 4px 4px 0 var(--accent);
+}
+.key-insight .hl-y {
+  background: var(--hl-yellow); color: var(--ink);
+  padding: 0 6px; border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ rev_wstr — fiche de révision</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">rev_wstr</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">quick recap ↓</div>
+  <p class="hero-sub">Inverser l'ordre des mots. <span class="hl">Parcours backwards</span>, une seule passe, zéro malloc.</p>
+</section>
+
+<main>
+
+<!-- 🎯 ALGO -->
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">🎯</span> l'algo en 4 gestes</div>
+  <ol class="bullets">
+    <li><strong>Aller à la fin</strong> : <code>while (str[i]) i++;</code> puis <code>i--;</code> → position du dernier char.</li>
+    <li><strong>Outer while</strong> : tant que <code>i >= 0</code>, traite un mot par tour.</li>
+    <li><strong>Dans le tour</strong> : <code>end = i</code>, recule tant que pas séparateur, write le mot <code>[i+1 .. end]</code>.</li>
+    <li><strong>Espace entre mots</strong> : <code>if (i >= 0) write(" ", 1)</code> — pas d'espace quand i=-1 (dernier mot imprimé). <code>i--</code> pour passer devant le sep.</li>
+  </ol>
+</div>
+
+<!-- 💾 CODE FINAL (injection auto) -->
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">💾</span> code final</div>
+  <div class="rev-card-code">#include &lt;unistd.h&gt;
+
+<span class="tp">int</span>	main(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="tp">char</span>	*str = argv[<span class="num">1</span>];
+	<span class="tp">int</span>		i = <span class="num">0</span>;
+	<span class="tp">int</span>		end = <span class="num">0</span>;
+
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
+	{
+		write(<span class="num">1</span>, <span class="str">&quot;\n&quot;</span>, <span class="num">1</span>);
+		<span class="kw">return</span> (<span class="num">0</span>);
+	}
+	<span class="kw">while</span> (str[i])
+		i++;
+	i--;
+	<span class="kw">while</span> (i &gt;= <span class="num">0</span>)
+	{
+		end = i;
+		<span class="kw">while</span> (i &gt;= <span class="num">0</span> &amp;&amp; str[i] != <span class="str">&#x27; &#x27;</span> &amp;&amp; str[i] != <span class="str">&#x27;\t&#x27;</span>)
+			i--;
+		write(<span class="num">1</span>, &amp;str[i + <span class="num">1</span>], end - i);
+		<span class="kw">if</span> (i &gt;= <span class="num">0</span>)
+			write(<span class="num">1</span>, <span class="str">&quot; &quot;</span>, <span class="num">1</span>);
+		i--;
+	}
+	write(<span class="num">1</span>, <span class="str">&quot;\n&quot;</span>, <span class="num">1</span>);
+	<span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+</div>
+
+<!-- 🎨 PATTERNS -->
+<div class="revision-card b">
+  <div class="rev-title"><span class="emoji">🎨</span> patterns clés</div>
+  <ul class="bullets">
+    <li><strong>Write segments directs</strong> : zéro malloc. Tu donnes <code>&str[i+1]</code> + longueur <code>end - i</code> à write.</li>
+    <li><strong>i ne fait que descendre</strong> : garantit zéro boucle infinie. Chaque tour décrémente de 1+ position.</li>
+    <li><strong>Le walk-back s'arrête SUR le séparateur</strong> (ou à -1). Le <code>i--</code> de fin de tour passe devant.</li>
+    <li><strong>Espace conditionnel</strong> : <code>if (i >= 0) write(" ")</code> → évite trailing space quand on a fini le dernier mot.</li>
+    <li><strong><code>argc != 2</code></strong> : contrairement à rostring (qui accepte argc≥2), rev_wstr veut exactement 1 arg.</li>
+  </ul>
+</div>
+
+<!-- ⚠️ PIÈGES -->
+<div class="revision-card c">
+  <div class="rev-title"><span class="emoji">⚠️</span> les pièges</div>
+  <ul class="bullets">
+    <li><strong>Bounds dans le walk-back</strong> : <code>while (i >= 0 && str[i] != ' ' && str[i] != '\t')</code> — sans le <code>i >= 0</code>, tu peux déréférencer <code>str[-1]</code>.</li>
+    <li><strong>Séparateurs = ' ' ET '\t'</strong> : toujours tester les deux.</li>
+    <li><strong>Le <code>if (i >= 0)</code> avant write(" ")</strong> : évite trailing space. i = -1 signifie qu'on vient d'imprimer le dernier mot.</li>
+    <li><strong>Longueur write</strong> : <code>end - i</code> (pas <code>end - i + 1</code>). Parce que i pointe sur le sep (ou -1), pas sur le 1er char du mot. Le 1er char est à <code>i+1</code>.</li>
+    <li><strong>Input garanti "propre"</strong> : le sujet garantit pas de leading/trailing spaces et 1 seul espace entre mots. Donc pas besoin de collapser comme dans rostring.</li>
+  </ul>
+</div>
+
+<!-- 🪞 VS ROSTRING -->
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🪞</span> différence avec rostring</div>
+  <ul class="bullets">
+    <li><strong>rev_wstr</strong> : inverse TOUS les mots. Parcourt à l'envers.</li>
+    <li><strong>rostring</strong> : déplace SEUL le premier mot à la fin. Parcourt à l'endroit.</li>
+    <li><strong>rev_wstr</strong> input propre (1 seul espace garanti). Pas de collapse nécessaire.</li>
+    <li><strong>rostring</strong> input peut être sale (multi-spaces, leading, trailing). Collapse obligatoire.</li>
+    <li><strong>rev_wstr</strong> <code>argc != 2</code>. <strong>rostring</strong> <code>argc < 2</code>.</li>
+  </ul>
+</div>
+
+<!-- 💡 KEY INSIGHT -->
+<div class="key-insight">
+  la <span class="hl-y">règle d'or</span> :<br>
+  i ne fait que descendre → impossible de boucler.<br>
+  write des segments, jamais de copie.
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">rev_wstr pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="rev_wstr.html">zine</a> · <a href="rev_wstr-tutor.html">step debugger</a> · <a href="rev_wstr-visu.html">visu algo</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+</body>
+</html>
