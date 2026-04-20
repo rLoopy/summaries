@@ -869,3 +869,64 @@ footer {
   .primes-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; }
   .hero-title { font-size: 54px; }
 }
+
+
+/* ══════════ NIGHT MODE ══════════ */
+/* Opt-in via body.night — flips the warm paper palette to a dark-warm palette.
+   Use zine-night.js to get an auto-injected ☀/🌙 toggle button on any page. */
+
+body.night {
+  --paper: #1f1c2b;
+  --paper-d: #16141f;
+  --paper-e: #0f0d17;
+  --ink: #ece6d6;
+  --ink-soft: #b8b0a5;
+  --muted: #7c7a8c;
+  --hl-yellow: #4a3f1a;
+  --hl-yellow-d: #6a5a25;
+  --hl-mint: #2e5b3d;
+  --hl-pink: #6b3a3a;
+  --hl-blue: #2e4b6a;
+  --hl-purple: #4a3a6a;
+  --accent: #ff8a7a;
+  --accent-d: #ff6b4e;
+  --leaf: #6faf84;
+  --cool: #79b8d8;
+  --warm: #ffb380;
+  background: #0d0b14;
+  color: var(--ink);
+}
+body.night::before { opacity: 0.18; filter: invert(1) hue-rotate(180deg); }
+body.night::after  { background: radial-gradient(ellipse at 50% 50%, transparent 40%, #000 130%); opacity: 0.35; }
+
+/* Targeted tweaks for elements with hardcoded / high-contrast colors */
+body.night .band           { background: #0d0b14; color: var(--ink); border-bottom: 1px solid var(--ink-soft); }
+body.night .desc-box       { background: #0d0b14; color: var(--ink); }
+body.night .ctrl-btn.primary { background: var(--accent-d); color: #0d0b14; }
+body.night .bugs-card      { border-color: #ff7a7a; }
+body.night .hero-sub code  { background: var(--hl-yellow); color: var(--ink); }
+
+/* Night toggle button (used by zine-night.js) */
+.night-toggle {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 10000;
+  font-size: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.night-toggle:hover  { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+.night-toggle:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--ink); }
