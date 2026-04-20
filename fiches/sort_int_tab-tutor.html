@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>sort_int_tab — Python Tutor (ton code buggy)</title>
+<style>
+  :root{
+    --bg:#fdfaf3; --ink:#2a2a2a; --accent:#d94a3d; --hi:#fff3a8;
+    --ok:#2f8b4d; --bad:#c1272d; --mute:#8a8580; --line:#e8e1cf;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:20px; background:var(--bg); color:var(--ink);
+    font-family:"Patrick Hand","Segoe UI",sans-serif; font-size:17px;
+  }
+  h1{font-family:"Kalam","Patrick Hand",cursive; font-size:28px; margin:0 0 4px}
+  .sub{color:var(--mute); margin-bottom:14px}
+  .scenarios{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px}
+  .scenarios button{
+    font-family:inherit; font-size:15px; padding:6px 12px; cursor:pointer;
+    background:#fff; border:2px solid var(--line); border-radius:6px;
+  }
+  .scenarios button.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .grid{display:grid; grid-template-columns:1.1fr 1fr; gap:16px}
+  .panel{background:#fff; border:2px solid var(--line); border-radius:8px; padding:14px}
+  .panel h3{margin:0 0 8px; font-family:"Kalam",cursive; font-size:20px}
+  pre.code{
+    font-family:"JetBrains Mono","Consolas",monospace; font-size:14px;
+    line-height:1.5; margin:0; white-space:pre; overflow-x:auto;
+  }
+  .codeline{padding:1px 8px; border-radius:3px; display:block}
+  .codeline.hi{background:var(--hi); box-shadow:inset 3px 0 0 var(--accent)}
+  .codeline.bug{background:#ffdede; box-shadow:inset 3px 0 0 var(--bad)}
+  .vars{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px}
+  .var{background:#f8f4e8; padding:6px 10px; border-radius:5px; font-family:"JetBrains Mono",monospace; font-size:14px}
+  .var .k{color:var(--mute); font-size:12px}
+  .var .v{font-weight:bold; font-size:16px}
+  .array{display:flex; gap:4px; margin:8px 0 12px; flex-wrap:wrap}
+  .cell{
+    width:42px; height:42px; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--line); border-radius:6px; font-family:"JetBrains Mono",monospace;
+    font-weight:bold; position:relative; background:#fff;
+  }
+  .cell .idx{position:absolute; top:-16px; font-size:11px; color:var(--mute); font-weight:normal}
+  .cell.i{border-color:var(--accent); background:#fff3a8}
+  .cell.next{border-color:#4a90d9; background:#d9ecff}
+  .cell.swap{border-color:var(--ok); background:#d4f4de}
+  .note{
+    background:#f0ebdb; padding:10px 12px; border-radius:6px; font-size:15px;
+    border-left:3px solid var(--accent); min-height:60px;
+  }
+  .note.bug{background:#ffe5e5; border-left-color:var(--bad)}
+  .note.bug::before{content:"🐛 BUG  "; font-weight:bold; color:var(--bad)}
+  .controls{display:flex; gap:8px; margin-top:14px; align-items:center; flex-wrap:wrap}
+  .controls button{
+    font-family:inherit; font-size:16px; padding:6px 14px; cursor:pointer;
+    background:var(--ink); color:#fff; border:none; border-radius:5px;
+  }
+  .controls button:hover{background:var(--accent)}
+  .progress{flex:1; font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--mute); text-align:right}
+  .legend{font-size:13px; color:var(--mute); margin-top:8px}
+  .bugs-summary{
+    margin-top:18px; padding:14px; background:#fff6f6; border:2px solid #f5c6c6;
+    border-radius:8px;
+  }
+  .bugs-summary h3{margin:0 0 8px; color:var(--bad); font-family:"Kalam",cursive}
+  .bugs-summary ol{margin:6px 0 0 20px; padding:0}
+  .bugs-summary li{margin-bottom:6px}
+  code{background:#f4efe0; padding:1px 5px; border-radius:3px; font-family:"JetBrains Mono",monospace; font-size:13px}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<h1>sort_int_tab — Python Tutor</h1>
+<div class="sub">Ton code <b>tel quel</b>, exécuté pas à pas. Regarde bien <code>swaped</code> et <code>i</code>.</div>
+
+<div class="scenarios">
+  <button data-s="0" class="active">Test 1 : [3,1,2]</button>
+  <button data-s="1">Test 2 : [1,5,3,2,4]</button>
+  <button data-s="2">Test 3 : [5,4,3,2,1]</button>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h3>Code (ligne par ligne)</h3>
+    <pre class="code" id="code"></pre>
+  </div>
+
+  <div class="panel">
+    <h3>État d'exécution</h3>
+    <div class="vars" id="vars"></div>
+    <div><b>tab</b> :</div>
+    <div class="array" id="arr"></div>
+    <div class="note" id="note">Clique ▶ pour démarrer.</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="reset">⏮ Reset</button>
+  <button id="prev">◀ Prev</button>
+  <button id="play">▶ Play</button>
+  <button id="next">Next ▶</button>
+  <label style="font-size:14px">vitesse
+    <select id="speed">
+      <option value="1200">lent</option>
+      <option value="700" selected>normal</option>
+      <option value="300">rapide</option>
+    </select>
+  </label>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="legend">
+  🟡 case <b>i</b> &nbsp;·&nbsp; 🔵 case <b>i+1</b> &nbsp;·&nbsp; 🟢 swap effectué
+</div>
+
+<div class="bugs-summary">
+  <h3>Ce que le tutor révèle — les 3 bugs</h3>
+  <ol>
+    <li><b>Structure inversée</b> : ton <code>while (i &lt; size-1)</code> est à l'extérieur et <code>while (swaped)</code> à l'intérieur. C'est l'inverse d'un vrai bubble sort. Résultat : dès que <code>swaped=0</code>, le reste de l'array n'est plus balayé.</li>
+    <li><b>Comparaison inversée</b> : <code>if (tab[i] &lt; tab[i+1])</code> swap quand c'est déjà dans l'ordre croissant. Tu tries en <b>décroissant</b> (ou pas du tout selon l'input).</li>
+    <li><b><code>i</code> jamais reset</b> : <code>i</code> part à 0 dans les déclarations, puis <code>i++</code> monte jusqu'à <code>size-1</code>. Même si tu corrigeais le reste, tu ne ferais <b>qu'une seule passe</b>.</li>
+  </ol>
+  <div style="margin-top:10px; font-size:14px; color:var(--mute)">
+    💡 <b>Le fix</b> : inverse les deux <code>while</code>, mets <code>swaped = 0</code> <i>avant</i> le <code>while</code> intérieur, reset <code>i = 0</code> au début de chaque passe, change <code>&lt;</code> en <code>&gt;</code>.
+  </div>
+</div>
+
+<script>
+// ===== TON CODE EXACT =====
+const CODE = [
+  /* 1*/ "void sort_int_tab(int *tab, unsigned int size)",
+  /* 2*/ "{",
+  /* 3*/ "    unsigned int i = 0;",
+  /* 4*/ "    int tmp;",
+  /* 5*/ "    int swaped = 1;",
+  /* 6*/ "",
+  /* 7*/ "    while (i < size - 1)",
+  /* 8*/ "    {",
+  /* 9*/ "        while (swaped)",
+  /*10*/ "        {",
+  /*11*/ "            swaped = 0;",
+  /*12*/ "            if (tab[i] < tab[i + 1])",
+  /*13*/ "            {",
+  /*14*/ "                tmp = tab[i];",
+  /*15*/ "                tab[i] = tab[i + 1];",
+  /*16*/ "                tab[i + 1] = tmp;",
+  /*17*/ "                swaped = 1;",
+  /*18*/ "            }",
+  /*19*/ "        }",
+  /*20*/ "        i++;",
+  /*21*/ "    }",
+  /*22*/ "    if (swaped == 0)",
+  /*23*/ "    {",
+  /*24*/ "",
+  /*25*/ "    }",
+  /*26*/ "}",
+];
+
+// ===== SIMULATEUR : exécute TON code exact, enregistre chaque frame =====
+function simulate(initialTab){
+  const frames = [];
+  const tab = [...initialTab];
+  const size = tab.length;
+  let i, tmp = null, swaped;
+  const snap = (line, note, bug=false, hi={}) => frames.push({
+    line, tab:[...tab], i, tmp, swaped, size, note, bug,
+    iHi: hi.i ?? null, nextHi: hi.next ?? null, swap: hi.swap ?? false
+  });
+
+  // Line 1: entry
+  i = undefined; swaped = undefined;
+  snap(1, `Entrée dans sort_int_tab avec tab=[${tab}], size=${size}.`);
+  // Line 3: i = 0
+  i = 0;
+  snap(3, "Déclaration : i = 0.");
+  // Line 4: tmp
+  snap(4, "Déclaration : tmp (pas initialisé).");
+  // Line 5: swaped = 1
+  swaped = 1;
+  snap(5, "swaped = 1 pour entrer dans la boucle au moins une fois.");
+
+  // Outer while (i < size - 1)
+  while (i < size - 1) {
+    snap(7, `Check OUTER : i=${i} < size-1=${size-1} ? → vrai, on entre.`, false, {i});
+
+    // Inner while (swaped)
+    snap(9, `Check INNER : while(swaped=${swaped}) ? → ${swaped?"vrai, on entre":"faux, on saute"}.`,
+         !swaped && i > 0,  // bug si on saute car i pas reset
+         !swaped ? {} : {i, next:i+1});
+
+    if (!swaped) {
+      // Inner skipped — BUG: i jamais reset
+      if (i > 0) {
+        frames[frames.length-1].bug = true;
+        frames[frames.length-1].note = `🐛 swaped vaut 0 (pas de swap lors de la passe précédente) ET i=${i} n'a jamais été remis à 0 → on ne regardera jamais les paires (${i},${i+1}), (${i+1},${i+2})... Le reste du tableau ne sera plus balayé.`;
+      }
+    }
+
+    while (swaped) {
+      // Line 11: swaped = 0
+      swaped = 0;
+      snap(11,
+        `swaped = 0. ⚠️ Ce reset est DANS le while(swaped) interne — il se fait à chaque tour intérieur, pas une fois par passe comme dans un vrai bubble sort.`,
+        true, {i, next:i+1}
+      );
+
+      // Line 12: if (tab[i] < tab[i+1])
+      const a = tab[i], b = tab[i+1];
+      const cond = a < b;
+      snap(12,
+        `Compare tab[${i}]=${a} < tab[${i+1}]=${b} ? → ${cond}. 🐛 Pour trier CROISSANT il faudrait \`>\`, pas \`<\`.`,
+        true, {i, next:i+1}
+      );
+
+      if (cond) {
+        // Line 14-17: swap
+        tmp = tab[i];
+        snap(14, `tmp = tab[${i}] = ${tmp}.`, false, {i, next:i+1});
+        tab[i] = tab[i+1];
+        snap(15, `tab[${i}] = tab[${i+1}] = ${tab[i]}.`, false, {i, next:i+1, swap:true});
+        tab[i+1] = tmp;
+        snap(16, `tab[${i+1}] = tmp = ${tmp}. Swap effectué.`, false, {i, next:i+1, swap:true});
+        swaped = 1;
+        snap(17, `swaped = 1 (on a swap, donc on re-rentre dans le inner).`, false, {i, next:i+1});
+      }
+      // Back to line 9
+      snap(9, `Retour check INNER : while(swaped=${swaped}) ? → ${swaped?"vrai, on reboucle SUR LA MÊME PAIRE":"faux, on sort"}.`,
+        swaped, swaped ? {i, next:i+1} : {});
+    }
+
+    // Line 20: i++
+    i++;
+    snap(20, `i++ → i=${i}.`, false, {i: i < size ? i : null});
+  }
+  snap(7, `Check OUTER : i=${i} < size-1=${size-1} ? → faux, on sort.`);
+  // Line 22: dead block
+  snap(22, `if (swaped == ${swaped}) — bloc vide, ne fait rien. Code mort.`);
+  snap(26, `Fin. tab = [${tab}]. ${isSorted(tab) ? "✅ trié" : "❌ PAS trié"}.`);
+
+  return frames;
+}
+
+function isSorted(a){
+  for(let k=0;k<a.length-1;k++) if(a[k]>a[k+1]) return false;
+  return true;
+}
+
+// ===== RENDU =====
+const SCENARIOS = [
+  [3,1,2],
+  [1,5,3,2,4],
+  [5,4,3,2,1],
+];
+let curScenario = 0;
+let frames = simulate(SCENARIOS[0]);
+let idx = 0;
+let playing = null;
+
+function renderCode(line){
+  const el = document.getElementById("code");
+  el.innerHTML = CODE.map((l,k)=>{
+    const n = k+1;
+    const cls = n === line ? "codeline hi" : "codeline";
+    const num = String(n).padStart(2," ");
+    return `<span class="${cls}"><span style="color:#b8b0a0">${num} </span>${escapeHtml(l)}</span>`;
+  }).join("");
+}
+
+function escapeHtml(s){return s.replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+
+function renderState(f){
+  // vars
+  const varsEl = document.getElementById("vars");
+  varsEl.innerHTML = [
+    ["size", f.size],
+    ["i", f.i===undefined?"?":f.i],
+    ["swaped", f.swaped===undefined?"?":f.swaped],
+    ["tmp", f.tmp===null?"?":f.tmp],
+  ].map(([k,v])=>`<div class="var"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  // array
+  const arrEl = document.getElementById("arr");
+  arrEl.innerHTML = f.tab.map((v,k)=>{
+    let cls = "cell";
+    if (k === f.iHi) cls += " i";
+    if (k === f.nextHi) cls += " next";
+    if (f.swap && (k === f.iHi || k === f.nextHi)) cls += " swap";
+    return `<div class="${cls}"><span class="idx">${k}</span>${v}</div>`;
+  }).join("");
+
+  // note
+  const noteEl = document.getElementById("note");
+  noteEl.className = "note" + (f.bug ? " bug" : "");
+  noteEl.textContent = f.note;
+}
+
+function render(){
+  const f = frames[idx];
+  renderCode(f.line);
+  renderState(f);
+  // highlight bug lines in red if frame is bug
+  if (f.bug) {
+    const lines = document.querySelectorAll("#code .codeline");
+    if (lines[f.line-1]) lines[f.line-1].classList.add("bug");
+  }
+  document.getElementById("prog").textContent = `frame ${idx+1} / ${frames.length}`;
+}
+
+function goto(n){
+  idx = Math.max(0, Math.min(frames.length-1, n));
+  render();
+}
+
+document.getElementById("next").onclick = ()=>goto(idx+1);
+document.getElementById("prev").onclick = ()=>goto(idx-1);
+document.getElementById("reset").onclick = ()=>{ stopPlay(); goto(0); };
+document.getElementById("play").onclick = ()=>{
+  if (playing){ stopPlay(); return; }
+  document.getElementById("play").textContent = "⏸ Pause";
+  const speed = +document.getElementById("speed").value;
+  playing = setInterval(()=>{
+    if (idx >= frames.length-1){ stopPlay(); return; }
+    goto(idx+1);
+  }, speed);
+};
+function stopPlay(){
+  if (playing){ clearInterval(playing); playing = null; }
+  document.getElementById("play").textContent = "▶ Play";
+}
+
+document.querySelectorAll(".scenarios button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll(".scenarios button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    curScenario = +b.dataset.s;
+    frames = simulate(SCENARIOS[curScenario]);
+    stopPlay();
+    goto(0);
+  };
+});
+
+goto(0);
+</script>
+
+</body>
+</html>
