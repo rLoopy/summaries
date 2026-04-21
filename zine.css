@@ -3,6 +3,9 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Disable font ligatures globally — show `>=`, `!=`, `->` literally instead of ≥, ≠, → */
+* { font-variant-ligatures: none !important; font-feature-settings: "liga" 0, "calt" 0 !important; }
+
 :root {
   --paper: #FBF6EB;
   --paper-d: #F1E9D5;
