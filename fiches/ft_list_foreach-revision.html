@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ft_list_foreach — fiche de révision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=3">
+<style>
+main { max-width: 900px !important; padding-top: 20px !important; }
+.revision-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 24px 26px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 20px; }
+.revision-card.a { transform: rotate(-0.2deg); }
+.revision-card.b { background: var(--hl-mint); transform: rotate(0.2deg); }
+.revision-card.c { background: var(--hl-pink); transform: rotate(-0.3deg); }
+.revision-card.d { background: var(--hl-blue); transform: rotate(0.3deg); }
+.rev-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin-bottom: 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.rev-title .emoji { font-size: 26px; }
+.rev-card-code { background: #1C1A28; color: #E9E5F0; padding: 14px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; }
+.rev-card-code .kw { color: #A5D8A8; } .rev-card-code .str { color: #FFD88A; } .rev-card-code .cm { color: #7D7B95; font-style: italic; } .rev-card-code .num { color: #FFB380; } .rev-card-code .tp { color: #79B8D8; } .rev-card-code .fn { color: #C0B3E0; } .rev-card-code .pp { color: #E89A9A; }
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; padding: 8px 12px 8px 36px; position: relative; color: var(--ink); border-bottom: 1px dashed rgba(34,32,48,0.2); }
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before { content: "→"; position: absolute; left: 12px; color: var(--accent-d); font-weight: 700; font-size: 18px; }
+.bullets li code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border-radius: 3px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; }
+.bullets li strong { color: var(--accent-d); }
+.key-insight { background: var(--ink); color: var(--paper); padding: 16px 20px; border-radius: 10px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 19px; text-align: center; line-height: 1.4; box-shadow: 4px 4px 0 var(--accent); }
+.key-insight .hl-y { background: var(--hl-yellow); color: var(--ink); padding: 0 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ ft_list_foreach — fiche de révision</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">ft_list_foreach</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">quick recap ↓</div>
+  <p class="hero-sub">Parcours + callback. <span class="hl">4 lignes</span> de code. L'exo le plus court du level 3.</p>
+</section>
+
+<main>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">🎯</span> l'algo en 3 points</div>
+  <ol class="bullets">
+    <li><strong>Walk</strong> : <code>while (begin_list)</code> — tant que le pointeur n'est pas NULL.</li>
+    <li><strong>Call</strong> : <code>f(begin_list-&gt;data)</code> — applique la fonction sur le <code>data</code> du node courant.</li>
+    <li><strong>Advance</strong> : <code>begin_list = begin_list-&gt;next</code> — saute au suivant. Le while gère automatiquement la sortie quand on arrive à NULL.</li>
+  </ol>
+</div>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">💾</span> code final</div>
+  <div class="rev-card-code"><span class="cm">/* ft_list.h : à rendre AUSSI (sujet explicite) */</span>
+<span class="kw">typedef struct</span>	s_list
+{
+	<span class="kw">struct</span> s_list	*next;
+	<span class="tp">void</span>			*data;
+}	<span class="tp">t_list</span>;
+
+<span class="tp">void</span>	<span class="fn">ft_list_foreach</span>(<span class="tp">t_list</span> *begin_list, <span class="tp">void</span> (*f)(<span class="tp">void</span> *));
+
+<span class="cm">/* ft_list_foreach.c */</span>
+<span class="pp">#include</span> <span class="str">"ft_list.h"</span>
+
+<span class="tp">void</span>	<span class="fn">ft_list_foreach</span>(<span class="tp">t_list</span> *begin_list, <span class="tp">void</span> (*f)(<span class="tp">void</span> *))
+{
+	<span class="kw">while</span> (begin_list)
+	{
+		<span class="fn">f</span>(begin_list-&gt;data);
+		begin_list = begin_list-&gt;next;
+	}
+}</div>
+</div>
+
+<div class="revision-card b">
+  <div class="rev-title"><span class="emoji">🎨</span> patterns clés</div>
+  <ul class="bullets">
+    <li><strong>Pointeur de fonction</strong> : <code>void (*f)(void *)</code> se lit "<code>f</code> est un pointeur vers une fonction qui prend un <code>void *</code> et retourne <code>void</code>". On l'appelle comme une fonction normale : <code>f(arg)</code>. Même pattern que <code>cmp</code> dans <code>sort_list</code>.</li>
+    <li><strong>NULL géré par le <code>while</code></strong> : <code>while (begin_list)</code> = <code>while (begin_list != NULL)</code>. Si la liste est vide au départ, on n'entre pas. Pas besoin d'un <code>if</code> séparé.</li>
+    <li><strong>Passage par valeur</strong> : modifier <code>begin_list</code> dans la fonction ne change PAS la tête de liste de l'appelant. T'as une copie locale du pointeur, tu peux la réécraser tranquille.</li>
+    <li><strong><code>void *</code></strong> = "pointeur vers n'importe quoi". La fonction <code>f</code> saura le caster. Ton <code>ft_list_foreach</code> s'en fout complètement du type réel.</li>
+    <li><strong>Turn in 2 fichiers</strong> : <code>ft_list_foreach.c</code> ET <code>ft_list.h</code>. Le sujet est explicite. Le <code>.h</code> DOIT contenir la struct exactement comme donnée.</li>
+  </ul>
+</div>
+
+<div class="revision-card c">
+  <div class="rev-title"><span class="emoji">⚠️</span> les pièges</div>
+  <ul class="bullets">
+    <li><strong>Oublier de rendre <code>ft_list.h</code></strong> → fichiers manquants, fail auto.</li>
+    <li><strong>Ordre des champs du struct différent</strong> → compile OK mais segfault au runtime : la main du tester écrit à offset 0 pensant que c'est <code>next</code>, ton code lit offset 0 pensant que c'est <code>data</code>. Random memory access = 💥. <b>Copie la struct mot pour mot depuis le sujet.</b></li>
+    <li><strong>Include <code>&lt;stdio.h&gt;</code> ou autre</strong> → Allowed functions: <i>None</i>. Aucune lib autorisée dans TON .c. Le tester fait l'import de son côté.</li>
+    <li><strong>Ajouter un <code>if (!begin_list) return ;</code></strong> → pas FAUX, mais redondant avec le <code>while</code>. Le jury pourrait considérer ça comme du bruit.</li>
+    <li><strong>Modifier <code>begin_list</code> globalement</strong> → impossible, c'est local. Mais attention : si <code>f</code> modifie <code>data</code> (ex: <code>*(int *)data *= 2</code>), la liste de l'appelant EST modifiée (on passe le pointeur, pas une copie de la data).</li>
+  </ul>
+</div>
+
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🧠</span> mental model</div>
+  <ul class="bullets">
+    <li><strong>Iterator + callback</strong>. Une des fonctions les plus utilisées en vrai dev (JS <code>.forEach</code>, Python <code>for ... in</code>, Rust iterators…). Une fois pigée, tu la reconnais partout.</li>
+    <li><strong>ft_list_foreach ne sait rien de <code>f</code></strong>. Elle promet juste : "je t'appelle sur chaque <code>data</code>". Décorrelation totale entre parcours et traitement.</li>
+    <li><strong>Pattern pour lister les exos 42 utilisant un pointeur de fonction</strong> : <code>sort_list</code> (cmp), <code>ft_list_foreach</code> (f), <code>ft_list_remove_if</code> (cmp), <code>ft_list_find</code>... C'est le family de "fonctions d'ordre supérieur sur listes".</li>
+    <li><strong>Si tu galères à lire <code>void (*f)(void *)</code></strong> : mets le nom au milieu. "<code>f</code> est un <code>*</code> (pointeur) qui retourne <code>void</code> et prend <code>(void *)</code>". Puis généralise : <code>type (*nom)(args)</code> = pointeur vers une fonction qui...</li>
+  </ul>
+</div>
+
+<div class="key-insight">
+  la <span class="hl-y">règle d'or</span> :<br>
+  <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">while</code> + <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">f(data)</code> + <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">-&gt;next</code>. 3 mots, 1 fonction.<br>
+  n'oublie pas <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">ft_list.h</code> avec la struct EXACTEMENT comme donnée.
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">foreach pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="../index.html">dashboard</a> · <a href="ft_list_foreach-tutor.html">step debugger</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>
