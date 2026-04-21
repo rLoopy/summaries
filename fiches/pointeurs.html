@@ -37,6 +37,12 @@ main { max-width: 940px !important; padding-top: 20px !important; }
 .cmp-col { background: var(--paper-d); border: 2px solid var(--ink); border-radius: 10px; padding: 12px 14px; }
 .cmp-col.good { background: #D4F4DE; }
 .cmp-col.bad { background: #FFD4D4; }
+body.night .cmp-col.good { background: #1e4028; color: var(--ink); }
+body.night .cmp-col.bad { background: #4a1e1e; color: var(--ink); }
+body.night .cmp-col.good .title,
+body.night .cmp-col.bad .title,
+body.night .cmp-col.good p,
+body.night .cmp-col.bad p { color: var(--ink); }
 .cmp-col .title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
 
 .quiz { background: var(--paper-e); border: 2px dashed var(--ink); border-radius: 10px; padding: 14px 16px; margin: 14px 0; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
