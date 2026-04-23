@@ -240,7 +240,7 @@ function simulate(scenario) {
   snap(1, 'enter', `Programme démarre. argc=${argv.length}, argv=${JSON.stringify(argv)}.`, { focus: 'argv' });
   snap(3, 'declare', `int n déclaré (garbage pour l'instant).`);
   snap(4, 'declare', `int *values déclaré (garbage pour l'instant).`);
-  snap(6, 'check', `if (argc < 2) ? → ${argv.length < 2 ? 'OUI, pas d\\'args' : 'non (argc = ' + argv.length + ')'}`);
+  snap(6, 'check', `if (argc < 2) ? → ${argv.length < 2 ? 'OUI, pas d\'args' : 'non (argc = ' + argv.length + ')'}`);
 
   if (argv.length < 2) {
     exitCode = 0;
@@ -277,7 +277,7 @@ function simulate(scenario) {
 const SCENARIOS = [
   { label: '(no args) 🔵', argv: ['./push_swap'], parseOk: null, cat: 'silent' },
   { label: '3 1 4 2 ✅', argv: ['./push_swap', '3', '1', '4', '2'], parseOk: true, n: 4, values: [3, 1, 4, 2], cat: 'ok' },
-  { label: '3 abc 4 ❌', argv: ['./push_swap', '3', 'abc', '4'], parseOk: false, errReason: '"abc" n\\'est pas un nombre', cat: 'ko' },
+  { label: '3 abc 4 ❌', argv: ['./push_swap', '3', 'abc', '4'], parseOk: false, errReason: '"abc" n\'est pas un nombre', cat: 'ko' },
   { label: '3 1 4 1 ❌ dup', argv: ['./push_swap', '3', '1', '4', '1'], parseOk: false, errReason: 'doublon (1 apparaît 2x)', cat: 'ko' },
   { label: '9999999999 ❌ overflow', argv: ['./push_swap', '9999999999'], parseOk: false, errReason: 'overflow int', cat: 'ko' },
 ];
