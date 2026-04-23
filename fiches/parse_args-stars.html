@@ -99,9 +99,48 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
 
 <main>
 
+<!-- ═══════════ 0. Ce que parse_args fait ═══════════ -->
+<div class="card a">
+  <h2><span class="emoji">🎯</span> Ce que <code>parse_args</code> fait (big picture)</h2>
+  <p><code>parse_args</code> c'est le <strong>chef d'orchestre du parser</strong>. Elle fait pas de calcul elle-même, elle <strong>enchaîne les autres fonctions</strong> dans le bon ordre et gère les erreurs.</p>
+
+  <h3>Son job en une phrase</h3>
+  <p>Transformer les arguments bruts du terminal en un <strong>tableau d'ints validé et propre</strong>, prêt à être utilisé pour construire les piles.</p>
+
+  <div class="mem-diag"><span class="label">Entrée :</span>
+  argc = <span class="val">5</span>
+  argv = [<span class="str">"./push_swap"</span>, <span class="str">"3"</span>, <span class="str">"1"</span>, <span class="str">"4"</span>, <span class="str">"2"</span>]
+  &amp;n = <span class="addr">(adresse d'une variable n dans main)</span>
+
+              <span class="arrow">↓</span>
+
+       <span class="label">parse_args()</span>
+
+              <span class="arrow">↓</span>
+
+<span class="label">Sortie :</span>
+  retour : [<span class="val">3</span>, <span class="val">1</span>, <span class="val">4</span>, <span class="val">2</span>]  <span class="note">(un int *values tout neuf)</span>
+  n = <span class="val">4</span>                    <span class="note">(écrit dans la variable de main via le pointeur)</span></div>
+
+  <h3>Les 3 choses importantes qu'elle fait</h3>
+  <ul class="star-list">
+    <li><span class="marker">1</span><strong>Normalise</strong> l'entrée : que le user donne <code>"3 1 4"</code> ou <code>3 1 4</code>, on produit le même résultat.</li>
+    <li><span class="marker">2</span><strong>Valide</strong> chaque argument : format correct, pas d'overflow, pas de doublon.</li>
+    <li><span class="marker">3</span><strong>Convertit</strong> les strings en vrais <code>int</code> dans un tableau alloué dynamiquement.</li>
+  </ul>
+
+  <h3>Son contrat (ce qu'elle promet)</h3>
+  <ul class="star-list">
+    <li><span class="marker">OK</span>En cas de succès : renvoie un <code>int *</code> valide. Écrit le nb d'éléments dans <code>*n</code>.</li>
+    <li class="deref"><span class="marker">KO</span>En cas d'erreur : renvoie <code>NULL</code>. Aucune mémoire ne fuit. Le caller affichera "Error" et exit.</li>
+  </ul>
+
+  <p>💡 <strong>parse_args ne print jamais rien elle-même</strong>. Elle remonte juste les erreurs. C'est le principe de séparation des responsabilités : <code>parse_args</code> parse, <code>main</code> agit.</p>
+</div>
+
 <!-- ═══════════ 1. Les 2 sortes de * ═══════════ -->
 <div class="card a">
-  <h2><span class="emoji">🧠</span> 1. Il y a <strong>2 sortes de *</strong> en C</h2>
+  <h2><span class="emoji">🧠</span> Il y a <strong>2 sortes de *</strong> en C</h2>
   <p>Le même caractère <code>*</code> fait <strong>2 choses différentes</strong> selon où il est. C'est ça qui rend les pointeurs confus. On doit toujours se demander : <strong>c'est dans une DÉCLARATION ou dans du CODE qui s'exécute ?</strong></p>
 
   <h3>Type 1 : l'étoile dans une DÉCLARATION</h3>
@@ -124,7 +163,7 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
 
 <!-- ═══════════ 2. Le code entier ═══════════ -->
 <div class="card mint">
-  <h2><span class="emoji">📜</span> 2. Le code de <code>parse_args</code> avec toutes les étoiles colorées</h2>
+  <h2><span class="emoji">📜</span> Le code de <code>parse_args</code> avec toutes les étoiles colorées</h2>
 
   <div class="legend">
     <div class="item"><span class="chip type"></span>étoile de type</div>
@@ -161,9 +200,108 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
   </ul>
 </div>
 
+<!-- ═══════════ 2.5 Le flow étape par étape ═══════════ -->
+<div class="card blue">
+  <h2><span class="emoji">🔄</span> Le flow étape par étape (trace concrète)</h2>
+  <p>Prenons l'appel <code>parse_args(5, ["./push_swap","3","1","4","2"], &amp;n)</code>. Voici ce qui se passe en interne :</p>
+
+  <h3>Étape 1 (lignes 6-8) — tokeniser</h3>
+  <div class="codeblock">tokens = <span class="fn">tokenize</span>(argc, argv);
+<span class="kw">if</span> (!tokens)
+    <span class="kw">return</span> (<span class="num">NULL</span>);</div>
+  <p>On transforme <code>argv</code> en un tableau de strings uniforme : <code>["3", "1", "4", "2", NULL]</code>. Si <code>tokenize</code> a raté (malloc fail), on return NULL tout de suite — <strong>rien à free</strong>, on a rien alloué nous-même.</p>
+
+  <h3>Étape 2 (lignes 9-14) — compter</h3>
+  <div class="codeblock"><span class="star-deref">*</span>n = <span class="fn">count_tokens</span>(tokens);
+<span class="kw">if</span> (<span class="star-deref">*</span>n == <span class="num">0</span>)
+{
+    <span class="fn">free_tokens</span>(tokens);
+    <span class="kw">return</span> (<span class="num">NULL</span>);
+}</div>
+  <p>On compte combien de strings (<code>4</code> dans notre cas). On stocke dans <code>*n</code> (via l'output parameter). <strong>Si n vaut 0</strong> (user a passé <code>""</code> ou <code>"   "</code>) → Error. On free les tokens qu'on a alloués, puis NULL.</p>
+
+  <h3>Étape 3 (lignes 15-18) — convertir</h3>
+  <div class="codeblock">values = <span class="fn">convert_tokens</span>(tokens, <span class="star-deref">*</span>n);
+<span class="fn">free_tokens</span>(tokens);
+<span class="kw">if</span> (!values)
+    <span class="kw">return</span> (<span class="num">NULL</span>);</div>
+  <p><code>convert_tokens</code> alloue <code>values</code> et remplit avec <code>[3, 1, 4, 2]</code>. Si un token est invalide ou overflow, elle renvoie NULL.</p>
+  <p>⚠️ <strong>Note importante sur l'ordre</strong> : <code>free_tokens(tokens)</code> est appelé <strong>AVANT</strong> le check <code>if (!values)</code>. Pourquoi ? Parce que dans tous les cas — succès ou échec de la conversion — on n'a plus besoin des strings. Les libérer dans tous les cas évite un leak.</p>
+
+  <h3>Étape 4 (lignes à remplir, le TROU) — check doublons</h3>
+  <div class="codeblock"><span class="cm">/* TROU à toi */</span>
+<span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, <span class="star-deref">*</span>n))
+{
+    <span class="fn">free</span>(values);
+    <span class="kw">return</span> (<span class="num">NULL</span>);
+}</div>
+  <p>Dernière vérification avant la victoire. Les ints sont valides individuellement, mais est-ce qu'il y en a 2 identiques ? Si oui → Error. Note qu'on free <code>values</code> (pas <code>tokens</code>, déjà free'd).</p>
+
+  <h3>Étape 5 (ligne 19) — victoire</h3>
+  <div class="codeblock"><span class="kw">return</span> (values);</div>
+  <p>Tout est OK. On renvoie <code>values</code>. <code>*n</code> a déjà été mis à jour à l'étape 2, donc le caller a tout ce qu'il faut.</p>
+
+  <h3>Résumé visuel</h3>
+  <div class="mem-diag"><span class="label">parse_args(5, [...], &amp;n)</span>
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> <span class="fn">tokenize</span>(...) <span class="arrow">→</span> [<span class="str">"3"</span>,<span class="str">"1"</span>,<span class="str">"4"</span>,<span class="str">"2"</span>,NULL]  ✓
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> <span class="fn">count_tokens</span>(tokens) <span class="arrow">→</span> <span class="val">4</span>              (*n = <span class="val">4</span>)
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> <span class="fn">convert_tokens</span>(...) <span class="arrow">→</span> [<span class="val">3</span>,<span class="val">1</span>,<span class="val">4</span>,<span class="val">2</span>]
+  <span class="arrow">├─</span> <span class="fn">free_tokens</span>(tokens)                  (memoire propre)
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> <span class="fn">has_duplicates</span>(values, <span class="val">4</span>) <span class="arrow">→</span> <span class="val">0</span>         (pas de doublon)
+  <span class="arrow">│</span>
+  <span class="arrow">└─</span> <span class="kw">return</span> values = [<span class="val">3</span>,<span class="val">1</span>,<span class="val">4</span>,<span class="val">2</span>]</div>
+</div>
+
+<!-- ═══════════ 2.7 La discipline mémoire ═══════════ -->
+<div class="card pink">
+  <h2><span class="emoji">💾</span> La discipline mémoire : qu'est-ce qu'on alloue / libère quand ?</h2>
+  <p>Le sujet est strict : <em>"Memory leaks will not be tolerated."</em> Chaque <code>malloc</code> doit avoir un <code>free</code> correspondant, même quand on sort à cause d'une erreur.</p>
+
+  <h3>Dans parse_args, on alloue 2 "choses"</h3>
+  <ul class="star-list">
+    <li><span class="marker">1</span><strong>tokens</strong> (alloué par <code>tokenize</code> → soit <code>ft_split</code> soit nos <code>malloc</code> + <code>ft_strdup</code>)</li>
+    <li><span class="marker">2</span><strong>values</strong> (alloué par <code>convert_tokens</code> → un <code>malloc</code>)</li>
+  </ul>
+
+  <h3>Les règles à chaque point d'erreur</h3>
+
+  <div class="mem-diag"><span class="label">Si tokenize échoue :</span>
+  <span class="note">rien d'alloué, rien à free.</span>
+  <span class="kw">return</span> <span class="val">NULL</span>;
+
+<span class="label">Si *n == 0 (tokens vides) :</span>
+  tokens alloué → <span class="fn">free_tokens</span>(tokens);
+  <span class="kw">return</span> <span class="val">NULL</span>;
+
+<span class="label">Si convert_tokens échoue :</span>
+  tokens encore en vie → <span class="fn">free_tokens</span>(tokens);
+  values est NULL (pas alloué) → rien à free.
+  <span class="kw">return</span> <span class="val">NULL</span>;
+
+<span class="label">Si has_duplicates vrai (TROU) :</span>
+  tokens déjà free'd.
+  values alloué → <span class="fn">free</span>(values);
+  <span class="kw">return</span> <span class="val">NULL</span>;
+
+<span class="label">Si tout OK :</span>
+  tokens déjà free'd.
+  values vit → on le <span class="kw">return</span>, le caller aura la charge de free.</div>
+
+  <h3>Le pattern à retenir</h3>
+  <p style="font-family:'Kalam',cursive;font-weight:700;font-size:18px;text-align:center;background:var(--paper);border:2px solid var(--ink);padding:12px;border-radius:8px;box-shadow:3px 3px 0 var(--ink);">
+  Avant CHAQUE <code>return (NULL)</code>, demande-toi :<br><em>"Qu'est-ce que j'ai alloué jusqu'ici qui est encore vivant ?"</em><br>Et libère-le.
+  </p>
+
+  <p>C'est le truc qui différencie un code qui compile d'un code qui <strong>passe le leak check</strong> en peer-eval.</p>
+</div>
+
 <!-- ═══════════ 3. Les étoiles de TYPE ═══════════ -->
 <div class="card blue">
-  <h2><span class="emoji">🏷️</span> 3. Les 5 étoiles de TYPE (déclarations)</h2>
+  <h2><span class="emoji">🏷️</span> Les 5 étoiles de TYPE (déclarations)</h2>
   <p>Chaque étoile ajoute <strong>un cran d'indirection</strong>. Zéro étoile = valeur. Une étoile = pointeur vers valeur. Deux étoiles = pointeur vers pointeur.</p>
 
   <div class="mem-diag"><span class="label">int x</span>         →  une valeur : [<span class="val">42</span>]
@@ -198,7 +336,7 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
 
 <!-- ═══════════ 4. Les étoiles de DEREF ═══════════ -->
 <div class="card pink">
-  <h2><span class="emoji">🔓</span> 4. Les 3 étoiles de DEREF (opérateurs)</h2>
+  <h2><span class="emoji">🔓</span> Les 3 étoiles de DEREF (opérateurs)</h2>
   <p>Une étoile devant une variable (dans du code exécutable) veut dire "<strong>ouvre la boîte pointée et donne-moi ce qu'il y a dedans</strong>". Ou à gauche d'un <code>=</code> : "écris dans la boîte pointée".</p>
 
   <h3>Étoile #1 : <code>*n = count_tokens(tokens);</code> (ligne 9)</h3>
@@ -242,7 +380,7 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
 
 <!-- ═══════════ 5. L'output parameter ═══════════ -->
 <div class="card yellow">
-  <h2><span class="emoji">🎯</span> 5. Zoom : le pattern "output parameter"</h2>
+  <h2><span class="emoji">🎯</span> Zoom : le pattern "output parameter"</h2>
   <p>C'est la technique qui explique pourquoi <code>n</code> est un <code>int *</code> au lieu d'un simple <code>int</code>. <strong>Elle permet à parse_args de retourner 2 valeurs</strong> (un tableau + un compteur).</p>
 
   <h3>Le problème</h3>
@@ -297,7 +435,7 @@ body.night .card.mint code, body.night .card.pink code, body.night .card.blue co
 
 <!-- ═══════════ 6. Synthèse ═══════════ -->
 <div class="card a">
-  <h2><span class="emoji">📊</span> 6. Synthèse : toutes les étoiles de <code>parse_args</code></h2>
+  <h2><span class="emoji">📊</span> Synthèse : toutes les étoiles de <code>parse_args</code></h2>
 
   <table class="table-synth">
     <thead>
