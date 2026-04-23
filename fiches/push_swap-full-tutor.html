@@ -543,7 +543,7 @@ function simulate(scenario) {
   let convertOk = true;
 
   for (let i = 0; i < nReal; i++) {
-    locals.i = i;
+    locals = { n: nReal, i: i };
     const tok = tokens[i];
     snap('convert_tokens', 10, 'loop', `Itération i=${i}. Va valider tokens[${i}]="${tok}".`, { focus: 'tokens', checkTokenIdx: i });
     snap('convert_tokens', 11, 'call', `Appel à is_number("${tok}").`);
