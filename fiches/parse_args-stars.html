@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>parse_args — tous les étoiles expliquées</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=3">
+<style>
+main { max-width: 980px !important; padding-top: 20px !important; }
+.card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 24px 28px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 22px; }
+.card.a { transform: rotate(-0.15deg); }
+.card.mint { background: var(--hl-mint); transform: rotate(0.15deg); }
+.card.pink { background: var(--hl-pink); transform: rotate(-0.2deg); }
+.card.blue { background: var(--hl-blue); transform: rotate(0.2deg); }
+.card.yellow { background: var(--hl-yellow); transform: rotate(-0.1deg); }
+.card h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 24px; margin: 0 0 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.card h2 .emoji { font-size: 28px; }
+.card h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px; margin: 16px 0 8px; color: var(--ink); }
+.card p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.55; margin: 8px 0; }
+.card strong { color: var(--accent-d); }
+.card code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; font-weight: 600; }
+body.night .card.mint code, body.night .card.pink code, body.night .card.blue code, body.night .card.yellow code { color: var(--ink); }
+
+.codeblock { background: #1C1A28; color: #E9E5F0; padding: 16px 20px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.85; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; margin: 12px 0; position: relative; }
+.codeblock .lineno { color: #5C5A75; font-size: 10px; display: inline-block; width: 24px; text-align: right; margin-right: 12px; }
+.codeblock .kw { color: #A5D8A8; }
+.codeblock .tp { color: #79B8D8; }
+.codeblock .fn { color: #C0B3E0; }
+.codeblock .str { color: #FFD88A; }
+.codeblock .num { color: #FFB380; }
+.codeblock .cm { color: #5C5A75; font-style: italic; }
+.codeblock .star-type { color: #FFD93D; background: rgba(255,217,61,0.15); padding: 0 3px; border-radius: 2px; font-weight: 700; }
+.codeblock .star-deref { color: #FF9F7A; background: rgba(255,159,122,0.15); padding: 0 3px; border-radius: 2px; font-weight: 700; }
+.codeblock .star-amp { color: #BFE6CC; background: rgba(191,230,204,0.15); padding: 0 3px; border-radius: 2px; font-weight: 700; }
+.codeblock .badge { display: inline-block; background: rgba(255,217,61,0.25); color: #FFD93D; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-left: 8px; }
+.codeblock .badge.deref { background: rgba(255,159,122,0.25); color: #FF9F7A; }
+
+.mem-diag { background: #1C1A28; color: #E9E5F0; padding: 16px 20px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; margin: 12px 0; }
+.mem-diag .addr { color: #79B8D8; }
+.mem-diag .val { color: #FFD88A; }
+.mem-diag .label { color: #C0B3E0; }
+.mem-diag .arrow { color: #FF9F7A; }
+.mem-diag .note { color: #5C5A75; font-style: italic; }
+
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; font-family: 'Patrick Hand', cursive; font-size: 15px; }
+.legend .item { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--paper-d); }
+.legend .chip { width: 14px; height: 14px; border: 1.5px solid var(--ink); border-radius: 3px; }
+.legend .chip.type { background: #FFE96B; }
+.legend .chip.deref { background: #FFCACA; }
+.legend .chip.amp { background: #BFE6CC; }
+
+.star-list { list-style: none; padding: 0; margin: 0; }
+.star-list li { padding: 10px 14px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 8px; margin-bottom: 8px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.4; }
+.star-list li .marker { display: inline-block; background: var(--hl-yellow); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-weight: 700; padding: 1px 8px; border-radius: 3px; margin-right: 8px; font-size: 13px; border: 1.5px solid var(--ink); }
+.star-list li.deref .marker { background: #FFCACA; }
+.star-list li.amp .marker { background: #BFE6CC; }
+.star-list li code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 0 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; font-weight: 600; }
+
+.table-synth { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: 'Patrick Hand', cursive; font-size: 15px; }
+.table-synth th { background: var(--ink); color: var(--paper); padding: 10px 12px; text-align: left; border: 2px solid var(--ink); font-family: 'Kalam', cursive; font-weight: 700; }
+.table-synth td { padding: 8px 12px; border: 2px solid var(--ink); background: var(--paper); vertical-align: top; }
+.table-synth td code { font-family: 'JetBrains Mono', monospace; background: var(--paper-d); padding: 1px 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 12px; }
+.table-synth .kind-type { background: #FFF8D0; font-weight: 700; }
+.table-synth .kind-deref { background: #FFE8E0; font-weight: 700; }
+
+.golden-rule { background: var(--ink); color: var(--paper); padding: 20px 24px; border-radius: 12px; font-family: 'Kalam', cursive; font-size: 19px; line-height: 1.5; box-shadow: 6px 6px 0 var(--accent); text-align: center; }
+.golden-rule code { background: var(--hl-yellow); color: var(--ink); padding: 1px 6px; border: 1.5px solid var(--paper); border-radius: 3px; }
+.golden-rule .hl { background: var(--hl-yellow); color: var(--ink); padding: 0 5px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ parse_args — tous les * expliqués</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">parse_args</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">chaque * décryptée, sans mystère ↓</div>
+  <p class="hero-sub">Dans <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">parse_args</code> il y a <span class="hl">8 étoiles</span> (et 1 esperluette <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-mint);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">&amp;</code>). Chacune fait un truc précis. On les prend une par une.</p>
+</section>
+
+<main>
+
+<!-- ═══════════ 1. Les 2 sortes de * ═══════════ -->
+<div class="card a">
+  <h2><span class="emoji">🧠</span> 1. Il y a <strong>2 sortes de *</strong> en C</h2>
+  <p>Le même caractère <code>*</code> fait <strong>2 choses différentes</strong> selon où il est. C'est ça qui rend les pointeurs confus. On doit toujours se demander : <strong>c'est dans une DÉCLARATION ou dans du CODE qui s'exécute ?</strong></p>
+
+  <h3>Type 1 : l'étoile dans une DÉCLARATION</h3>
+  <p>Quand tu écris <code>int *x;</code> ou <code>char **argv</code>, l'étoile fait partie du <strong>type</strong>. Elle dit "cette variable est un pointeur".</p>
+  <div class="codeblock"><span class="tp">int</span> <span class="star-type">*</span>x;<span class="badge">type</span>
+<span class="cm">// x est une variable de type "int *"</span>
+<span class="cm">// c'est-à-dire : une boîte qui contient une adresse mémoire</span>
+<span class="cm">// (et pas un nombre).</span></div>
+
+  <h3>Type 2 : l'étoile comme OPÉRATEUR (dans le code)</h3>
+  <p>Quand tu écris <code>*p = 42</code> ou <code>if (*p == 0)</code>, l'étoile est un <strong>opérateur</strong>. Elle veut dire "va chercher la valeur à l'adresse contenue dans p".</p>
+  <div class="codeblock"><span class="tp">int</span> <span class="star-type">*</span>p = &amp;a;  <span class="cm">// p contient l'adresse de a</span>
+<span class="star-deref">*</span>p = <span class="num">42</span>;<span class="badge deref">deref</span><span class="cm"> // écris 42 à l'adresse contenue dans p (donc dans a)</span></div>
+
+  <p><strong>Truc simple pour distinguer</strong> : si l'étoile est au <strong>moment où tu déclares la variable</strong> (à côté de son nom, dans un int/char/void etc.) → TYPE. Si elle est dans du code qui <strong>utilise</strong> une variable déjà déclarée → DEREF.</p>
+
+  <h3>Il y a aussi <code>&amp;</code> (esperluette)</h3>
+  <p>L'inverse du <code>*</code>. <code>&amp;x</code> veut dire "donne-moi l'ADRESSE de x". C'est comme ça qu'on obtient un pointeur vers quelque chose.</p>
+</div>
+
+<!-- ═══════════ 2. Le code entier ═══════════ -->
+<div class="card mint">
+  <h2><span class="emoji">📜</span> 2. Le code de <code>parse_args</code> avec toutes les étoiles colorées</h2>
+
+  <div class="legend">
+    <div class="item"><span class="chip type"></span>étoile de type</div>
+    <div class="item"><span class="chip deref"></span>étoile de deref</div>
+    <div class="item"><span class="chip amp"></span>&amp; "adresse de"</div>
+  </div>
+
+  <div class="codeblock"><span class="lineno"> 1</span><span class="tp">int</span><span class="star-type">*</span><span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> <span class="star-type">**</span>argv, <span class="tp">int</span> <span class="star-type">*</span>n)
+<span class="lineno"> 2</span>{
+<span class="lineno"> 3</span>    <span class="tp">char</span>    <span class="star-type">**</span>tokens;
+<span class="lineno"> 4</span>    <span class="tp">int</span>     <span class="star-type">*</span>values;
+<span class="lineno"> 5</span>
+<span class="lineno"> 6</span>    tokens = <span class="fn">tokenize</span>(argc, argv);
+<span class="lineno"> 7</span>    <span class="kw">if</span> (!tokens)
+<span class="lineno"> 8</span>        <span class="kw">return</span> (<span class="num">NULL</span>);
+<span class="lineno"> 9</span>    <span class="star-deref">*</span>n = <span class="fn">count_tokens</span>(tokens);
+<span class="lineno">10</span>    <span class="kw">if</span> (<span class="star-deref">*</span>n == <span class="num">0</span>)
+<span class="lineno">11</span>    {
+<span class="lineno">12</span>        <span class="fn">free_tokens</span>(tokens);
+<span class="lineno">13</span>        <span class="kw">return</span> (<span class="num">NULL</span>);
+<span class="lineno">14</span>    }
+<span class="lineno">15</span>    values = <span class="fn">convert_tokens</span>(tokens, <span class="star-deref">*</span>n);
+<span class="lineno">16</span>    <span class="fn">free_tokens</span>(tokens);
+<span class="lineno">17</span>    <span class="kw">if</span> (!values)
+<span class="lineno">18</span>        <span class="kw">return</span> (<span class="num">NULL</span>);
+<span class="lineno">19</span>    <span class="kw">return</span> (values);
+<span class="lineno">20</span>}</div>
+
+  <h3>Inventaire rapide</h3>
+  <p>Dans ces 20 lignes, on compte :</p>
+  <ul class="star-list">
+    <li><span class="marker">TYPE</span><strong>5 étoiles de type</strong> (dans les déclarations / signature) : lignes 1 et 3-4.</li>
+    <li class="deref"><span class="marker">DEREF</span><strong>3 étoiles de deref</strong> (dans le code) : lignes 9, 10, 15.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ 3. Les étoiles de TYPE ═══════════ -->
+<div class="card blue">
+  <h2><span class="emoji">🏷️</span> 3. Les 5 étoiles de TYPE (déclarations)</h2>
+  <p>Chaque étoile ajoute <strong>un cran d'indirection</strong>. Zéro étoile = valeur. Une étoile = pointeur vers valeur. Deux étoiles = pointeur vers pointeur.</p>
+
+  <div class="mem-diag"><span class="label">int x</span>         →  une valeur : [<span class="val">42</span>]
+
+<span class="label">int *p</span>        →  un pointeur  : [<span class="addr">0x100</span>] <span class="arrow">→</span> [<span class="val">42</span>]
+                                         <span class="note">(une adresse qui pointe sur un int)</span>
+
+<span class="label">int **pp</span>       →  double ptr   : [<span class="addr">0x200</span>] <span class="arrow">→</span> [<span class="addr">0x100</span>] <span class="arrow">→</span> [<span class="val">42</span>]
+                                         <span class="note">(adresse qui pointe sur une adresse qui pointe sur un int)</span></div>
+
+  <h3>Les 5 étoiles de type dans parse_args</h3>
+
+  <ul class="star-list">
+    <li><span class="marker">L1</span><code>int *parse_args(...)</code><br>
+      → La fonction <strong>retourne un <code>int *</code></strong> (un pointeur sur int, c'est-à-dire un tableau d'ints).</li>
+
+    <li><span class="marker">L1</span><code>char **argv</code><br>
+      → argv est un <strong><code>char **</code></strong> : pointeur vers un pointeur sur char, donc un tableau de strings.</li>
+
+    <li><span class="marker">L1</span><code>int *n</code><br>
+      → n est un <strong><code>int *</code></strong> : un pointeur vers un int (output parameter, on voit ça carte 5).</li>
+
+    <li><span class="marker">L3</span><code>char **tokens</code><br>
+      → Variable locale, <strong>même type que argv</strong> (un tableau de strings).</li>
+
+    <li><span class="marker">L4</span><code>int *values</code><br>
+      → Variable locale qui stockera <strong>un tableau d'ints</strong> (après malloc).</li>
+  </ul>
+
+  <p>💡 <strong>Chacune de ces étoiles ne "fait" rien</strong> au runtime. Elles disent juste au compilateur "attention, cette variable c'est un pointeur, pas une valeur". Elles disparaissent une fois le code compilé.</p>
+</div>
+
+<!-- ═══════════ 4. Les étoiles de DEREF ═══════════ -->
+<div class="card pink">
+  <h2><span class="emoji">🔓</span> 4. Les 3 étoiles de DEREF (opérateurs)</h2>
+  <p>Une étoile devant une variable (dans du code exécutable) veut dire "<strong>ouvre la boîte pointée et donne-moi ce qu'il y a dedans</strong>". Ou à gauche d'un <code>=</code> : "écris dans la boîte pointée".</p>
+
+  <h3>Étoile #1 : <code>*n = count_tokens(tokens);</code> (ligne 9)</h3>
+  <p>Ici <code>*n</code> est à <strong>gauche</strong> du <code>=</code>. Ça veut dire : "va à l'adresse contenue dans n, et écris ce qu'on te donne".</p>
+
+  <div class="mem-diag"><span class="note">Avant la ligne 9 :</span>
+
+<span class="label">variable de main :</span>  int n  ═══  [<span class="val">???</span>]  <span class="note">(non initialisée)</span>
+                                   ↑
+<span class="label">paramètre parse_args :</span>  int *n  ═══  [<span class="addr">&amp;n</span>]  <span class="arrow">─────┘</span>
+                                   <span class="note">(contient l'adresse du n de main)</span>
+
+<span class="note">Après <span class="val">*n = 4;</span> :</span>
+
+<span class="label">variable de main :</span>  int n  ═══  [<span class="val">4</span>]  <span class="arrow">  ✓ modifiée</span>
+                                   ↑
+<span class="label">paramètre parse_args :</span>  int *n  ═══  [<span class="addr">&amp;n</span>]  <span class="arrow">─────┘</span></div>
+
+  <p><strong>C'est le pattern "output parameter"</strong> : parse_args utilise l'étoile pour écrire dans la variable de l'appelant (main). Sans l'étoile, on écrirait juste dans une copie locale.</p>
+
+  <h3>Étoile #2 : <code>if (*n == 0)</code> (ligne 10)</h3>
+  <p>Ici <code>*n</code> est dans une <strong>expression qui lit</strong>. Ça veut dire : "va à l'adresse dans n, lis la valeur là-bas, compare-la à 0".</p>
+
+  <div class="codeblock"><span class="kw">if</span> (<span class="star-deref">*</span>n == <span class="num">0</span>)<span class="badge deref">deref</span>
+<span class="cm">//   │</span>
+<span class="cm">//   └── "suis le pointeur, lis la valeur"</span>
+<span class="cm">//       équivaut à : "lis la valeur de n du caller"</span></div>
+
+  <p><strong>Sans l'étoile</strong>, <code>if (n == 0)</code> comparerait <strong>l'adresse</strong> à 0 (checkerait si n est NULL). Pas du tout ce qu'on veut.</p>
+
+  <h3>Étoile #3 : <code>convert_tokens(tokens, *n)</code> (ligne 15)</h3>
+  <p>Pareil que l'étoile #2, mais utilisée pour <strong>passer la valeur</strong> à une autre fonction.</p>
+
+  <div class="codeblock"><span class="fn">convert_tokens</span>(tokens, <span class="star-deref">*</span>n);<span class="badge deref">deref</span>
+<span class="cm">//                        │</span>
+<span class="cm">//                        └── on passe la VALEUR (genre 4)</span>
+<span class="cm">//                            pas l'adresse.</span></div>
+
+  <p>La fonction <code>convert_tokens</code> a pour signature <code>int *convert_tokens(char **tokens, int n)</code>. Son <code>n</code> est un simple <code>int</code>, pas un pointeur. Donc on doit lui passer une <strong>valeur</strong>, d'où le <code>*</code> pour déréférencer avant de passer.</p>
+</div>
+
+<!-- ═══════════ 5. L'output parameter ═══════════ -->
+<div class="card yellow">
+  <h2><span class="emoji">🎯</span> 5. Zoom : le pattern "output parameter"</h2>
+  <p>C'est la technique qui explique pourquoi <code>n</code> est un <code>int *</code> au lieu d'un simple <code>int</code>. <strong>Elle permet à parse_args de retourner 2 valeurs</strong> (un tableau + un compteur).</p>
+
+  <h3>Le problème</h3>
+  <p>Une fonction C peut retourner <strong>qu'UNE seule valeur</strong>. Mais <code>parse_args</code> veut produire deux choses :</p>
+  <ul class="star-list" style="list-style:disc;padding-left:20px;">
+    <li><code>int *values</code> : le tableau d'ints</li>
+    <li><code>int n</code> : combien y en a</li>
+  </ul>
+
+  <h3>La solution : un pointeur qui sert de "canal de retour"</h3>
+  <p>Le caller (main) <strong>donne à parse_args l'adresse</strong> d'une variable <code>n</code> qui lui appartient. parse_args écrit dedans via déréférencement.</p>
+
+  <div class="codeblock"><span class="cm">// Côté main (le caller) :</span>
+<span class="tp">int</span> n;                              <span class="cm">// 1. variable locale (pas encore initialisée)</span>
+<span class="tp">int</span> <span class="star-type">*</span>values = <span class="fn">parse_args</span>(argc, argv, <span class="star-amp">&amp;</span>n); <span class="cm">// 2. on passe l'ADRESSE de n</span>
+<span class="cm">//                                   ↑</span>
+<span class="cm">//                                   & = "adresse de"</span>
+
+<span class="cm">// Côté parse_args (la fonction) :</span>
+<span class="tp">int</span> <span class="star-type">*</span><span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> <span class="star-type">**</span>argv, <span class="tp">int</span> <span class="star-type">*</span>n)
+{                                    <span class="cm">// n reçoit l'adresse passée</span>
+    ...
+    <span class="star-deref">*</span>n = <span class="fn">count_tokens</span>(tokens);    <span class="cm">// 3. écrit dans le n de main</span>
+    ...
+}
+
+<span class="cm">// Retour côté main :</span>
+<span class="cm">// n contient maintenant la valeur écrite par parse_args</span></div>
+
+  <h3>Mental model : le parking avec la clef</h3>
+  <p>Imagine que <code>n</code> c'est <strong>une voiture</strong> dans le parking de main. Main donne à parse_args <strong>la clef</strong> de la voiture (<code>&amp;n</code>). parse_args utilise la clef (<code>*n</code>) pour ouvrir le coffre et y déposer "4". Main retrouve sa voiture avec "4" dans le coffre.</p>
+
+  <div class="mem-diag"><span class="label">main :</span>
+   ┌───── n ────────┐       <span class="note">la "voiture" de main</span>
+   │  [<span class="val">?</span>]          │
+   └───────────────┘
+        ↑
+        │ (<span class="val">&amp;n</span>)  <span class="arrow">← main donne l'adresse</span>
+        │
+<span class="label">parse_args :</span>
+   ┌── int *n ──────┐
+   │  [<span class="addr">@</span>]           │       <span class="note">reçoit l'adresse (= la clef)</span>
+   └───────────────┘
+        │
+        │ <span class="val">*n = 4</span>  <span class="arrow">→ va à l'adresse, écrit 4</span>
+        ▼
+<span class="label">main :</span>
+   ┌───── n ────────┐
+   │  [<span class="val">4</span>]           │       <span class="note">maintenant n vaut 4</span>
+   └───────────────┘</div>
+</div>
+
+<!-- ═══════════ 6. Synthèse ═══════════ -->
+<div class="card a">
+  <h2><span class="emoji">📊</span> 6. Synthèse : toutes les étoiles de <code>parse_args</code></h2>
+
+  <table class="table-synth">
+    <thead>
+      <tr><th>Ligne</th><th>Ce qu'on voit</th><th>Catégorie</th><th>Que ça veut dire</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><code>int *parse_args(...)</code></td><td class="kind-type">TYPE</td><td>la fonction retourne un <code>int *</code></td></tr>
+      <tr><td>1</td><td><code>char **argv</code></td><td class="kind-type">TYPE</td><td>argv est un tableau de strings</td></tr>
+      <tr><td>1</td><td><code>int *n</code></td><td class="kind-type">TYPE</td><td>n est un pointeur vers int (output param)</td></tr>
+      <tr><td>3</td><td><code>char **tokens</code></td><td class="kind-type">TYPE</td><td>variable locale, tableau de strings</td></tr>
+      <tr><td>4</td><td><code>int *values</code></td><td class="kind-type">TYPE</td><td>variable locale, tableau d'ints</td></tr>
+      <tr><td>9</td><td><code>*n = count_tokens(...)</code></td><td class="kind-deref">DEREF</td><td>écrit à l'adresse dans n (dans le n de main)</td></tr>
+      <tr><td>10</td><td><code>if (*n == 0)</code></td><td class="kind-deref">DEREF</td><td>lit la valeur à l'adresse dans n</td></tr>
+      <tr><td>15</td><td><code>convert_tokens(tokens, *n)</code></td><td class="kind-deref">DEREF</td><td>passe la valeur (pas l'adresse) à la fonction</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>8 étoiles au total, 2 catégories</strong> :</p>
+  <ul class="star-list">
+    <li><span class="marker">TYPE (×5)</span>Décrivent la nature des variables/paramètres. Dans les déclarations.</li>
+    <li class="deref"><span class="marker">DEREF (×3)</span>Opérations sur des pointeurs existants. Dans le code exécutable.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ 7. Règle d'or ═══════════ -->
+<div class="golden-rule">
+  la <span class="hl">règle d'or</span> pour distinguer les 2 types d'étoile :<br><br>
+  <code>*</code> dans une déclaration <strong>(à côté d'un type comme <code>int</code> ou <code>char</code>)</strong> → TYPE<br><br>
+  <code>*</code> tout seul dans du code <strong>(devant un nom de variable existante)</strong> → DEREF<br><br>
+  <span style="font-family:'Patrick Hand',cursive;font-size:17px;opacity:0.85;">Le contexte fait tout. La même étoile, 2 rôles différents.</span>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">les étoiles pigées ✌</div>
+  <div class="footer-meta">push_swap · <a href="pointeurs.html">fiche pointeurs</a> · <a href="../index.html">dashboard</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>
