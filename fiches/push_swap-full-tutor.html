@@ -222,175 +222,198 @@ main { max-width: 1280px !important; }
 <script>
 const CODES = {
   main: [
-    '<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+    '<span class="tp">int</span>\t<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
     '{',
-    '    <span class="tp">int</span>  n;',
-    '    <span class="tp">int</span>  *values;',
+    '\t<span class="tp">int</span>\tn;',
+    '\t<span class="tp">int</span>\t*values;',
     '',
-    '    <span class="kw">if</span> (argc &lt; <span class="num">2</span>)',
-    '        <span class="kw">return</span> (<span class="num">0</span>);',
-    '    values = <span class="fn">parse_args</span>(argc, argv, &amp;n);',
-    '    <span class="kw">if</span> (!values)',
-    '    {',
-    '        <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\\n"</span>, <span class="num">6</span>);',
-    '        <span class="kw">return</span> (<span class="num">1</span>);',
-    '    }',
-    '    <span class="fn">free</span>(values);',
-    '    <span class="kw">return</span> (<span class="num">0</span>);',
+    '\t<span class="kw">if</span> (argc &lt; <span class="num">2</span>)',
+    '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\tvalues = <span class="fn">parse_args</span>(argc, argv, &amp;n);',
+    '\t<span class="kw">if</span> (!values)',
+    '\t{',
+    '\t\t<span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\\n"</span>, <span class="num">6</span>);',
+    '\t\t<span class="kw">return</span> (<span class="num">1</span>);',
+    '\t}',
+    '\t<span class="fn">free</span>(values);',
+    '\t<span class="kw">return</span> (<span class="num">0</span>);',
     '}',
   ],
   parse: [
-    '<span class="tp">int</span> *<span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv, <span class="tp">int</span> *n)',
+    '<span class="tp">int</span>\t*<span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv, <span class="tp">int</span> *n)',
     '{',
-    '    <span class="tp">char</span> **tokens;',
-    '    <span class="tp">int</span>  *values;',
+    '\t<span class="tp">char</span>\t**tokens;',
+    '\t<span class="tp">int</span>\t*values;',
     '',
-    '    tokens = <span class="fn">tokenize</span>(argc, argv);',
-    '    <span class="kw">if</span> (!tokens) <span class="kw">return</span> (<span class="num">NULL</span>);',
-    '    *n = <span class="fn">count_tokens</span>(tokens);',
-    '    <span class="kw">if</span> (*n == <span class="num">0</span>) { <span class="fn">free_tokens</span>(tokens); <span class="kw">return</span> <span class="num">NULL</span>; }',
-    '    values = <span class="fn">convert_tokens</span>(tokens, *n);',
-    '    <span class="fn">free_tokens</span>(tokens);',
-    '    <span class="kw">if</span> (!values) <span class="kw">return</span> (<span class="num">NULL</span>);',
-    '    <span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, *n))',
-    '    { <span class="fn">free</span>(values); <span class="kw">return</span> <span class="num">NULL</span>; }',
-    '    <span class="kw">return</span> (values);',
+    '\ttokens = <span class="fn">tokenize</span>(argc, argv);',
+    '\t<span class="kw">if</span> (!tokens)',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\t*n = <span class="fn">count_tokens</span>(tokens);',
+    '\t<span class="kw">if</span> (*n == <span class="num">0</span>)',
+    '\t{',
+    '\t\t<span class="fn">free_tokens</span>(tokens);',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\t}',
+    '\tvalues = <span class="fn">convert_tokens</span>(tokens, *n);',
+    '\t<span class="fn">free_tokens</span>(tokens);',
+    '\t<span class="kw">if</span> (!values)',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\t<span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, *n))',
+    '\t{',
+    '\t\t<span class="fn">free</span>(values);',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\t}',
+    '\t<span class="kw">return</span> (values);',
     '}',
   ],
   tokenize: [
-    '<span class="tp">char</span> **<span class="fn">tokenize</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+    '<span class="tp">char</span>\t**<span class="fn">tokenize</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
     '{',
-    '    <span class="tp">char</span> **tokens;',
-    '    <span class="tp">int</span>  i;',
+    '\t<span class="tp">char</span>\t**tokens;',
+    '\t<span class="tp">int</span>\ti;',
     '',
-    '    <span class="kw">if</span> (argc == <span class="num">2</span>)',
-    '        <span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">\' \'</span>));',
-    '    tokens = <span class="fn">malloc</span>(<span class="tp">sizeof</span>(<span class="tp">char</span> *) * argc);',
-    '    <span class="kw">if</span> (!tokens) <span class="kw">return</span> (<span class="num">NULL</span>);',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (i &lt; argc - <span class="num">1</span>)',
-    '    {',
-    '        tokens[i] = <span class="fn">ft_strdup</span>(argv[i + <span class="num">1</span>]);',
-    '        i++;',
-    '    }',
-    '    tokens[argc - <span class="num">1</span>] = <span class="num">NULL</span>;',
-    '    <span class="kw">return</span> (tokens);',
+    '\t<span class="kw">if</span> (argc == <span class="num">2</span>)',
+    '\t\t<span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">\' \'</span>));',
+    '\ttokens = <span class="fn">malloc</span>(<span class="tp">sizeof</span>(<span class="tp">char</span> *) * argc);',
+    '\t<span class="kw">if</span> (!tokens)',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (i &lt; argc - <span class="num">1</span>)',
+    '\t{',
+    '\t\ttokens[i] = <span class="fn">ft_strdup</span>(argv[i + <span class="num">1</span>]);',
+    '\t\ti++;',
+    '\t}',
+    '\ttokens[argc - <span class="num">1</span>] = <span class="num">NULL</span>;',
+    '\t<span class="kw">return</span> (tokens);',
     '}',
   ],
   count_tokens: [
-    '<span class="tp">int</span> <span class="fn">count_tokens</span>(<span class="tp">char</span> **tokens)',
+    '<span class="tp">int</span>\t<span class="fn">count_tokens</span>(<span class="tp">char</span> **tokens)',
     '{',
-    '    <span class="tp">int</span> i;',
+    '\t<span class="tp">int</span>\ti;',
     '',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (tokens[i] != <span class="num">NULL</span>)',
-    '        i++;',
-    '    <span class="kw">return</span> (i);',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (tokens[i] != <span class="num">NULL</span>)',
+    '\t\ti++;',
+    '\t<span class="kw">return</span> (i);',
     '}',
   ],
   free_tokens: [
-    '<span class="tp">void</span> <span class="fn">free_tokens</span>(<span class="tp">char</span> **tokens)',
+    '<span class="tp">void</span>\t<span class="fn">free_tokens</span>(<span class="tp">char</span> **tokens)',
     '{',
-    '    <span class="tp">int</span> i;',
+    '\t<span class="tp">int</span>\ti;',
     '',
-    '    <span class="kw">if</span> (!tokens) <span class="kw">return</span> ;',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (tokens[i])',
-    '    {',
-    '        <span class="fn">free</span>(tokens[i]);',
-    '        i++;',
-    '    }',
-    '    <span class="fn">free</span>(tokens);',
+    '\t<span class="kw">if</span> (!tokens)',
+    '\t\t<span class="kw">return</span> ;',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (tokens[i])',
+    '\t{',
+    '\t\t<span class="fn">free</span>(tokens[i]);',
+    '\t\ti++;',
+    '\t}',
+    '\t<span class="fn">free</span>(tokens);',
     '}',
   ],
   convert_tokens: [
-    '<span class="tp">int</span> *<span class="fn">convert_tokens</span>(<span class="tp">char</span> **tokens, <span class="tp">int</span> n)',
+    '<span class="tp">int</span>\t*<span class="fn">convert_tokens</span>(<span class="tp">char</span> **tokens, <span class="tp">int</span> n)',
     '{',
-    '    <span class="tp">int</span> *values;',
-    '    <span class="tp">int</span> i;',
+    '\t<span class="tp">int</span>\t*values;',
+    '\t<span class="tp">int</span>\ti;',
     '',
-    '    values = <span class="fn">malloc</span>(<span class="tp">sizeof</span>(<span class="tp">int</span>) * n);',
-    '    <span class="kw">if</span> (!values) <span class="kw">return</span> (<span class="num">NULL</span>);',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (i &lt; n)',
-    '    {',
-    '        <span class="kw">if</span> (!<span class="fn">is_number</span>(tokens[i]))',
-    '        { <span class="fn">free</span>(values); <span class="kw">return</span> (<span class="num">NULL</span>); }',
-    '        values[i] = (<span class="tp">int</span>)<span class="fn">ft_atol</span>(tokens[i]);',
-    '        i++;',
-    '    }',
-    '    <span class="kw">return</span> (values);',
+    '\tvalues = <span class="fn">malloc</span>(<span class="tp">sizeof</span>(<span class="tp">int</span>) * n);',
+    '\t<span class="kw">if</span> (!values)',
+    '\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (i &lt; n)',
+    '\t{',
+    '\t\t<span class="kw">if</span> (!<span class="fn">is_number</span>(tokens[i]))',
+    '\t\t{',
+    '\t\t\t<span class="fn">free</span>(values);',
+    '\t\t\t<span class="kw">return</span> (<span class="num">NULL</span>);',
+    '\t\t}',
+    '\t\tvalues[i] = (<span class="tp">int</span>)<span class="fn">ft_atol</span>(tokens[i]);',
+    '\t\ti++;',
+    '\t}',
+    '\t<span class="kw">return</span> (values);',
     '}',
   ],
   is_number: [
-    '<span class="tp">int</span> <span class="fn">is_number</span>(<span class="tp">char</span> *s)',
+    '<span class="tp">int</span>\t<span class="fn">is_number</span>(<span class="tp">char</span> *s)',
     '{',
-    '    <span class="tp">long</span> n;',
+    '\t<span class="tp">long</span>\tn;',
     '',
-    '    <span class="kw">if</span> (!<span class="fn">is_valid_int</span>(s)) <span class="kw">return</span> (<span class="num">0</span>);',
-    '    n = <span class="fn">ft_atol</span>(s);',
-    '    <span class="kw">if</span> (n &gt; INT_MAX || n &lt; INT_MIN) <span class="kw">return</span> (<span class="num">0</span>);',
-    '    <span class="kw">return</span> (<span class="num">1</span>);',
+    '\t<span class="kw">if</span> (!<span class="fn">is_valid_int</span>(s))',
+    '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\tn = <span class="fn">ft_atol</span>(s);',
+    '\t<span class="kw">if</span> (n &gt; INT_MAX || n &lt; INT_MIN)',
+    '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\t<span class="kw">return</span> (<span class="num">1</span>);',
     '}',
   ],
   is_valid_int: [
-    '<span class="tp">int</span> <span class="fn">is_valid_int</span>(<span class="tp">char</span> *s)',
+    '<span class="tp">int</span>\t<span class="fn">is_valid_int</span>(<span class="tp">char</span> *s)',
     '{',
-    '    <span class="tp">int</span> i;',
+    '\t<span class="tp">int</span>\ti;',
     '',
-    '    <span class="kw">if</span> (!s || !s[<span class="num">0</span>]) <span class="kw">return</span> (<span class="num">0</span>);',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'+\'</span> || s[<span class="num">0</span>] == <span class="str">\'-\'</span>)',
-    '        i = <span class="num">1</span>;',
-    '    <span class="kw">if</span> (!s[i]) <span class="kw">return</span> (<span class="num">0</span>);',
-    '    <span class="kw">while</span> (s[i])',
-    '    {',
-    '        <span class="kw">if</span> (!<span class="fn">ft_isdigit</span>(s[i])) <span class="kw">return</span> (<span class="num">0</span>);',
-    '        i++;',
-    '    }',
-    '    <span class="kw">return</span> (<span class="num">1</span>);',
+    '\t<span class="kw">if</span> (!s || !s[<span class="num">0</span>])',
+    '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'+\'</span> || s[<span class="num">0</span>] == <span class="str">\'-\'</span>)',
+    '\t\ti = <span class="num">1</span>;',
+    '\t<span class="kw">if</span> (!s[i])',
+    '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\t<span class="kw">while</span> (s[i])',
+    '\t{',
+    '\t\t<span class="kw">if</span> (!<span class="fn">ft_isdigit</span>(s[i]))',
+    '\t\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+    '\t\ti++;',
+    '\t}',
+    '\t<span class="kw">return</span> (<span class="num">1</span>);',
     '}',
   ],
   ft_atol: [
-    '<span class="tp">long</span> <span class="fn">ft_atol</span>(<span class="tp">char</span> *s)',
+    '<span class="tp">long</span>\t<span class="fn">ft_atol</span>(<span class="tp">char</span> *s)',
     '{',
-    '    <span class="tp">long</span> res;',
-    '    <span class="tp">int</span>  i, sign;',
+    '\t<span class="tp">long</span>\tres;',
+    '\t<span class="tp">int</span>\ti;',
+    '\t<span class="tp">int</span>\tsign;',
     '',
-    '    sign = <span class="num">1</span>;',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'+\'</span> || s[<span class="num">0</span>] == <span class="str">\'-\'</span>)',
-    '    {',
-    '        <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'-\'</span>) sign = -<span class="num">1</span>;',
-    '        i = <span class="num">1</span>;',
-    '    }',
-    '    res = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (s[i] &gt;= <span class="str">\'0\'</span> &amp;&amp; s[i] &lt;= <span class="str">\'9\'</span>)',
-    '    {',
-    '        res = res * <span class="num">10</span> + (s[i] - <span class="str">\'0\'</span>);',
-    '        i++;',
-    '    }',
-    '    <span class="kw">return</span> (res * sign);',
+    '\tsign = <span class="num">1</span>;',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'+\'</span> || s[<span class="num">0</span>] == <span class="str">\'-\'</span>)',
+    '\t{',
+    '\t\t<span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">\'-\'</span>)',
+    '\t\t\tsign = -<span class="num">1</span>;',
+    '\t\ti = <span class="num">1</span>;',
+    '\t}',
+    '\tres = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (s[i] &gt;= <span class="str">\'0\'</span> &amp;&amp; s[i] &lt;= <span class="str">\'9\'</span>)',
+    '\t{',
+    '\t\tres = res * <span class="num">10</span> + (s[i] - <span class="str">\'0\'</span>);',
+    '\t\ti++;',
+    '\t}',
+    '\t<span class="kw">return</span> (res * sign);',
     '}',
   ],
   has_duplicates: [
-    '<span class="tp">int</span> <span class="fn">has_duplicates</span>(<span class="tp">int</span> *values, <span class="tp">int</span> n)',
+    '<span class="tp">int</span>\t<span class="fn">has_duplicates</span>(<span class="tp">int</span> *values, <span class="tp">int</span> n)',
     '{',
-    '    <span class="tp">int</span> i, j;',
+    '\t<span class="tp">int</span>\ti;',
+    '\t<span class="tp">int</span>\tj;',
     '',
-    '    i = <span class="num">0</span>;',
-    '    <span class="kw">while</span> (i &lt; n)',
-    '    {',
-    '        j = i + <span class="num">1</span>;',
-    '        <span class="kw">while</span> (j &lt; n)',
-    '        {',
-    '            <span class="kw">if</span> (values[i] == values[j])',
-    '                <span class="kw">return</span> (<span class="num">1</span>);',
-    '            j++;',
-    '        }',
-    '        i++;',
-    '    }',
-    '    <span class="kw">return</span> (<span class="num">0</span>);',
+    '\ti = <span class="num">0</span>;',
+    '\t<span class="kw">while</span> (i &lt; n)',
+    '\t{',
+    '\t\tj = i + <span class="num">1</span>;',
+    '\t\t<span class="kw">while</span> (j &lt; n)',
+    '\t\t{',
+    '\t\t\t<span class="kw">if</span> (values[i] == values[j])',
+    '\t\t\t\t<span class="kw">return</span> (<span class="num">1</span>);',
+    '\t\t\tj++;',
+    '\t\t}',
+    '\t\ti++;',
+    '\t}',
+    '\t<span class="kw">return</span> (<span class="num">0</span>);',
     '}',
   ],
 };
@@ -480,25 +503,25 @@ function simulate(scenario) {
     for (let i = 0; i < argv.length - 1; i++) {
       locals.i = i;
       if (i === 0) {
-        snap('tokenize', 11, 'loop', `Boucle : i=0 < argc-1=${argv.length - 1}. On rentre.`);
-        snap('tokenize', 13, 'copy', `tokens[0] = ft_strdup(argv[1]) = "${argv[1]}". Copie malloc-ée.`);
+        snap('tokenize', 12, 'loop', `Boucle : i=0 < argc-1=${argv.length - 1}. On rentre.`);
+        snap('tokenize', 14, 'copy', `tokens[0] = ft_strdup(argv[1]) = "${argv[1]}". Copie malloc-ée.`);
         tokens[0] = argv[1];
-        snap('tokenize', 13, 'copy', `tokens[0] = "${argv[1]}" ✓`, { focus: 'tokens' });
+        snap('tokenize', 14, 'copy', `tokens[0] = "${argv[1]}" ✓`, { focus: 'tokens' });
       } else {
-        snap('tokenize', 13, 'copy', `Itération i=${i} (résumé) : tokens[${i}] = ft_strdup(argv[${i + 1}]) = "${argv[i + 1]}".`, { focus: 'tokens' });
+        snap('tokenize', 14, 'copy', `Itération i=${i} (résumé) : tokens[${i}] = ft_strdup(argv[${i + 1}]) = "${argv[i + 1]}".`, { focus: 'tokens' });
         tokens[i] = argv[i + 1];
       }
     }
     locals.i = argv.length - 1;
-    snap('tokenize', 16, 'set', `tokens[${argv.length - 1}] = NULL. Terminateur.`, { focus: 'tokens' });
-    snap('tokenize', 17, 'ret', `return tokens.`);
+    snap('tokenize', 17, 'set', `tokens[${argv.length - 1}] = NULL. Terminateur.`, { focus: 'tokens' });
+    snap('tokenize', 18, 'ret', `return tokens.`);
   }
   pop();
   snap('parse', 6, 'back', `← retour à parse_args. tokens = [${tokens.filter(t => t !== null).map(t => '"' + t + '"').join(', ')}, NULL].`, { focus: 'tokens' });
   snap('parse', 7, 'check', `if (!tokens) → non.`);
 
   /* ─── count_tokens ─── */
-  snap('parse', 8, 'call', `Appel à count_tokens(tokens).`);
+  snap('parse', 12, 'call', `Appel à count_tokens(tokens).`);
   push('count_tokens');
   locals = { i: 0 };
   snap('count_tokens', 1, 'enter', `→ entrée dans count_tokens.`);
@@ -515,16 +538,16 @@ function simulate(scenario) {
   pop();
 
   n = nReal;
-  snap('parse', 8, 'back', `← retour. *n = ${nReal}. Écrit dans le n de main via le pointeur.`, { focus: 'n' });
-  snap('parse', 9, 'check', `if (*n == 0) → ${nReal === 0 ? 'OUI' : 'non'}.`);
+  snap('parse', 9, 'back', `← retour. *n = ${nReal}. Écrit dans le n de main via le pointeur.`, { focus: 'n' });
+  snap('parse', 10, 'check', `if (*n == 0) → ${nReal === 0 ? 'OUI' : 'non'}.`);
 
   if (nReal === 0) {
-    snap('parse', 9, 'call', `free_tokens(tokens).`);
+    snap('parse', 12, 'call', `free_tokens(tokens).`);
     push('free_tokens');
     snap('free_tokens', 1, 'enter', `→ entrée dans free_tokens (résumé car tokens est vide).`);
     tokens = null; tokensFreed = true;
     pop();
-    snap('parse', 9, 'err', `return NULL.`);
+    snap('parse', 13, 'err', `return NULL.`);
     pop();
     snap('main', 9, 'back', `← retour. values = NULL.`, { focus: 'values' });
     stderr = 'Error\n'; exitCode = 1;
@@ -534,7 +557,7 @@ function simulate(scenario) {
   }
 
   /* ─── convert_tokens ─── */
-  snap('parse', 10, 'call', `Appel à convert_tokens(tokens, ${nReal}).`);
+  snap('parse', 15, 'call', `Appel à convert_tokens(tokens, ${nReal}).`);
   push('convert_tokens');
   locals = { n: nReal, i: 0 };
   snap('convert_tokens', 1, 'enter', `→ entrée. n=${nReal}.`);
@@ -546,13 +569,13 @@ function simulate(scenario) {
     locals = { n: nReal, i: i };
     const tok = tokens[i];
     snap('convert_tokens', 10, 'loop', `Itération i=${i}. Va valider tokens[${i}]="${tok}".`, { focus: 'tokens', checkTokenIdx: i });
-    snap('convert_tokens', 11, 'call', `Appel à is_number("${tok}").`);
+    snap('convert_tokens', 12, 'call', `Appel à is_number("${tok}").`);
 
     /* ═════ is_number ═════ */
     push('is_number');
     locals = { s: tok, n: null };
     snap('is_number', 1, 'enter', `→ entrée. s="${tok}".`);
-    snap('is_number', 4, 'call', `Appel à is_valid_int("${tok}").`);
+    snap('is_number', 7, 'call', `Appel à is_valid_int("${tok}").`);
 
     /* ─── is_valid_int (détail seulement pour le 1er) ─── */
     push('is_valid_int');
@@ -560,45 +583,45 @@ function simulate(scenario) {
     if (fullDetail) {
       locals = { s: tok, i: 0 };
       snap('is_valid_int', 1, 'enter', `→ entrée. Check le format de "${tok}".`);
-      snap('is_valid_int', 4, 'check', `!s || !s[0] ? → non, pas vide.`);
+      snap('is_valid_int', 5, 'check', `!s || !s[0] ? → non, pas vide.`);
       const hasSign = tok[0] === '+' || tok[0] === '-';
       if (hasSign) {
         locals.i = 1;
-        snap('is_valid_int', 6, 'check', `s[0] = '${tok[0]}' → signe, i = 1.`);
+        snap('is_valid_int', 8, 'check', `s[0] = '${tok[0]}' → signe, i = 1.`);
       } else {
-        snap('is_valid_int', 6, 'check', `s[0] = '${tok[0]}' → pas un signe, i reste à 0.`);
+        snap('is_valid_int', 8, 'check', `s[0] = '${tok[0]}' → pas un signe, i reste à 0.`);
       }
       const startIdx = hasSign ? 1 : 0;
       if (startIdx >= tok.length) {
-        snap('is_valid_int', 9, 'err', `!s[i] → OUI, juste un signe. return 0.`);
+        snap('is_valid_int', 11, 'err', `!s[i] → OUI, juste un signe. return 0.`);
         pop(); // is_valid_int
       } else {
-        snap('is_valid_int', 9, 'check', `!s[${startIdx}] → non, des chars à vérifier.`);
+        snap('is_valid_int', 10, 'check', `!s[${startIdx}] → non, des chars à vérifier.`);
         let validFormat = true;
         for (let k = startIdx; k < tok.length; k++) {
           locals.i = k;
           const ch = tok[k];
           const isDigit = ch >= '0' && ch <= '9';
           if (!isDigit) {
-            snap('is_valid_int', 12, 'err', `s[${k}]='${ch}' pas un chiffre. return 0.`, { focus: null });
+            snap('is_valid_int', 15, 'err', `s[${k}]='${ch}' pas un chiffre. return 0.`, { focus: null });
             validFormat = false;
             break;
           } else {
             if (k === startIdx || k === tok.length - 1) {
-              snap('is_valid_int', 12, 'check', `s[${k}]='${ch}' est un chiffre. i++.`);
+              snap('is_valid_int', 14, 'check', `s[${k}]='${ch}' est un chiffre. i++.`);
             }
           }
         }
         if (validFormat) {
-          snap('is_valid_int', 15, 'ret', `return 1. Format valide.`);
+          snap('is_valid_int', 18, 'ret', `return 1. Format valide.`);
         }
         pop(); // is_valid_int
         if (!validFormat) {
-          snap('is_number', 4, 'back', `← is_valid_int retourne 0. Format invalide.`);
-          snap('is_number', 4, 'err', `return 0.`);
+          snap('is_number', 7, 'back', `← is_valid_int retourne 0. Format invalide.`);
+          snap('is_number', 9, 'err', `return 0.`);
           pop(); // is_number
-          snap('convert_tokens', 11, 'back', `← is_number retourne 0.`);
-          snap('convert_tokens', 12, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
+          snap('convert_tokens', 12, 'back', `← is_number retourne 0.`);
+          snap('convert_tokens', 15, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
           values = null;
           convertOk = false;
           pop(); // convert_tokens
@@ -614,9 +637,9 @@ function simulate(scenario) {
       }
       pop(); // is_valid_int
       if (!validFormat) {
-        snap('is_number', 4, 'err', `is_valid_int KO → return 0.`);
+        snap('is_number', 9, 'err', `is_valid_int KO → return 0.`);
         pop(); // is_number
-        snap('convert_tokens', 12, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
+        snap('convert_tokens', 15, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
         values = null;
         convertOk = false;
         pop(); // convert_tokens
@@ -625,8 +648,8 @@ function simulate(scenario) {
     }
 
     /* Back in is_number, now call ft_atol for range check */
-    snap('is_number', 4, 'back', `← is_valid_int retourne 1.`);
-    snap('is_number', 5, 'call', `Appel à ft_atol("${tok}") pour check la range.`);
+    snap('is_number', 7, 'back', `← is_valid_int retourne 1.`);
+    snap('is_number', 7, 'call', `Appel à ft_atol("${tok}") pour check la range.`);
 
     /* ═════ ft_atol (détail seulement pour le 1er) ═════ */
     push('ft_atol');
@@ -634,16 +657,16 @@ function simulate(scenario) {
     if (fullDetail) {
       locals = { sign: 1, i: 0, res: 0 };
       snap('ft_atol', 1, 'enter', `→ entrée. s="${tok}".`);
-      snap('ft_atol', 6, 'assign', `sign = 1.`);
-      snap('ft_atol', 7, 'assign', `i = 0.`);
+      snap('ft_atol', 8, 'assign', `sign = 1.`);
+      snap('ft_atol', 8, 'assign', `i = 0.`);
       const hasSign2 = tok[0] === '+' || tok[0] === '-';
       if (hasSign2) {
-        if (tok[0] === '-') { locals.sign = -1; snap('ft_atol', 10, 'assign', `s[0]='-', sign = -1.`); }
-        else snap('ft_atol', 10, 'check', `s[0]='+', sign reste 1.`);
+        if (tok[0] === '-') { locals.sign = -1; snap('ft_atol', 12, 'assign', `s[0]='-', sign = -1.`); }
+        else snap('ft_atol', 11, 'check', `s[0]='+', sign reste 1.`);
         locals.i = 1;
-        snap('ft_atol', 11, 'assign', `i = 1. On skippe le signe.`);
+        snap('ft_atol', 15, 'assign', `i = 1. On skippe le signe.`);
       }
-      snap('ft_atol', 13, 'assign', `res = 0. Prêt à accumuler.`);
+      snap('ft_atol', 15, 'assign', `res = 0. Prêt à accumuler.`);
       const digits = hasSign2 ? tok.slice(1) : tok;
       let res = 0;
       for (let k = 0; k < digits.length; k++) {
@@ -651,63 +674,63 @@ function simulate(scenario) {
         locals.res = res;
         locals.i = (hasSign2 ? 1 : 0) + k + 1;
         if (k === 0 || k === digits.length - 1) {
-          snap('ft_atol', 16, 'accum', `res = res*10 + ('${digits[k]}' - '0') = ${res}. i++.`);
+          snap('ft_atol', 18, 'accum', `res = res*10 + ('${digits[k]}' - '0') = ${res}. i++.`);
         }
       }
-      snap('ft_atol', 19, 'ret', `return res * sign = ${res * locals.sign} = ${nVal}.`);
+      snap('ft_atol', 21, 'ret', `return res * sign = ${res * locals.sign} = ${nVal}.`);
     } else {
       snap('ft_atol', 1, 'ret', `(résumé) ft_atol("${tok}") → ${nVal}.`);
     }
     pop(); // ft_atol
 
-    snap('is_number', 5, 'back', `← ft_atol retourne ${nVal}.`);
+    snap('is_number', 7, 'back', `← ft_atol retourne ${nVal}.`);
     const inRange = nVal >= -2147483648 && nVal <= 2147483647;
     if (!inRange) {
-      snap('is_number', 6, 'err', `n=${nVal} hors INT range. return 0.`);
+      snap('is_number', 9, 'err', `n=${nVal} hors INT range. return 0.`);
       pop(); // is_number
-      snap('convert_tokens', 12, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
+      snap('convert_tokens', 15, 'err', `free(values); return NULL.`, { focus: 'values', badTokenIdx: i });
       values = null;
       convertOk = false;
       pop(); // convert_tokens
       break;
     }
-    snap('is_number', 6, 'check', `n=${nVal} in range → return 1.`);
+    snap('is_number', 8, 'check', `n=${nVal} in range → return 1.`);
     pop(); // is_number
 
-    snap('convert_tokens', 11, 'back', `← is_number retourne 1.`);
-    snap('convert_tokens', 13, 'call', `values[${i}] = (int)ft_atol("${tok}"). 2e appel à ft_atol pour la conversion.`);
+    snap('convert_tokens', 12, 'back', `← is_number retourne 1.`);
+    snap('convert_tokens', 17, 'call', `values[${i}] = (int)ft_atol("${tok}"). 2e appel à ft_atol pour la conversion.`);
     values[i] = nVal;
-    snap('convert_tokens', 13, 'assign', `values[${i}] = ${nVal}.`, { focus: 'values' });
+    snap('convert_tokens', 17, 'assign', `values[${i}] = ${nVal}.`, { focus: 'values' });
   }
 
   if (convertOk) {
-    snap('convert_tokens', 16, 'ret', `Boucle terminée. return values = [${values.join(', ')}].`, { focus: 'values' });
+    snap('convert_tokens', 20, 'ret', `Boucle terminée. return values = [${values.join(', ')}].`, { focus: 'values' });
     pop(); // convert_tokens
-    snap('parse', 10, 'back', `← retour.`, { focus: 'values' });
+    snap('parse', 15, 'back', `← retour.`, { focus: 'values' });
   } else {
-    snap('parse', 10, 'back', `← retour (values = NULL).`, { focus: 'values' });
+    snap('parse', 15, 'back', `← retour (values = NULL).`, { focus: 'values' });
   }
 
   /* ─── free_tokens ─── */
-  snap('parse', 11, 'call', `Appel à free_tokens(tokens).`);
+  snap('parse', 16, 'call', `Appel à free_tokens(tokens).`);
   push('free_tokens');
   snap('free_tokens', 1, 'enter', `→ entrée. Libère strings + tableau.`);
   snap('free_tokens', 5, 'check', `!tokens → non.`);
   if (tokens) {
     for (let k = 0; k < tokens.length - 1; k++) {
       if (k === 0 || k === tokens.length - 2) {
-        snap('free_tokens', 9, 'free', `free(tokens[${k}]) — string "${tokens[k]}" libérée.`);
+        snap('free_tokens', 10, 'free', `free(tokens[${k}]) — string "${tokens[k]}" libérée.`);
       }
     }
-    snap('free_tokens', 12, 'free', `free(tokens) — le tableau lui-même.`);
+    snap('free_tokens', 13, 'free', `free(tokens) — le tableau lui-même.`);
   }
   tokens = null; tokensFreed = true;
   pop();
-  snap('parse', 11, 'back', `← tokens libérés.`, { focus: 'tokens' });
+  snap('parse', 16, 'back', `← tokens libérés.`, { focus: 'tokens' });
 
   if (!convertOk) {
-    snap('parse', 12, 'check', `if (!values) → OUI.`);
-    snap('parse', 12, 'err', `return NULL.`);
+    snap('parse', 17, 'check', `if (!values) → OUI.`);
+    snap('parse', 18, 'err', `return NULL.`);
     pop();
     snap('main', 9, 'back', `← values = NULL.`, { focus: 'values' });
     stderr = 'Error\n'; exitCode = 1;
@@ -716,10 +739,10 @@ function simulate(scenario) {
     return frames;
   }
 
-  snap('parse', 12, 'check', `if (!values) → non.`);
+  snap('parse', 17, 'check', `if (!values) → non.`);
 
   /* ─── has_duplicates ─── */
-  snap('parse', 13, 'call', `Appel à has_duplicates(values, ${nReal}).`);
+  snap('parse', 19, 'call', `Appel à has_duplicates(values, ${nReal}).`);
   push('has_duplicates');
   locals = { i: 0, j: 0, n: nReal };
   snap('has_duplicates', 1, 'enter', `→ entrée. Check doublons.`);
@@ -731,23 +754,23 @@ function simulate(scenario) {
     for (let j = i + 1; j < nReal; j++) {
       locals.j = j;
       if (i === 0 && j === 1) {
-        snap('has_duplicates', 11, 'check', `Compare values[0]=${values[0]} vs values[1]=${values[1]} ? → ${values[0] === values[1] ? 'ÉGAUX' : 'non'}.`);
+        snap('has_duplicates', 12, 'check', `Compare values[0]=${values[0]} vs values[1]=${values[1]} ? → ${values[0] === values[1] ? 'ÉGAUX' : 'non'}.`);
       }
       if (values[i] === values[j]) {
         hasDup = true; dupI = i; dupJ = j;
-        snap('has_duplicates', 11, 'dup', `Doublon ! values[${i}] == values[${j}] == ${values[i]}. return 1.`, { focus: 'values', dupIdxs: [i, j] });
+        snap('has_duplicates', 13, 'dup', `Doublon ! values[${i}] == values[${j}] == ${values[i]}. return 1.`, { focus: 'values', dupIdxs: [i, j] });
         break outer;
       }
     }
   }
   if (!hasDup) {
-    snap('has_duplicates', 17, 'ret', `Aucun doublon. return 0.`);
+    snap('has_duplicates', 18, 'ret', `Aucun doublon. return 0.`);
   }
   pop();
 
   if (hasDup) {
-    snap('parse', 13, 'back', `← has_duplicates retourne 1.`);
-    snap('parse', 14, 'err', `free(values); return NULL.`, { focus: 'values', dupIdxs: [dupI, dupJ] });
+    snap('parse', 19, 'back', `← has_duplicates retourne 1.`);
+    snap('parse', 21, 'err', `free(values); return NULL.`, { focus: 'values', dupIdxs: [dupI, dupJ] });
     values = null;
     pop();
     snap('main', 9, 'back', `← values = NULL.`, { focus: 'values' });
@@ -757,8 +780,8 @@ function simulate(scenario) {
     return frames;
   }
 
-  snap('parse', 13, 'back', `← has_duplicates retourne 0.`);
-  snap('parse', 15, 'ret', `return values.`, { focus: 'values' });
+  snap('parse', 19, 'back', `← has_duplicates retourne 0.`);
+  snap('parse', 24, 'ret', `return values.`, { focus: 'values' });
   pop();
 
   /* ═════ Back in main ═════ */
