@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — simple flow (main.c)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=3">
+<style>
+main { max-width: 1180px !important; }
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 18px 22px; box-shadow: 5px 5px 0 var(--ink); margin: 20px 0; }
+.intro h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin: 0 0 10px; }
+.intro p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 8px 0; }
+.intro code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+.ex-chip.ok { border-color: #2f8b4d; }
+.ex-chip.ko { border-color: #c1272d; }
+.ex-chip.silent { border-color: #5c92bf; }
+
+.op-banner { background: var(--ink); color: var(--paper); padding: 14px 18px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 15px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; box-shadow: 3px 3px 0 var(--accent); flex-wrap: wrap; }
+.op-banner .tag { background: var(--hl-yellow); color: var(--ink); font-weight: 700; padding: 4px 12px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; min-width: 90px; text-align: center; }
+.op-banner .tag.ok { background: #9DD6A8; }
+.op-banner .tag.err { background: #FF8B6B; color: #fff; }
+.op-banner .tag.silent { background: #BDD7F0; }
+.op-banner .desc { font-family: 'Patrick Hand', cursive; font-size: 17px; flex: 1; min-width: 200px; line-height: 1.4; }
+
+.grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; margin-bottom: 14px; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.code-panel { background: #1C1A28; border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.85; color: #E9E5F0; }
+.code-panel h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 15px; color: var(--hl-yellow); margin: 0 0 10px; text-align: center; letter-spacing: 1px; }
+.code-line { padding: 2px 10px 2px 44px; position: relative; border-radius: 3px; margin: 1px 0; white-space: pre; }
+.code-line::before { content: attr(data-lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.28); border-left: 3px solid var(--hl-yellow); padding-left: 41px; font-weight: 700; }
+.code-line.active.ok { background: rgba(157,214,168,0.28); border-left-color: #9DD6A8; }
+.code-line.active.err { background: rgba(255,120,120,0.28); border-left-color: #ff7878; }
+.code-line.active.silent { background: rgba(189,215,240,0.28); border-left-color: #BDD7F0; }
+.kw { color: #A5D8A8; } .fn { color: #C0B3E0; } .tp { color: #79B8D8; } .num { color: #FFB380; } .str { color: #FFD88A; } .cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 10px; }
+.state-box { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--ink); padding: 10px 14px; }
+.state-box h4 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; margin: 0 0 6px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+.state-box.highlight { box-shadow: 4px 4px 0 var(--accent); transform: translate(-1px,-1px); }
+.state-box .val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink); }
+.state-box .val.empty { color: var(--muted); font-style: italic; }
+
+.slot-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.slot { padding: 3px 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; min-width: 28px; text-align: center; box-shadow: 1px 1px 0 var(--ink); }
+.slot.ok { background: #BFE6CC; }
+.slot.bad { background: #FFCACA; }
+.slot.null-marker { background: var(--paper-e); color: var(--muted); font-style: italic; font-size: 11px; }
+
+.parse-result { background: #2a2833; color: #E9E5F0; border: 2px solid var(--ink); border-radius: 8px; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; }
+.parse-result .label { color: var(--hl-yellow); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block; }
+.parse-result.pending { color: #5C5A75; font-style: italic; }
+.parse-result.ok { border-color: #9DD6A8; }
+.parse-result.err { border-color: #FF8B6B; }
+
+.stdio-box { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #1C1A28; color: #E9E5F0; padding: 6px 10px; border-radius: 5px; min-height: 22px; }
+.stdio-box.stderr { color: #FF8B6B; }
+.stdio-box.empty { color: #5C5A75; font-style: italic; }
+
+.exit-code { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; text-align: center; padding: 5px; border-radius: 5px; }
+.exit-code.ok { background: #BFE6CC; color: #2f8b4d; }
+.exit-code.err { background: #FFCACA; color: #c1272d; }
+.exit-code.pending { background: var(--paper-e); color: var(--muted); font-size: 15px; }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft); text-align: center; margin-top: 12px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+
+.notes { background: var(--hl-mint); border: 3px dashed var(--ink); border-radius: 14px; padding: 18px 22px; margin: 20px 0; }
+.notes h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; margin: 0 0 10px; }
+.notes p, .notes li { font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.notes ul { margin: 8px 0 0 20px; }
+.notes code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap — main flow (version simple)</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">main flow</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">version simple : juste main.c, sans plongée ↓</div>
+</section>
+
+<main>
+
+<div class="intro">
+  <h2>🎯 Version simple</h2>
+  <p>Le code panel reste <b>toujours sur main.c</b>. Pas de switch, pas de plongée dans les sous-fonctions. <code>parse_args</code> est résumé en 1-2 frames avec son résultat.</p>
+  <p>~10 frames par scénario au lieu de 116. Tu vois le <b>flow global</b> sans te perdre.</p>
+  <p>Pour le détail de parse_args et ses sous-fonctions, regarde le <a href="push_swap-full-tutor.html">full tutor</a>.</p>
+</div>
+
+<div class="debugger">
+  <div class="examples" id="examples"></div>
+
+  <div class="op-banner">
+    <div class="tag" id="phase-tag">ready</div>
+    <div class="desc" id="phase-desc">Choisis un scénario et clique next.</div>
+  </div>
+
+  <div class="grid">
+    <div class="code-panel">
+      <h3>main.c</h3>
+      <div id="code"></div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-box" id="box-argv">
+        <h4>argv</h4>
+        <div class="slot-row" id="argv-slots"></div>
+      </div>
+
+      <div class="state-box" id="box-n">
+        <h4>n (dans main)</h4>
+        <div class="val" id="n-val">?</div>
+      </div>
+
+      <div class="state-box" id="box-values">
+        <h4>values (int *)</h4>
+        <div id="values-content"><div class="val empty">(pas encore alloué)</div></div>
+      </div>
+
+      <div class="state-box" id="box-parse" style="display:none;">
+        <h4>parse_args — résumé</h4>
+        <div class="parse-result pending" id="parse-content">(pas encore appelé)</div>
+      </div>
+
+      <div class="state-box" id="box-stderr">
+        <h4>stderr (fd 2)</h4>
+        <div class="stdio-box empty" id="stderr-out">(vide)</div>
+      </div>
+
+      <div class="state-box" id="box-exit">
+        <h4>exit code</h4>
+        <div class="exit-code pending" id="exit-val">?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctrls">
+    <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+    <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+    <button class="ctrl-btn" id="btn-play">▶ play</button>
+    <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+    <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+      vitesse : <input type="range" id="speed" min="200" max="2000" value="800" step="100">
+    </label>
+  </div>
+
+  <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+</div>
+
+<div class="notes">
+  <h3>🔑 Ce que tu vois</h3>
+  <ul>
+    <li><b>Le code reste sur main.c</b> en permanence. La ligne active est highlight en jaune (ou vert = OK, rouge = erreur, bleu = silent exit).</li>
+    <li><b>Quand parse_args est appelé</b>, un panneau "parse_args — résumé" apparaît dans la barre d'état avec le résultat : soit <code>[3, 1, 4, 2]</code> + n, soit <code>NULL</code> + la raison de l'erreur.</li>
+    <li><b>argv est l'input fixe</b>. <b>n</b> est mis à jour via le pointeur (<code>*n</code>) pendant parse_args. <b>values</b> passe de <code>NULL</code> à un tableau d'ints ou reste <code>NULL</code> en cas d'erreur.</li>
+    <li><b>stderr</b> ne reçoit "Error" que dans les scénarios d'erreur. <b>exit code</b> final : 0 pour les 2 premiers scénarios (silent + success), 1 pour les erreurs.</li>
+  </ul>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">main flow pigé ✌</div>
+  <div class="footer-meta">push_swap · <a href="push_swap-full-tutor.html">full tutor (avec sous-fonctions)</a> · <a href="../index.html">dashboard</a></div>
+</footer>
+
+<script>
+const CODE = [
+  '<span class="tp">int</span>\t<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+  '{',
+  '\t<span class="tp">int</span>\tn;',
+  '\t<span class="tp">int</span>\t*values;',
+  '',
+  '\t<span class="kw">if</span> (argc &lt; <span class="num">2</span>)',
+  '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '\tvalues = <span class="fn">parse_args</span>(argc, argv, &amp;n);',
+  '\t<span class="kw">if</span> (!values)',
+  '\t{',
+  '\t\t<span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\\n"</span>, <span class="num">6</span>);',
+  '\t\t<span class="kw">return</span> (<span class="num">1</span>);',
+  '\t}',
+  '\t<span class="fn">free</span>(values);',
+  '\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '}',
+];
+
+function simulate(scenario) {
+  const frames = [];
+  const argv = scenario.argv;
+  let n = null, values = null, valuesFreed = false;
+  let stderr = '', exitCode = null;
+  let parseResult = null;
+
+  const snap = (line, tag, desc, opts = {}) => {
+    frames.push({
+      line, tag, desc,
+      argv: [...argv],
+      n, values, valuesFreed,
+      stderr, exitCode,
+      parseResult,
+      focus: opts.focus || null,
+    });
+  };
+
+  snap(1, 'enter', `Programme démarre. argc=${argv.length}, argv=${JSON.stringify(argv)}.`, { focus: 'argv' });
+  snap(3, 'declare', `int n déclaré (garbage pour l'instant).`);
+  snap(4, 'declare', `int *values déclaré (garbage pour l'instant).`);
+  snap(6, 'check', `if (argc < 2) ? → ${argv.length < 2 ? 'OUI, pas d\\'args' : 'non (argc = ' + argv.length + ')'}`);
+
+  if (argv.length < 2) {
+    exitCode = 0;
+    snap(7, 'silent', `return (0). Silent exit conforme au sujet.`, { focus: 'exit' });
+    return frames;
+  }
+
+  parseResult = { pending: true };
+  snap(8, 'parse-call', `Appel à parse_args(argc, argv, &n). Tokenise, valide, convertit.`, { focus: 'parse' });
+
+  if (scenario.parseOk) {
+    n = scenario.n;
+    values = [...scenario.values];
+    parseResult = { ok: true, values: [...scenario.values], n: scenario.n };
+    snap(8, 'parse-ok', `parse_args réussit. values=[${values.join(', ')}], n=${n}.`, { focus: 'parse' });
+    snap(9, 'check', `if (!values) ? → non, tout OK.`);
+    snap(14, 'free', `free(values). Libère le tableau alloué.`, { focus: 'values' });
+    values = null; valuesFreed = true;
+    exitCode = 0;
+    snap(15, 'ok', `return (0). Success.`, { focus: 'exit' });
+  } else {
+    parseResult = { err: true, reason: scenario.errReason };
+    snap(8, 'parse-err', `parse_args rejette l'input (${scenario.errReason}). Renvoie NULL.`, { focus: 'parse' });
+    snap(9, 'check', `if (!values) ? → OUI, erreur détectée.`);
+    stderr = 'Error\n';
+    snap(11, 'err-write', `write(2, "Error\\n", 6). Écrit sur stderr (fd 2).`, { focus: 'stderr' });
+    exitCode = 1;
+    snap(12, 'err', `return (1). Exit avec code d'erreur.`, { focus: 'exit' });
+  }
+
+  return frames;
+}
+
+const SCENARIOS = [
+  { label: '(no args) 🔵', argv: ['./push_swap'], parseOk: null, cat: 'silent' },
+  { label: '3 1 4 2 ✅', argv: ['./push_swap', '3', '1', '4', '2'], parseOk: true, n: 4, values: [3, 1, 4, 2], cat: 'ok' },
+  { label: '3 abc 4 ❌', argv: ['./push_swap', '3', 'abc', '4'], parseOk: false, errReason: '"abc" n\\'est pas un nombre', cat: 'ko' },
+  { label: '3 1 4 1 ❌ dup', argv: ['./push_swap', '3', '1', '4', '1'], parseOk: false, errReason: 'doublon (1 apparaît 2x)', cat: 'ko' },
+  { label: '9999999999 ❌ overflow', argv: ['./push_swap', '9999999999'], parseOk: false, errReason: 'overflow int', cat: 'ko' },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = SCENARIOS.map((s, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''} ${s.cat}" data-idx="${idx}">${s.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadScenario(SCENARIOS[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode() {
+  document.getElementById('code').innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-lineno="${String(idx + 1).padStart(2, ' ')}" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderArgv(f) {
+  document.getElementById('argv-slots').innerHTML = f.argv.map((v, i) =>
+    `<div class="slot ${i === 0 ? 'null-marker' : ''}">"${v}"</div>`).join('');
+}
+
+function renderValues(f) {
+  const el = document.getElementById('values-content');
+  if (f.valuesFreed) {
+    el.innerHTML = '<div class="val empty">(freed)</div>';
+    return;
+  }
+  if (!f.values) {
+    el.innerHTML = '<div class="val empty">(NULL ou pas alloué)</div>';
+    return;
+  }
+  el.innerHTML = '<div class="slot-row">' + f.values.map(v => `<div class="slot ok">${v}</div>`).join('') + '</div>';
+}
+
+function renderParseResult(f) {
+  const box = document.getElementById('box-parse');
+  const el = document.getElementById('parse-content');
+  if (!f.parseResult) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  if (f.parseResult.pending) {
+    el.className = 'parse-result pending';
+    el.innerHTML = '<span class="label">résultat</span>(en cours...)';
+  } else if (f.parseResult.ok) {
+    el.className = 'parse-result ok';
+    el.innerHTML = '<span class="label">succès</span>values = [' + f.parseResult.values.join(', ') + '], n = ' + f.parseResult.n;
+  } else {
+    el.className = 'parse-result err';
+    el.innerHTML = '<span class="label">erreur</span>NULL · raison : ' + f.parseResult.reason;
+  }
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active', 'err', 'ok', 'silent'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    if (['err', 'err-write', 'parse-err'].includes(f.tag)) line.classList.add('err');
+    if (['ok', 'parse-ok', 'free'].includes(f.tag)) line.classList.add('ok');
+    if (f.tag === 'silent') line.classList.add('silent');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  renderArgv(f);
+  document.getElementById('n-val').textContent = f.n === null ? '?' : f.n;
+  renderValues(f);
+  renderParseResult(f);
+
+  const sErr = document.getElementById('stderr-out');
+  if (f.stderr) { sErr.textContent = f.stderr.replace(/\n/g, '⏎'); sErr.className = 'stdio-box stderr'; }
+  else { sErr.textContent = '(vide)'; sErr.className = 'stdio-box empty'; }
+
+  const exit = document.getElementById('exit-val');
+  if (f.exitCode === null) { exit.textContent = '(en cours)'; exit.className = 'exit-code pending'; }
+  else { exit.textContent = f.exitCode === 0 ? '0 (success)' : `${f.exitCode} (error)`; exit.className = 'exit-code ' + (f.exitCode === 0 ? 'ok' : 'err'); }
+
+  ['box-argv', 'box-n', 'box-values', 'box-parse', 'box-stderr', 'box-exit'].forEach(id => {
+    document.getElementById(id).classList.remove('highlight');
+  });
+  const focusMap = { argv: 'box-argv', n: 'box-n', values: 'box-values', parse: 'box-parse', stderr: 'box-stderr', exit: 'box-exit' };
+  if (focusMap[f.focus]) document.getElementById(focusMap[f.focus]).classList.add('highlight');
+
+  const tagEl = document.getElementById('phase-tag');
+  tagEl.textContent = f.tag;
+  tagEl.className = 'tag';
+  if (['ok', 'parse-ok', 'free'].includes(f.tag)) tagEl.classList.add('ok');
+  if (['err', 'err-write', 'parse-err'].includes(f.tag)) tagEl.classList.add('err');
+  if (f.tag === 'silent') tagEl.classList.add('silent');
+  document.getElementById('phase-desc').textContent = f.desc;
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadScenario(s) {
+  frames = simulate(s);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2200 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+renderCode();
+renderExamples();
+loadScenario(SCENARIOS[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>
