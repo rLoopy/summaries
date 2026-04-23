@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — full process tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=3">
+<style>
+main { max-width: 1280px !important; }
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 20px 24px; box-shadow: 5px 5px 0 var(--ink); margin: 20px 0; }
+.intro h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin: 0 0 10px; }
+.intro p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 8px 0; }
+.intro code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+.ex-chip.ok { border-color: #2f8b4d; }
+.ex-chip.ko { border-color: #c1272d; }
+.ex-chip.silent { border-color: #5c92bf; }
+
+.op-banner { background: var(--ink); color: var(--paper); padding: 12px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; box-shadow: 3px 3px 0 var(--accent); flex-wrap: wrap; }
+.op-banner .tag { background: var(--hl-yellow); color: var(--ink); font-weight: 700; padding: 4px 10px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; min-width: 90px; text-align: center; }
+.op-banner .tag.ok { background: #9DD6A8; }
+.op-banner .tag.err { background: #FF8B6B; color: #fff; }
+.op-banner .tag.silent { background: #BDD7F0; }
+.op-banner .desc { font-family: 'Patrick Hand', cursive; font-size: 16px; flex: 1; min-width: 200px; line-height: 1.35; }
+
+.callstack { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 10px; padding: 8px 14px; margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; box-shadow: 2px 2px 0 var(--ink); }
+.callstack .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px; }
+.callstack .frame { display: inline-block; background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 2px 10px; margin: 0 3px; font-weight: 700; }
+.callstack .frame.current { background: var(--hl-yellow); box-shadow: 2px 2px 0 var(--accent); }
+.callstack .arrow { color: var(--accent-d); margin: 0 4px; font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 14px; }
+@media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+
+.code-panel { background: #1C1A28; border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; color: #E9E5F0; max-height: 560px; overflow-y: auto; }
+.code-panel h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; color: var(--hl-yellow); margin: 0 0 8px; text-align: center; letter-spacing: 1px; }
+.code-line { padding: 2px 8px 2px 40px; position: relative; border-radius: 3px; margin: 1px 0; white-space: pre; }
+.code-line::before { content: attr(data-lineno); position: absolute; left: 6px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.22); border-left: 3px solid var(--hl-yellow); padding-left: 37px; font-weight: 700; }
+.code-line.active.ok { background: rgba(157,214,168,0.22); border-left-color: #9DD6A8; }
+.code-line.active.err { background: rgba(255,120,120,0.22); border-left-color: #ff7878; }
+.code-line.active.silent { background: rgba(189,215,240,0.22); border-left-color: #BDD7F0; }
+.kw { color: #A5D8A8; } .fn { color: #C0B3E0; } .tp { color: #79B8D8; } .num { color: #FFB380; } .str { color: #FFD88A; } .cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 10px; }
+.state-box { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--ink); padding: 8px 12px; }
+.state-box h4 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; margin: 0 0 5px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+.state-box.highlight { box-shadow: 4px 4px 0 var(--accent); transform: translate(-1px,-1px); }
+.state-box .val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); }
+.state-box .val.empty { color: var(--muted); font-style: italic; }
+
+.slot-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.slot { padding: 3px 8px; background: var(--paper); border: 2px solid var(--ink); border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; min-width: 26px; text-align: center; box-shadow: 1px 1px 0 var(--ink); }
+.slot.ok { background: #BFE6CC; }
+.slot.bad { background: #FFCACA; }
+.slot.check { outline: 2px dashed var(--accent-d); outline-offset: 1px; }
+.slot.null-marker { background: var(--paper-e); color: var(--muted); font-style: italic; font-size: 11px; }
+.slot.freed { background: repeating-linear-gradient(45deg, var(--paper-e), var(--paper-e) 3px, var(--paper) 3px, var(--paper) 6px); color: var(--muted); text-decoration: line-through; }
+
+.stdio-box { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #1C1A28; color: #E9E5F0; padding: 6px 10px; border-radius: 5px; min-height: 22px; }
+.stdio-box.stderr { color: #FF8B6B; }
+.stdio-box.empty { color: #5C5A75; font-style: italic; }
+
+.exit-code { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; text-align: center; padding: 5px; border-radius: 5px; }
+.exit-code.ok { background: #BFE6CC; color: #2f8b4d; }
+.exit-code.err { background: #FFCACA; color: #c1272d; }
+.exit-code.pending { background: var(--paper-e); color: var(--muted); font-size: 15px; }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink-soft); text-align: center; margin-top: 10px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 22px; }
+
+.notes { background: var(--hl-mint); border: 3px dashed var(--ink); border-radius: 14px; padding: 18px 22px; margin: 20px 0; }
+.notes h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; margin: 0 0 10px; }
+.notes p, .notes li { font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.notes ul { margin: 8px 0 0 20px; }
+.notes code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap — process entier</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">full process</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">main → parse_args → sous-fonctions → exit ↓</div>
+</section>
+
+<main>
+
+<div class="intro">
+  <h2>🎯 Le process entier de push_swap day 1</h2>
+  <p>Tu vois le <b>programme complet</b>, pas juste main. On rentre dans main, on appelle parse_args, on rentre dans parse_args, on fait tokenize, count_tokens, convert_tokens (avec validation token par token), free_tokens, has_duplicates, on ressort, on gère l'erreur ou le succès, on free, on exit.</p>
+  <p>La <b>call stack</b> en haut te dit où tu es. Les panneaux d'état te montrent ce qui existe en mémoire à chaque instant.</p>
+  <p><b>4 scénarios</b> : silent · ok · error non-nombre · error doublon.</p>
+</div>
+
+<section class="section">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="op-banner">
+      <div class="tag" id="phase-tag">ready</div>
+      <div class="desc" id="phase-desc">Choisis un scénario et clique next.</div>
+    </div>
+
+    <div class="callstack">
+      <span class="label">call stack :</span>
+      <span id="callstack-content"></span>
+    </div>
+
+    <div class="grid">
+      <div class="code-panel">
+        <h3 id="code-title">main.c</h3>
+        <div id="code"></div>
+      </div>
+
+      <div class="state-panel">
+        <div class="state-box" id="box-argv">
+          <h4>argv (input)</h4>
+          <div class="slot-row" id="argv-slots"></div>
+        </div>
+
+        <div class="state-box" id="box-n">
+          <h4>n (dans main)</h4>
+          <div class="val" id="n-val">?</div>
+        </div>
+
+        <div class="state-box" id="box-tokens">
+          <h4>tokens (char **)</h4>
+          <div id="tokens-content">
+            <div class="val empty">(pas encore alloué)</div>
+          </div>
+        </div>
+
+        <div class="state-box" id="box-values">
+          <h4>values (int *)</h4>
+          <div id="values-content">
+            <div class="val empty">(pas encore alloué)</div>
+          </div>
+        </div>
+
+        <div class="state-box" id="box-stderr">
+          <h4>stderr (fd 2)</h4>
+          <div class="stdio-box empty" id="stderr-out">(vide)</div>
+        </div>
+
+        <div class="state-box" id="box-exit">
+          <h4>exit code</h4>
+          <div class="exit-code pending" id="exit-val">(en cours)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrls">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="200" max="2000" value="700" step="100">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+
+  <div class="notes">
+    <h3>🔑 Ce que tu dois capter</h3>
+    <ul>
+      <li><b>Call stack</b> : au début on est dans <code>main</code>. Au call de <code>parse_args</code>, on entre dans sa frame (apparaît dans la stack). On en ressort quand elle return.</li>
+      <li><b>La variable n de main</b> est écrite via le pointeur dans parse_args (tu vois la case passer de <code>?</code> à <code>4</code> sans qu'on touche au n de main directement).</li>
+      <li><b>tokens vit et meurt dans parse_args</b> : apparaît à tokenize, disparaît au free_tokens. Ne survit pas au retour.</li>
+      <li><b>values survit</b> au retour de parse_args — c'est la valeur retournée qu'on stocke dans le values de main. Sauf en cas d'erreur (NULL).</li>
+      <li><b>Cas d'erreur</b> : parse_args libère tout internement, renvoie NULL. Main voit NULL, écrit "Error" sur stderr, exit 1.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">process pigé ✌</div>
+  <div class="footer-meta">push_swap · <a href="parse_args-stars.html">fiche étoiles</a> · <a href="../index.html">dashboard</a></div>
+</footer>
+
+<script>
+const CODE_MAIN = [
+  '<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+  '{',
+  '    <span class="tp">int</span>  n;',
+  '    <span class="tp">int</span>  *values;',
+  '',
+  '    <span class="kw">if</span> (argc &lt; <span class="num">2</span>)',
+  '        <span class="kw">return</span> (<span class="num">0</span>);',
+  '    values = <span class="fn">parse_args</span>(argc, argv, &amp;n);',
+  '    <span class="kw">if</span> (!values)',
+  '    {',
+  '        <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\\n"</span>, <span class="num">6</span>);',
+  '        <span class="kw">return</span> (<span class="num">1</span>);',
+  '    }',
+  '    <span class="fn">free</span>(values);',
+  '    <span class="kw">return</span> (<span class="num">0</span>);',
+  '}',
+];
+
+const CODE_PARSE = [
+  '<span class="tp">int</span> *<span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv, <span class="tp">int</span> *n)',
+  '{',
+  '    <span class="tp">char</span> **tokens;',
+  '    <span class="tp">int</span>  *values;',
+  '',
+  '    tokens = <span class="fn">tokenize</span>(argc, argv);',
+  '    <span class="kw">if</span> (!tokens)',
+  '        <span class="kw">return</span> (<span class="num">NULL</span>);',
+  '    *n = <span class="fn">count_tokens</span>(tokens);',
+  '    <span class="kw">if</span> (*n == <span class="num">0</span>) { <span class="fn">free_tokens</span>(tokens); <span class="kw">return</span> <span class="num">NULL</span>; }',
+  '    values = <span class="fn">convert_tokens</span>(tokens, *n);',
+  '    <span class="fn">free_tokens</span>(tokens);',
+  '    <span class="kw">if</span> (!values)',
+  '        <span class="kw">return</span> (<span class="num">NULL</span>);',
+  '    <span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, *n))',
+  '    { <span class="fn">free</span>(values); <span class="kw">return</span> <span class="num">NULL</span>; }',
+  '    <span class="kw">return</span> (values);',
+  '}',
+];
+
+/* ============================================================ */
+/*  Simulator — full process                                    */
+/* ============================================================ */
+
+function simulate(scenario) {
+  const frames = [];
+  const argv = scenario.argv;
+  let stack = ['main'];
+  let n = null;
+  let tokens = null;
+  let tokensFreed = false;
+  let values = null;
+  let valuesFreed = false;
+  let stderr = '';
+  let exitCode = null;
+
+  const snap = (where, line, tag, desc, opts = {}) => {
+    frames.push({
+      where, line, tag, desc,
+      stack: [...stack],
+      argv: [...argv],
+      n,
+      tokens: tokens ? [...tokens] : null,
+      tokensFreed,
+      values: values ? [...values] : null,
+      valuesFreed,
+      stderr, exitCode,
+      focus: opts.focus || null,
+      checkTokenIdx: opts.checkTokenIdx ?? null,
+      badTokenIdx: opts.badTokenIdx ?? null,
+      dupIdxs: opts.dupIdxs || [],
+    });
+  };
+
+  /* ═════ Dans main ═════ */
+  snap('main', 1, 'enter', `Programme démarre. argc=${argv.length}, argv=${JSON.stringify(argv)}.`, { focus: 'argv' });
+  snap('main', 3, 'declare', `int n déclaré (garbage pour l'instant).`);
+  snap('main', 4, 'declare', `int *values déclaré (garbage pour l'instant).`);
+  snap('main', 6, 'check', `if (argc < 2) ? → ${argv.length < 2 ? 'OUI' : 'non (' + argv.length + ')'}`);
+
+  if (argv.length < 2) {
+    exitCode = 0;
+    snap('main', 7, 'silent', `return 0 silencieusement. Pas d'erreur, rien à faire.`, { focus: 'exit' });
+    return frames;
+  }
+
+  snap('main', 8, 'call', `Appel à parse_args(argc, argv, &n). On passe l'adresse de n pour que parse_args puisse écrire dedans.`);
+
+  /* ═════ Entrée dans parse_args ═════ */
+  stack = ['main', 'parse_args'];
+  snap('parse', 1, 'enter', `→ Entrée dans parse_args. Nouveau stack frame.`);
+  snap('parse', 3, 'declare', `parse_args déclare ses propres tokens + values locaux.`);
+
+  /* tokenize */
+  snap('parse', 6, 'tokenize', `Appel à tokenize. Va normaliser argv en tableau de strings.`, { focus: 'tokens' });
+  tokens = [...scenario.tokens];
+  snap('parse', 6, 'tokenize', `tokenize OK. tokens = ${JSON.stringify(tokens.filter(t => t !== null))} + NULL.`, { focus: 'tokens' });
+  snap('parse', 7, 'check', `if (!tokens) ? → non, on continue.`);
+
+  /* count_tokens */
+  n = tokens.filter(t => t !== null).length;
+  snap('parse', 9, 'count', `*n = count_tokens(tokens) = ${n}. ⚡ Écrit dans le n de main via le pointeur.`, { focus: 'n' });
+
+  if (n === 0) {
+    tokens = null; tokensFreed = true;
+    snap('parse', 10, 'free', `*n == 0 → free_tokens + return NULL.`, { focus: 'tokens' });
+    stack = ['main'];
+    snap('main', 9, 'check', `← Retour dans main. values = NULL.`, { focus: 'values' });
+    stderr = 'Error\n'; exitCode = 1;
+    snap('main', 11, 'err-write', `write(2, "Error\\n", 6).`, { focus: 'stderr' });
+    snap('main', 12, 'err', `return 1.`, { focus: 'exit' });
+    return frames;
+  }
+
+  snap('parse', 10, 'check', `*n == ${n} (pas 0) → on continue.`);
+
+  /* convert_tokens */
+  snap('parse', 11, 'convert-call', `Appel à convert_tokens. Valide + convertit chaque token.`, { focus: 'values' });
+  values = new Array(n).fill(null);
+  snap('parse', 11, 'convert-alloc', `convert_tokens malloc values (tableau de ${n} ints, encore vides).`, { focus: 'values' });
+
+  let convertOk = true;
+  for (let i = 0; i < n; i++) {
+    const tok = tokens[i];
+    snap('parse', 11, 'check-tok', `Valider tokens[${i}] = "${tok}" avec is_number.`, { focus: 'tokens', checkTokenIdx: i });
+    if (!scenario.isValid(tok)) {
+      snap('parse', 11, 'err-tok', `"${tok}" invalide ! convert_tokens free values et return NULL.`, { focus: 'tokens', badTokenIdx: i });
+      values = null;
+      convertOk = false;
+      break;
+    }
+    const numVal = parseInt(tok, 10);
+    values[i] = numVal;
+    snap('parse', 11, 'conv-ok', `"${tok}" OK. ft_atol → ${numVal}. values[${i}] = ${numVal}.`, { focus: 'values' });
+  }
+
+  if (convertOk) {
+    snap('parse', 11, 'convert-ok', `convert_tokens retourne values = [${values.join(', ')}].`, { focus: 'values' });
+  }
+
+  /* free_tokens (toujours) */
+  tokens = null;
+  tokensFreed = true;
+  snap('parse', 12, 'free', `free_tokens(tokens). On n'a plus besoin des strings.`, { focus: 'tokens' });
+
+  if (!convertOk) {
+    snap('parse', 13, 'check', `if (!values) → OUI, conversion a raté.`);
+    snap('parse', 14, 'err', `return NULL.`);
+    stack = ['main'];
+    snap('main', 9, 'check', `← Retour dans main. values = NULL.`, { focus: 'values' });
+    stderr = 'Error\n'; exitCode = 1;
+    snap('main', 11, 'err-write', `write(2, "Error\\n", 6). 6 octets sur fd 2.`, { focus: 'stderr' });
+    snap('main', 12, 'err', `return 1.`, { focus: 'exit' });
+    return frames;
+  }
+
+  snap('parse', 13, 'check', `if (!values) → non, conversion OK.`);
+
+  /* has_duplicates */
+  let hasDup = false;
+  let dupI = -1, dupJ = -1;
+  outer:
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    if (values[i] === values[j]) { hasDup = true; dupI = i; dupJ = j; break outer; }
+  }
+
+  snap('parse', 15, 'dup-check', `has_duplicates(values, ${n}) ?`, { focus: 'values' });
+
+  if (hasDup) {
+    snap('parse', 15, 'dup-found', `Doublon trouvé : values[${dupI}] == values[${dupJ}] == ${values[dupI]}.`, { focus: 'values', dupIdxs: [dupI, dupJ] });
+    values = null;
+    snap('parse', 16, 'free', `free(values). Return NULL.`);
+    stack = ['main'];
+    snap('main', 9, 'check', `← Retour dans main. values = NULL.`, { focus: 'values' });
+    stderr = 'Error\n'; exitCode = 1;
+    snap('main', 11, 'err-write', `write(2, "Error\\n", 6).`, { focus: 'stderr' });
+    snap('main', 12, 'err', `return 1.`, { focus: 'exit' });
+    return frames;
+  }
+
+  snap('parse', 15, 'check', `Aucun doublon → on continue.`);
+  snap('parse', 17, 'ok', `return values. Retour à main avec le tableau.`, { focus: 'values' });
+
+  /* ═════ Retour dans main ═════ */
+  stack = ['main'];
+  snap('main', 8, 'back', `← Retour dans main. values = [${values.join(', ')}], n = ${n}.`, { focus: 'values' });
+  snap('main', 9, 'check', `if (!values) → non, tout est OK.`);
+  snap('main', 14, 'free', `free(values). On libère avant de quitter.`, { focus: 'values' });
+  values = null;
+  valuesFreed = true;
+  exitCode = 0;
+  snap('main', 15, 'ok', `return 0. Succès.`, { focus: 'exit' });
+
+  return frames;
+}
+
+const SCENARIOS = [
+  {
+    label: '(no args) 🔵',
+    argv: ['./push_swap'],
+    tokens: [],
+    isValid: () => true,
+    cat: 'silent',
+  },
+  {
+    label: '3 1 4 2 ✅',
+    argv: ['./push_swap', '3', '1', '4', '2'],
+    tokens: ['3', '1', '4', '2', null],
+    isValid: (t) => /^-?\d+$/.test(t),
+    cat: 'ok',
+  },
+  {
+    label: '3 abc 4 ❌',
+    argv: ['./push_swap', '3', 'abc', '4'],
+    tokens: ['3', 'abc', '4', null],
+    isValid: (t) => /^-?\d+$/.test(t),
+    cat: 'ko',
+  },
+  {
+    label: '3 1 4 1 ❌ dup',
+    argv: ['./push_swap', '3', '1', '4', '1'],
+    tokens: ['3', '1', '4', '1', null],
+    isValid: (t) => /^-?\d+$/.test(t),
+    cat: 'ko',
+  },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = SCENARIOS.map((s, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''} ${s.cat}" data-idx="${idx}">${s.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadScenario(SCENARIOS[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode(where) {
+  const code = where === 'main' ? CODE_MAIN : CODE_PARSE;
+  document.getElementById('code-title').textContent = where === 'main' ? 'main.c' : 'parser.c — parse_args';
+  document.getElementById('code').innerHTML = code.map((html, idx) =>
+    `<div class="code-line" data-lineno="${String(idx + 1).padStart(2, ' ')}" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderCallstack(stack, where) {
+  const el = document.getElementById('callstack-content');
+  el.innerHTML = stack.map((fn, i) => {
+    const isLast = i === stack.length - 1;
+    return `<span class="frame ${isLast ? 'current' : ''}">${fn}()</span>` +
+           (isLast ? '' : '<span class="arrow">▶</span>');
+  }).join('');
+}
+
+function renderArgv(f) {
+  document.getElementById('argv-slots').innerHTML = f.argv.map((v, i) =>
+    `<div class="slot ${i === 0 ? 'null-marker' : ''}">"${v}"</div>`).join('');
+}
+
+function renderTokens(f) {
+  const el = document.getElementById('tokens-content');
+  if (f.tokensFreed) { el.innerHTML = '<div class="val empty">(freed)</div>'; return; }
+  if (!f.tokens) { el.innerHTML = '<div class="val empty">(pas alloué)</div>'; return; }
+  el.innerHTML = '<div class="slot-row">' + f.tokens.map((v, i) => {
+    let cls = 'slot';
+    if (v === null) cls += ' null-marker';
+    if (f.checkTokenIdx === i) cls += ' check';
+    if (f.badTokenIdx === i) cls += ' bad';
+    return `<div class="${cls}">${v === null ? 'NULL' : '"' + v + '"'}</div>`;
+  }).join('') + '</div>';
+}
+
+function renderValues(f) {
+  const el = document.getElementById('values-content');
+  if (f.valuesFreed) { el.innerHTML = '<div class="val empty">(freed par main)</div>'; return; }
+  if (!f.values) { el.innerHTML = '<div class="val empty">(NULL ou pas alloué)</div>'; return; }
+  el.innerHTML = '<div class="slot-row">' + f.values.map((v, i) => {
+    let cls = 'slot';
+    if (v === null) cls += ' null-marker';
+    else cls += ' ok';
+    if (f.dupIdxs && f.dupIdxs.includes(i)) cls += ' bad check';
+    return `<div class="${cls}">${v === null ? '?' : v}</div>`;
+  }).join('') + '</div>';
+}
+
+function renderFrame(f) {
+  renderCode(f.where);
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active', 'err', 'ok', 'silent'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    if (f.tag === 'err' || f.tag === 'err-tok' || f.tag === 'err-write' || f.tag === 'dup-found') line.classList.add('err');
+    if (f.tag === 'ok' || f.tag === 'conv-ok' || f.tag === 'convert-ok' || f.tag === 'free' || f.tag === 'back') line.classList.add('ok');
+    if (f.tag === 'silent') line.classList.add('silent');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  renderCallstack(f.stack, f.where);
+  renderArgv(f);
+  document.getElementById('n-val').textContent = f.n === null ? '?' : f.n;
+  renderTokens(f);
+  renderValues(f);
+
+  const sErr = document.getElementById('stderr-out');
+  if (f.stderr) { sErr.textContent = f.stderr.replace(/\n/g, '⏎'); sErr.className = 'stdio-box stderr'; }
+  else { sErr.textContent = '(vide)'; sErr.className = 'stdio-box empty'; }
+
+  const exit = document.getElementById('exit-val');
+  if (f.exitCode === null) { exit.textContent = '(en cours)'; exit.className = 'exit-code pending'; }
+  else { exit.textContent = f.exitCode === 0 ? '0 (success)' : `${f.exitCode} (error)`; exit.className = 'exit-code ' + (f.exitCode === 0 ? 'ok' : 'err'); }
+
+  ['box-argv', 'box-n', 'box-tokens', 'box-values', 'box-stderr', 'box-exit'].forEach(id => {
+    document.getElementById(id).classList.remove('highlight');
+  });
+  const focusMap = { argv: 'box-argv', n: 'box-n', tokens: 'box-tokens', values: 'box-values', stderr: 'box-stderr', exit: 'box-exit' };
+  if (focusMap[f.focus]) document.getElementById(focusMap[f.focus]).classList.add('highlight');
+
+  const tagEl = document.getElementById('phase-tag');
+  tagEl.textContent = f.tag;
+  tagEl.className = 'tag';
+  if (['ok', 'conv-ok', 'convert-ok', 'free', 'back'].includes(f.tag)) tagEl.classList.add('ok');
+  if (['err', 'err-tok', 'err-write', 'dup-found'].includes(f.tag)) tagEl.classList.add('err');
+  if (f.tag === 'silent') tagEl.classList.add('silent');
+  document.getElementById('phase-desc').textContent = f.desc;
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadScenario(s) {
+  frames = simulate(s);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2200 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+renderExamples();
+loadScenario(SCENARIOS[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>
