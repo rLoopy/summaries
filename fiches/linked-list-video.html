@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked lists — la vidéo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0f0e1a;
+  color: #f0e9d8;
+  font-family: 'Patrick Hand', cursive;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.video {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.scene-title {
+  font-family: 'Kalam', cursive;
+  font-size: 42px;
+  color: #ffe96b;
+  text-align: center;
+  margin-bottom: 30px;
+  min-height: 60px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.8s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.stage {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 400px;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 26px;
+  color: #f0e9d8;
+  text-align: center;
+  max-width: 900px;
+  line-height: 1.5;
+  margin-top: 30px;
+  min-height: 80px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 22px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Boxes (nodes) */
+.box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 80px;
+  background: #2a2833;
+  border: 3px solid #ff9f7a;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 28px;
+  color: #f0e9d8;
+  box-shadow: 4px 4px 0 #c0b3e0;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.6s ease;
+}
+.box.in { opacity: 1; transform: scale(1); }
+.box.fade { opacity: 0.2; filter: grayscale(1); }
+.box.highlight {
+  background: #ffe96b;
+  color: #0f0e1a;
+  border-color: #ffe96b;
+  transform: scale(1.1);
+}
+
+.box .label {
+  font-family: 'Caveat', cursive;
+  font-size: 14px;
+  color: #5c5a75;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.arrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 40px;
+  color: #c0b3e0;
+  margin: 0 8px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.arrow.in { opacity: 1; }
+
+.null-marker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  color: #5c5a75;
+  font-style: italic;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.null-marker.in { opacity: 1; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.head-label {
+  position: absolute;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 28px;
+  color: #9dd6a8;
+  opacity: 0;
+  transition: all 0.6s ease;
+}
+.head-label.in { opacity: 1; }
+
+.head-arrow {
+  position: absolute;
+  font-size: 40px;
+  color: #9dd6a8;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.head-arrow.in { opacity: 1; }
+
+.struct-box {
+  background: #2a2833;
+  border: 3px solid #79b8d8;
+  border-radius: 12px;
+  padding: 24px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  color: #f0e9d8;
+  box-shadow: 5px 5px 0 #79b8d8;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.7s ease;
+  text-align: left;
+}
+.struct-box.in { opacity: 1; transform: scale(1); }
+.struct-box .field {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.1);
+}
+.struct-box .field:last-child { border-bottom: none; }
+.struct-box .field .kw { color: #a5d8a8; }
+.struct-box .field .name { color: #ffe96b; }
+.struct-box .field .note { color: #5c5a75; font-size: 16px; font-family: 'Caveat', cursive; font-style: italic; margin-left: 10px; }
+
+.big-label {
+  font-family: 'Caveat', cursive;
+  font-size: 48px;
+  color: #ffe96b;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s ease;
+}
+.big-label.in { opacity: 1; transform: scale(1); }
+
+.heap-zone {
+  background: rgba(157, 214, 168, 0.1);
+  border: 2px dashed #9dd6a8;
+  border-radius: 12px;
+  padding: 30px 40px;
+  position: relative;
+  opacity: 0;
+  transition: all 0.6s ease;
+}
+.heap-zone.in { opacity: 1; }
+.heap-zone::before {
+  content: "HEAP";
+  position: absolute;
+  top: -14px;
+  left: 20px;
+  background: #0f0e1a;
+  color: #9dd6a8;
+  padding: 0 10px;
+  font-family: 'Kalam', cursive;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #ffe96b;
+  transition: width 0.3s linear;
+  z-index: 100;
+}
+
+.controls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+.controls button {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  background: #2a2833;
+  color: #f0e9d8;
+  border: 2px solid #f0e9d8;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+
+.scene-counter {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #5c5a75;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">Linked lists</div>
+  <div class="stage" id="stage"></div>
+  <div class="caption" id="caption">La vidéo démarre...</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="controls">
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+const SCENES = [
+  {
+    dur: 3500,
+    title: "Linked lists",
+    render: (stage) => {
+      stage.innerHTML = '<div class="big-label" id="e1">✦ la vidéo ✦</div>';
+    },
+    activate: () => setTimeout(() => document.getElementById('e1')?.classList.add('in'), 100),
+    caption: "On va piger les <b>linked lists</b> et comprendre ce que fait <code>stack_new</code> — visuellement, sans code."
+  },
+  {
+    dur: 4000,
+    title: "Le problème : stocker plusieurs valeurs",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="row" id="r1">
+          <div class="box" data-d="0">3</div>
+          <div class="box" data-d="200">1</div>
+          <div class="box" data-d="400">4</div>
+          <div class="box" data-d="600">2</div>
+        </div>`;
+    },
+    activate: () => {
+      document.querySelectorAll('#r1 .box').forEach((b, i) => {
+        setTimeout(() => b.classList.add('in'), parseInt(b.dataset.d));
+      });
+    },
+    caption: "Imagine que tu as plusieurs nombres à stocker en mémoire. <b>Chacun dans sa boîte</b>."
+  },
+  {
+    dur: 4500,
+    title: "Les relier : les flèches",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="row">
+          <div class="box in">3</div>
+          <span class="arrow" data-d="200">→</span>
+          <div class="box in">1</div>
+          <span class="arrow" data-d="800">→</span>
+          <div class="box in">4</div>
+          <span class="arrow" data-d="1400">→</span>
+          <div class="box in">2</div>
+        </div>`;
+    },
+    activate: () => {
+      document.querySelectorAll('.arrow').forEach(a => {
+        setTimeout(() => a.classList.add('in'), parseInt(a.dataset.d));
+      });
+    },
+    caption: "Chaque boîte <b>pointe vers la suivante</b> via une flèche. C'est ça, une <span class='hl'>linked list</span>."
+  },
+  {
+    dur: 4000,
+    title: "La fin : NULL",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="row">
+          <div class="box in">3</div>
+          <span class="arrow in">→</span>
+          <div class="box in">1</div>
+          <span class="arrow in">→</span>
+          <div class="box in">4</div>
+          <span class="arrow in">→</span>
+          <div class="box in">2</div>
+          <span class="arrow" id="last-arrow" data-d="200">→</span>
+          <span class="null-marker" id="null-m" data-d="600">NULL</span>
+        </div>`;
+    },
+    activate: () => {
+      setTimeout(() => document.getElementById('last-arrow')?.classList.add('in'), 200);
+      setTimeout(() => document.getElementById('null-m')?.classList.add('in'), 600);
+    },
+    caption: "La dernière boîte pointe vers <b>NULL</b> — c'est le <span class='hl'>marqueur de fin</span>. Quand un programme rencontre NULL, il sait que la chaîne s'arrête."
+  },
+  {
+    dur: 5000,
+    title: "Le head — l'entrée de la chaîne",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="position:relative; padding-top:80px;">
+          <div class="head-label" id="hl" style="top:0; left:20px;">head</div>
+          <div class="head-arrow" id="ha" style="top:30px; left:55px;">↓</div>
+          <div class="row">
+            <div class="box in">3</div>
+            <span class="arrow in">→</span>
+            <div class="box in">1</div>
+            <span class="arrow in">→</span>
+            <div class="box in">4</div>
+            <span class="arrow in">→</span>
+            <div class="box in">2</div>
+            <span class="arrow in">→</span>
+            <span class="null-marker in">NULL</span>
+          </div>
+        </div>`;
+    },
+    activate: () => {
+      setTimeout(() => document.getElementById('hl')?.classList.add('in'), 200);
+      setTimeout(() => document.getElementById('ha')?.classList.add('in'), 600);
+    },
+    caption: "Pour accéder à la chaîne, tu as besoin d'<b>UN SEUL point d'entrée</b> : le <span class='hl'>head</span>. C'est un pointeur vers la 1ère boîte."
+  },
+  {
+    dur: 5500,
+    title: "Si tu perds le head...",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="position:relative; padding-top:80px;">
+          <div class="head-label in" id="hl2" style="top:0; left:20px; text-decoration: line-through; color: #ff6b6b;">head ✗</div>
+          <div class="row" id="faderow">
+            <div class="box in">3</div>
+            <span class="arrow in">→</span>
+            <div class="box in">1</div>
+            <span class="arrow in">→</span>
+            <div class="box in">4</div>
+            <span class="arrow in">→</span>
+            <div class="box in">2</div>
+            <span class="arrow in">→</span>
+            <span class="null-marker in">NULL</span>
+          </div>
+        </div>`;
+    },
+    activate: () => {
+      setTimeout(() => {
+        document.querySelectorAll('#faderow .box').forEach((b, i) => {
+          setTimeout(() => b.classList.add('fade'), i * 200);
+        });
+      }, 1500);
+    },
+    caption: "...<b>tu perds tout</b>. Les boîtes sont toujours en mémoire, mais tu n'as plus d'adresse pour y accéder. <span class='hl'>Memory leak définitif.</span>"
+  },
+  {
+    dur: 4500,
+    title: "Chaque boîte = une struct",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="struct-box" id="sb">
+          <div class="field"><span class="kw">typedef struct</span> s_stack</div>
+          <div class="field" style="padding-left:20px;"><span class="kw">int</span> <span class="name">val</span>;<span class="note">// la valeur stockée</span></div>
+          <div class="field" style="padding-left:20px;"><span class="kw">struct s_stack</span> *<span class="name">next</span>;<span class="note">// la flèche</span></div>
+          <div class="field"><span class="kw">t_stack</span>;</div>
+        </div>`;
+    },
+    activate: () => setTimeout(() => document.getElementById('sb')?.classList.add('in'), 200),
+    caption: "En C, une boîte c'est une <b>struct</b> avec 2 champs : la <span class='hl'>valeur</span> et un <span class='hl'>pointeur vers la suivante</span>."
+  },
+  {
+    dur: 5000,
+    title: "stack_new : fabriquer UNE boîte",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="display:flex; align-items:center; gap:50px;">
+          <div class="big-label" id="e1">stack_new(3)</div>
+          <div class="arrow" id="a1" style="font-size:60px;">→</div>
+          <div class="heap-zone" id="hz">
+            <div class="box" id="nb">
+              <div>3</div>
+              <div class="label">next: NULL</div>
+            </div>
+          </div>
+        </div>`;
+    },
+    activate: () => {
+      setTimeout(() => document.getElementById('e1')?.classList.add('in'), 100);
+      setTimeout(() => document.getElementById('a1')?.classList.add('in'), 800);
+      setTimeout(() => document.getElementById('hz')?.classList.add('in'), 1500);
+      setTimeout(() => document.getElementById('nb')?.classList.add('in'), 2000);
+    },
+    caption: "<code>stack_new(3)</code> demande à <b>malloc</b> une boîte vide sur le <b>heap</b>, écrit <b>3</b> dedans et <b>NULL</b> dans next. Puis retourne son adresse."
+  },
+  {
+    dur: 5500,
+    title: "Le heap — la mémoire qui survit",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:30px;">
+          <div class="heap-zone in" style="padding:40px 50px;">
+            <div class="box in">3</div>
+          </div>
+          <div class="big-label in" style="font-size:36px;">↑</div>
+          <div style="font-family:'Patrick Hand',cursive; font-size:24px; color:#9dd6a8;">
+            Le heap <b>survit après la fin de la fonction</b>.
+          </div>
+        </div>`;
+    },
+    activate: () => {},
+    caption: "Contrairement au stack (variables locales qui meurent à la fin), le <span class='hl'>heap survit</span> tant que tu n'appelles pas <code>free()</code>."
+  },
+  {
+    dur: 5500,
+    title: "Construire une chaîne",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="row" id="build">
+          <div class="head-label in" style="position:static; margin-right: 15px;">head →</div>
+          <div class="box" data-d="0">3</div>
+          <span class="arrow" data-d="500">→</span>
+          <div class="box" data-d="1000">1</div>
+          <span class="arrow" data-d="1500">→</span>
+          <div class="box" data-d="2000">4</div>
+          <span class="arrow" data-d="2500">→</span>
+          <div class="box" data-d="3000">2</div>
+          <span class="arrow" data-d="3500">→</span>
+          <span class="null-marker" data-d="4000">NULL</span>
+        </div>`;
+    },
+    activate: () => {
+      document.querySelectorAll('#build [data-d]').forEach(el => {
+        setTimeout(() => el.classList.add('in'), parseInt(el.dataset.d));
+      });
+    },
+    caption: "En appelant <code>stack_new</code> plusieurs fois et en chaînant avec <code>stack_add_bottom</code>, tu construis ta pile <b>une boîte à la fois</b>."
+  },
+  {
+    dur: 4500,
+    title: "Parcourir la chaîne",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="row" id="walker">
+          <div class="box highlight" id="b0">3</div>
+          <span class="arrow in">→</span>
+          <div class="box in" id="b1">1</div>
+          <span class="arrow in">→</span>
+          <div class="box in" id="b2">4</div>
+          <span class="arrow in">→</span>
+          <div class="box in" id="b3">2</div>
+          <span class="arrow in">→</span>
+          <span class="null-marker in">NULL</span>
+        </div>`;
+    },
+    activate: () => {
+      const ids = ['b0', 'b1', 'b2', 'b3'];
+      ids.forEach((id, i) => {
+        setTimeout(() => {
+          ids.forEach(x => document.getElementById(x)?.classList.remove('highlight'));
+          document.getElementById(id)?.classList.add('highlight');
+        }, i * 900);
+      });
+    },
+    caption: "Pour parcourir : tu pars du head, tu <b>suis next</b> à chaque étape jusqu'à NULL. Pattern : <code>while (cur) cur = cur-&gt;next;</code>"
+  },
+  {
+    dur: 4000,
+    title: "C'est tout ce qu'il y a à savoir",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div class="big-label" id="e1">✓ boîte = struct<br>✓ chaîne via next<br>✓ head = entrée<br>✓ NULL = fin<br>✓ heap = survie</div>`;
+    },
+    activate: () => setTimeout(() => document.getElementById('e1')?.classList.add('in'), 200),
+    caption: "À ton tour de coder. Les <b>4 autres fonctions</b> (add_bottom, size, free, build) suivent la même logique."
+  },
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const stage = document.getElementById('stage');
+const titleEl = document.getElementById('title');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) { idx = 0; } // loop
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    captionEl.innerHTML = s.caption;
+    s.render(stage);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      s.activate();
+      setTimeout(() => captionEl.classList.add('in'), 400);
+    }, 100);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 500);
+}
+
+function scheduleNext(delay) {
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => playScene(currentScene + 1), delay);
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) {
+    if (timer) clearTimeout(timer);
+    remainingTime -= (Date.now() - startTime);
+  } else {
+    startTime = Date.now();
+    scheduleNext(Math.max(remainingTime, 500));
+  }
+}
+
+function replay() {
+  paused = false;
+  document.getElementById('btn-pause').textContent = '⏸ pause';
+  if (timer) clearTimeout(timer);
+  playScene(0);
+}
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+
+playScene(0);
+</script>
+
+</body>
+</html>
