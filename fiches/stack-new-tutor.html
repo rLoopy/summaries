@@ -377,6 +377,33 @@ window.addEventListener('scroll', () => {
 });
 
 renderFrame(0);
+// Auto-play with loop — feels like a video
+let autoPlaying = true;
+function autoLoop() {
+  if (!autoPlaying) return;
+  if (cur >= FRAMES.length - 1) {
+    setTimeout(() => { cur = 0; renderFrame(cur); autoLoop(); }, 2500);
+  } else {
+    cur++;
+    renderFrame(cur);
+    const delay = 4000 - parseInt(document.getElementById('speed').value);
+    setTimeout(autoLoop, delay);
+  }
+}
+setTimeout(autoLoop, 1500);
+// Override play button to toggle autoLoop
+const origPlayBtn = document.getElementById('btn-play');
+origPlayBtn.textContent = '⏸ pause';
+origPlayBtn.onclick = () => {
+  autoPlaying = !autoPlaying;
+  origPlayBtn.textContent = autoPlaying ? '⏸ pause' : '▶ play';
+  if (autoPlaying) autoLoop();
+};
+// next/prev pause the video
+const origNext = document.getElementById('btn-next');
+const origPrev = document.getElementById('btn-prev');
+origNext.addEventListener('click', () => { autoPlaying = false; origPlayBtn.textContent = '▶ play'; });
+origPrev.addEventListener('click', () => { autoPlaying = false; origPlayBtn.textContent = '▶ play'; });
 </script>
 
 <script src="../zine-night.js"></script>
