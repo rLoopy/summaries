@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointeurs & linked lists — de A à Z</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #fdfaf3;
+  --paper-dark: #f4efe0;
+  --ink: #2a2833;
+  --muted: #5c5a75;
+  --accent: #ff6b4a;
+  --accent-soft: #ff9f7a;
+  --blue: #79b8d8;
+  --green: #6fb07e;
+  --yellow: #ffe96b;
+  --yellow-hl: #fff5b3;
+  --purple: #c0b3e0;
+  --danger: #d94848;
+  --card-shadow: 5px 5px 0 rgba(42, 40, 51, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 19px;
+  line-height: 1.7;
+  padding: 40px 20px 80px 20px;
+}
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 50px;
+  padding-bottom: 30px;
+  border-bottom: 2px dashed var(--muted);
+}
+
+header h1 {
+  font-family: 'Kalam', cursive;
+  font-size: 46px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+header .sub {
+  font-family: 'Caveat', cursive;
+  font-size: 24px;
+  color: var(--muted);
+}
+
+.toc {
+  background: var(--paper-dark);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 20px 28px;
+  margin-bottom: 50px;
+  box-shadow: var(--card-shadow);
+}
+
+.toc h2 {
+  font-family: 'Kalam', cursive;
+  font-size: 22px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.toc ol {
+  list-style: none;
+  counter-reset: toc;
+  columns: 2;
+  column-gap: 30px;
+}
+
+.toc li {
+  counter-increment: toc;
+  padding: 3px 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
+}
+
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " · ";
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dashed transparent; }
+.toc a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+
+section {
+  margin-bottom: 60px;
+  scroll-margin-top: 20px;
+}
+
+section h2 {
+  font-family: 'Kalam', cursive;
+  font-size: 34px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 3px solid var(--accent);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+section h2 .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+section h3 {
+  font-family: 'Kalam', cursive;
+  font-size: 24px;
+  color: var(--ink);
+  margin: 24px 0 12px 0;
+}
+
+section p {
+  margin: 12px 0;
+}
+
+section p b { color: var(--accent); }
+
+section code, .inline {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--paper-dark);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 15px;
+  border: 1px solid rgba(42, 40, 51, 0.1);
+}
+
+.hl {
+  background: var(--yellow-hl);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+/* Memory / state visualizations */
+.memory {
+  background: var(--paper-dark);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin: 20px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+}
+
+.memory .title {
+  font-family: 'Kalam', cursive;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.cell {
+  display: inline-block;
+  min-width: 100px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  margin: 4px;
+  text-align: center;
+  box-shadow: 3px 3px 0 var(--purple);
+}
+
+.cell .addr {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 2px;
+}
+
+.cell .val {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cell.null { background: #eee; color: var(--muted); }
+.cell.null .val { color: var(--muted); }
+.cell.heap { box-shadow: 3px 3px 0 var(--green); border-color: var(--green); }
+.cell.highlight { background: var(--yellow); }
+
+.arrow-ascii {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 22px;
+  color: var(--accent);
+  margin: 0 4px;
+}
+
+/* Code blocks */
+pre.code {
+  background: #1a1825;
+  color: #f0e9d8;
+  border-radius: 10px;
+  padding: 20px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14.5px;
+  line-height: 1.65;
+  overflow-x: auto;
+  margin: 20px 0;
+  box-shadow: var(--card-shadow);
+}
+
+pre.code .kw { color: #ff9f7a; }
+pre.code .fn { color: #79b8d8; }
+pre.code .type { color: #9dd6a8; }
+pre.code .num { color: #c9a6ff; }
+pre.code .str { color: #ffe96b; }
+pre.code .com { color: #5c5a75; font-style: italic; }
+pre.code .hl {
+  background: rgba(255, 233, 107, 0.15);
+  color: #ffe96b;
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+/* Callouts */
+.callout {
+  border-left: 5px solid var(--blue);
+  background: rgba(121, 184, 216, 0.08);
+  padding: 14px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.callout.warn { border-left-color: var(--danger); background: rgba(217, 72, 72, 0.06); }
+.callout.hint { border-left-color: var(--green); background: rgba(111, 176, 126, 0.08); }
+.callout.key { border-left-color: var(--accent); background: rgba(255, 107, 74, 0.06); }
+
+.callout .lbl {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 1px;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+.callout.warn .lbl { color: var(--danger); }
+.callout.hint .lbl { color: var(--green); }
+.callout.key .lbl { color: var(--accent); }
+
+/* Check / self-quiz */
+.check {
+  background: #fff;
+  border: 2px dashed var(--accent);
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin: 20px 0;
+}
+
+.check .q {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.check details summary {
+  cursor: pointer;
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  color: var(--muted);
+  padding: 6px 0;
+  list-style: none;
+}
+.check details summary::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+.check details[open] summary::before { content: "▾ "; }
+.check details[open] summary { color: var(--accent); }
+.check .answer {
+  padding: 10px 0 0 18px;
+  border-left: 2px solid var(--accent);
+  margin-top: 8px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-family: 'Patrick Hand', cursive;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table th, table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--paper-dark);
+}
+
+table th {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Kalam', cursive;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+table tr:last-child td { border-bottom: none; }
+table code { font-size: 13px; }
+
+/* Diagram helpers */
+.flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.flow-arrow {
+  font-size: 22px;
+  color: var(--accent);
+  margin: 0 6px;
+}
+
+.note {
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+footer {
+  text-align: center;
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 2px dashed var(--muted);
+  font-family: 'Caveat', cursive;
+  color: var(--muted);
+  font-size: 18px;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<header>
+  <h1>Pointeurs &amp; linked lists</h1>
+  <div class="sub">de A à Z — pour comprendre <span class="inline">stack_add_bottom</span></div>
+</header>
+
+<nav class="toc">
+  <h2>Plan</h2>
+  <ol>
+    <li><a href="#s1">La mémoire, c'est quoi ?</a></li>
+    <li><a href="#s2">Variables &amp; adresses</a></li>
+    <li><a href="#s3">Les pointeurs (&amp; et *)</a></li>
+    <li><a href="#s4">Stack vs Heap</a></li>
+    <li><a href="#s5">malloc &amp; free</a></li>
+    <li><a href="#s6">Les structs</a></li>
+    <li><a href="#s7">Accéder aux champs : . et -&gt;</a></li>
+    <li><a href="#s8">Linked list : la chaîne</a></li>
+    <li><a href="#s9">Le head et NULL</a></li>
+    <li><a href="#s10">Parcourir avec un curseur</a></li>
+    <li><a href="#s11">Pourquoi t_stack ** ?</a></li>
+    <li><a href="#s12">Décrypter stack_add_bottom</a></li>
+    <li><a href="#s13">Tu es prêt à coder</a></li>
+  </ol>
+</nav>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <h2><span class="num">01</span>La mémoire, c'est quoi ?</h2>
+
+  <p>Quand ton programme tourne, il a une grosse zone de travail : la <b>RAM</b>. Imagine une rangée géante de <b>casiers numérotés</b>, chacun peut contenir un octet (8 bits, un petit nombre entre 0 et 255).</p>
+
+  <div class="memory">
+    <div class="title">RAM (vue simplifiée)</div>
+    <div class="cell"><span class="addr">0x100</span><span class="val">?</span></div>
+    <div class="cell"><span class="addr">0x101</span><span class="val">?</span></div>
+    <div class="cell"><span class="addr">0x102</span><span class="val">?</span></div>
+    <div class="cell"><span class="addr">0x103</span><span class="val">?</span></div>
+    <span class="arrow-ascii">...</span>
+    <div class="cell"><span class="addr">0x7FA0</span><span class="val">?</span></div>
+  </div>
+
+  <p>Chaque casier a une <b>adresse</b> unique (un numéro en hexadécimal, genre <span class="inline">0x100</span>). Le numéro, c'est <b>où</b> il est. Le contenu, c'est <b>quoi</b> est dedans.</p>
+
+  <div class="callout key">
+    <div class="lbl">★ À retenir</div>
+    <b>adresse</b> = l'emplacement (le numéro du casier). <b>valeur</b> = ce qu'il y a dedans. Deux concepts <b>différents</b> qu'on confond souvent.
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <h2><span class="num">02</span>Variables &amp; adresses</h2>
+
+  <p>Quand t'écris <span class="inline">int x = 42;</span>, le compilateur dit au système : "trouve-moi 4 casiers libres, appelle-les <span class="inline">x</span>, et écris <span class="inline">42</span> dedans".</p>
+
+  <div class="memory">
+    <div class="title">déclaration : int x = 42;</div>
+    <div class="cell highlight">
+      <span class="addr">0x100</span>
+      <span class="val">42</span>
+    </div>
+    <span class="note" style="margin-left: 12px;">← c'est la variable <b>x</b></span>
+  </div>
+
+  <p>Tu as maintenant <b>deux infos</b> sur <span class="inline">x</span> :</p>
+
+  <ul style="list-style: none; padding-left: 20px;">
+    <li>▸ sa <b>valeur</b> : <span class="inline">x</span> (écrit tout seul) = <span class="hl">42</span></li>
+    <li>▸ son <b>adresse</b> : <span class="inline">&amp;x</span> (avec le &amp;) = <span class="hl">0x100</span></li>
+  </ul>
+
+  <p>Le <span class="inline">&amp;</span> veut dire "donne-moi l'adresse de". Tu le connais de <span class="inline">scanf("%d", &amp;x)</span> en débutant.</p>
+
+  <div class="check">
+    <div class="q">Check : si <span class="inline">int y = 7;</span> est stockée à <span class="inline">0x200</span>...</div>
+    <details>
+      <summary>...que valent <span class="inline">y</span> et <span class="inline">&amp;y</span> ?</summary>
+      <div class="answer">
+        <span class="inline">y</span> = 7 (la valeur) &nbsp;·&nbsp; <span class="inline">&amp;y</span> = 0x200 (l'adresse où vit la variable)
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <h2><span class="num">03</span>Les pointeurs (&amp; et *)</h2>
+
+  <p>Un <b>pointeur</b>, c'est une variable qui, au lieu de contenir un nombre, contient <b>une adresse</b>.</p>
+
+  <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;
+<span class="kw">int</span> *p = &amp;x;   <span class="com">// p stocke l'adresse de x</span></pre>
+
+  <div class="memory">
+    <div class="title">état mémoire</div>
+    <div class="cell highlight">
+      <span class="addr">0x100</span>
+      <span class="val">42</span>
+    </div>
+    <span class="note">x</span>
+    &nbsp;&nbsp;&nbsp;
+    <div class="cell highlight">
+      <span class="addr">0x500</span>
+      <span class="val">0x100</span>
+    </div>
+    <span class="note">p (contient l'adresse de x)</span>
+  </div>
+
+  <p>Le type <span class="inline">int *</span> veut dire "pointeur vers un int". L'étoile dit "c'est une adresse, pas un int direct".</p>
+
+  <h3>Les deux opérations clés</h3>
+
+  <table>
+    <tr><th>Expression</th><th>Ce qu'elle fait</th><th>Résultat</th></tr>
+    <tr><td><span class="inline">&amp;x</span></td><td>prend l'adresse de <span class="inline">x</span></td><td><span class="inline">0x100</span></td></tr>
+    <tr><td><span class="inline">*p</span></td><td>va voir ce qu'il y a à l'adresse dans <span class="inline">p</span></td><td><span class="inline">42</span></td></tr>
+    <tr><td><span class="inline">p</span></td><td>la valeur de <span class="inline">p</span> lui-même</td><td><span class="inline">0x100</span></td></tr>
+  </table>
+
+  <div class="callout key">
+    <div class="lbl">★ La dualité du *</div>
+    Le <span class="inline">*</span> a <b>deux rôles</b> qui n'ont rien à voir :
+    <ul style="margin-top: 8px;">
+      <li>▸ Dans un <b>type</b> : <span class="inline">int *p</span> → "<span class="inline">p</span> est un pointeur vers int"</li>
+      <li>▸ Dans une <b>expression</b> : <span class="inline">*p</span> → "va chercher la valeur pointée par <span class="inline">p</span>"</li>
+    </ul>
+    C'est le même symbole mais pas le même sens. C'est nul, mais c'est C.
+  </div>
+
+  <h3>Écrire via un pointeur</h3>
+
+  <p>Si tu écris <span class="inline">*p = 99</span>, tu dis "va à l'adresse dans <span class="inline">p</span>, et écris 99 là-bas". Résultat : <span class="inline">x</span> vaut maintenant 99 (car <span class="inline">p</span> pointait sur <span class="inline">x</span>).</p>
+
+  <div class="check">
+    <div class="q">Check : après <span class="inline">int x = 10; int *p = &amp;x; *p = 50;</span></div>
+    <details>
+      <summary>Combien vaut <span class="inline">x</span> ?</summary>
+      <div class="answer"><span class="inline">x</span> vaut <b>50</b>. <span class="inline">*p = 50</span> a modifié la case mémoire où vit <span class="inline">x</span>.</div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <h2><span class="num">04</span>Stack vs Heap</h2>
+
+  <p>La mémoire de ton programme est divisée en deux zones principales :</p>
+
+  <table>
+    <tr><th>Stack</th><th>Heap</th></tr>
+    <tr>
+      <td>
+        Variables locales, paramètres, appels de fonctions.<br>
+        <b>Création</b> : auto, à l'entrée d'une fonction.<br>
+        <b>Destruction</b> : auto, à la sortie.
+      </td>
+      <td>
+        Mémoire allouée <b>à la demande</b> via <span class="inline">malloc</span>.<br>
+        <b>Création</b> : toi, explicitement.<br>
+        <b>Destruction</b> : toi, avec <span class="inline">free</span>.
+      </td>
+    </tr>
+  </table>
+
+  <pre class="code"><span class="type">void</span> <span class="fn">demo</span>(<span class="type">void</span>)
+{
+  <span class="kw">int</span> x = <span class="num">42</span>;          <span class="com">// x vit sur la STACK</span>
+  <span class="kw">int</span> *p = malloc(<span class="kw">sizeof</span>(<span class="kw">int</span>)); <span class="com">// *p vit sur le HEAP</span>
+  *p = <span class="num">99</span>;
+  <span class="com">// à la fin de la fonction :</span>
+  <span class="com">//   x disparaît automatiquement (stack unwind)</span>
+  <span class="com">//   *p reste en vie ! (c'est sur le heap)</span>
+}</pre>
+
+  <div class="callout warn">
+    <div class="lbl">⚠ Le piège classique</div>
+    Si tu retournes <b>l'adresse d'une variable locale</b>, tu retournes un pointeur vers de la mémoire <b>morte</b>.
+    <pre class="code" style="margin-top:8px;"><span class="type">int</span> *<span class="fn">fonction_pourrie</span>(<span class="type">void</span>)
+{
+  <span class="kw">int</span> x = <span class="num">42</span>;
+  <span class="kw">return</span> (&amp;x);  <span class="com">// ← x meurt ici, retour d'un pointeur vers du vide</span>
+}</pre>
+    Pour retourner quelque chose qui survit à la fonction, il faut le mettre sur le <b>heap</b> via <span class="inline">malloc</span>.
+  </div>
+
+  <p>C'est <b>exactement</b> ce que fait <span class="inline">stack_new</span> : elle retourne un pointeur vers une boîte qui survit grâce à <span class="inline">malloc</span>.</p>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+  <h2><span class="num">05</span>malloc &amp; free</h2>
+
+  <p><span class="inline">malloc(n)</span> réserve <span class="inline">n</span> octets de mémoire sur le heap et te donne l'<b>adresse</b> de cette zone. Si la RAM est pleine, il retourne <span class="inline">NULL</span>.</p>
+
+  <pre class="code"><span class="kw">int</span> *p = malloc(<span class="kw">sizeof</span>(<span class="kw">int</span>));  <span class="com">// réserve 4 octets pour un int</span>
+<span class="kw">if</span> (!p)
+  <span class="kw">return</span> ;                <span class="com">// malloc a raté, plus de RAM</span>
+*p = <span class="num">42</span>;                    <span class="com">// écris 42 dans la zone allouée</span>
+<span class="com">// ... plus tard ...</span>
+free(p);                   <span class="com">// libère la zone, sinon memory leak</span></pre>
+
+  <div class="callout hint">
+    <div class="lbl">💡 sizeof(*p) vs sizeof(int)</div>
+    <span class="inline">malloc(sizeof(*p))</span> est <b>mieux</b> que <span class="inline">malloc(sizeof(int))</span>. Pourquoi ? Parce que si un jour tu changes le type de <span class="inline">p</span>, t'as rien à toucher — <span class="inline">sizeof(*p)</span> s'adapte tout seul. C'est pour ça que dans <span class="inline">stack_new</span> on écrit <span class="inline">malloc(sizeof(*node))</span>.
+  </div>
+
+  <p>Règle d'or : <b>chaque <span class="inline">malloc</span> doit avoir son <span class="inline">free</span></b>. Sinon, memory leak (la RAM se remplit jusqu'au crash).</p>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section id="s6">
+  <h2><span class="num">06</span>Les structs</h2>
+
+  <p>Une <b>struct</b>, c'est une manière de grouper plusieurs variables en un seul "paquet".</p>
+
+  <pre class="code"><span class="kw">typedef struct</span>  <span class="type">s_stack</span>
+{
+  <span class="kw">int</span>             val;
+  <span class="kw">struct</span> <span class="type">s_stack</span>  *next;
+} <span class="type">t_stack</span>;</pre>
+
+  <p>Lecture de cette déclaration :</p>
+
+  <ul style="list-style: none; padding-left: 20px;">
+    <li>▸ On définit un <b>type</b> appelé <span class="inline">t_stack</span></li>
+    <li>▸ Une variable de ce type contient <b>2 champs</b> : un <span class="inline">int val</span> et un pointeur <span class="inline">next</span></li>
+    <li>▸ Le <span class="inline">next</span> pointe vers <b>un autre t_stack</b> (récursif dans le type — c'est ce qui permet la chaîne)</li>
+  </ul>
+
+  <div class="memory">
+    <div class="title">une boîte t_stack en mémoire</div>
+    <div class="cell" style="min-width: 200px;">
+      <span class="addr">0x7FA0</span>
+      <div style="display:flex; gap:6px; justify-content:center; margin-top:4px;">
+        <div style="padding:4px 8px; background:var(--yellow-hl); border-radius:4px;">val: 3</div>
+        <div style="padding:4px 8px; background:var(--paper-dark); border-radius:4px;">next: 0x7FB0</div>
+      </div>
+    </div>
+    <span class="arrow-ascii">─►</span>
+    <div class="cell" style="min-width: 200px;">
+      <span class="addr">0x7FB0</span>
+      <div style="display:flex; gap:6px; justify-content:center; margin-top:4px;">
+        <div style="padding:4px 8px; background:var(--yellow-hl); border-radius:4px;">val: 1</div>
+        <div style="padding:4px 8px; background:var(--paper-dark); border-radius:4px;">next: NULL</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Chaque boîte fait environ 16 octets (4 pour l'int + 8 pour le pointeur + padding). Et <span class="inline">next</span> contient <b>l'adresse</b> de la prochaine boîte.</p>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section id="s7">
+  <h2><span class="num">07</span>Accéder aux champs : <span class="inline">.</span> et <span class="inline">-&gt;</span></h2>
+
+  <p>Tu as deux opérateurs pour accéder aux champs d'une struct :</p>
+
+  <table>
+    <tr><th>Syntaxe</th><th>Quand l'utiliser</th></tr>
+    <tr><td><span class="inline">s.val</span></td><td>quand <span class="inline">s</span> est une struct <b>directe</b> (pas un pointeur)</td></tr>
+    <tr><td><span class="inline">p-&gt;val</span></td><td>quand <span class="inline">p</span> est un <b>pointeur</b> vers une struct</td></tr>
+  </table>
+
+  <pre class="code"><span class="type">t_stack</span> box;              <span class="com">// box est une struct directe</span>
+box.val = <span class="num">3</span>;                <span class="com">// point pour la struct directe</span>
+
+<span class="type">t_stack</span> *p = &amp;box;         <span class="com">// p est un pointeur vers une struct</span>
+p-&gt;val = <span class="num">3</span>;                <span class="com">// flèche pour le pointeur</span>
+
+<span class="com">// les deux sont équivalents :</span>
+p-&gt;val        <span class="com">// raccourci</span>
+(*p).val      <span class="com">// version longue : d'abord déréférence, puis point</span></pre>
+
+  <div class="callout key">
+    <div class="lbl">★ Mnémo</div>
+    La flèche <span class="inline">-&gt;</span> fait deux choses d'un coup : <b>déréférence</b> (va voir la struct pointée) <b>+</b> <b>accède au champ</b>. En C, on n'utilise quasiment que <span class="inline">-&gt;</span> avec les structs via pointeur (et en push_swap, c'est tout le temps des pointeurs).
+  </div>
+
+  <div class="check">
+    <div class="q">Check : si <span class="inline">t_stack *node</span> est un node avec val=5, next=NULL</div>
+    <details>
+      <summary>Comment on lit sa valeur ? Comment on met son next à une autre adresse ?</summary>
+      <div class="answer">
+        Lire : <span class="inline">node-&gt;val</span> (donne 5).<br>
+        Écrire next : <span class="inline">node-&gt;next = autreNode;</span>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ SECTION 8 ============ -->
+<section id="s8">
+  <h2><span class="num">08</span>Linked list : la chaîne</h2>
+
+  <p>Une <b>linked list</b>, c'est plusieurs boîtes <span class="inline">t_stack</span> attachées les unes aux autres via leur champ <span class="inline">next</span>.</p>
+
+  <div class="memory">
+    <div class="title">la pile [3, 1, 4, 2] — emplacements arbitraires en mémoire</div>
+    <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3<br>next=0x7FB0</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1<br>next=0x7FC0</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FC0</span><span class="val">val=4<br>next=0x7FD0</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FD0</span><span class="val">val=2<br>next=NULL</span></div>
+  </div>
+
+  <p>Observations importantes :</p>
+
+  <ul style="list-style: none; padding-left: 20px;">
+    <li>▸ Les boîtes sont <b>dispersées</b> dans la RAM. <span class="inline">0x7FA0</span>, <span class="inline">0x7FB0</span>, ... c'est pas contigu en général, c'est juste par chance que j'ai aligné ici.</li>
+    <li>▸ Le seul lien entre elles, c'est le <span class="inline">next</span>. <b>Perdre un next, c'est perdre tout ce qui suit.</b></li>
+    <li>▸ La <b>dernière</b> boîte a <span class="inline">next = NULL</span>. C'est le marqueur "fin de chaîne".</li>
+  </ul>
+</section>
+
+<!-- ============ SECTION 9 ============ -->
+<section id="s9">
+  <h2><span class="num">09</span>Le head et NULL</h2>
+
+  <p>Pour accéder à la chaîne depuis l'extérieur, tu as besoin d'<b>un seul</b> point d'entrée : le <b>head</b>. C'est une variable de type <span class="inline">t_stack *</span> qui contient l'adresse de la première boîte.</p>
+
+  <div class="memory">
+    <div class="title">le head pointe vers la 1ère boîte</div>
+    <div class="cell" style="background:var(--yellow-hl);">
+      <span class="addr">0x100</span>
+      <span class="val">0x7FA0</span>
+    </div>
+    <span class="note">head (sur la stack)</span>
+    <br><br>
+    <span class="arrow-ascii">↓ pointe vers</span>
+    <br><br>
+    <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3<br>next=0x7FB0</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1<br>next=NULL</span></div>
+  </div>
+
+  <p>Si <span class="inline">head == NULL</span>, ça veut dire <b>la pile est vide</b>. Pas de première boîte, pas de chaîne.</p>
+
+  <div class="callout warn">
+    <div class="lbl">⚠ Perdre le head = catastrophe</div>
+    Si tu écrases <span class="inline">head</span> sans l'avoir sauvegardé ailleurs, tu perds l'accès à <b>toutes</b> les boîtes en dessous. Elles sont toujours en RAM, mais tu n'as plus leur adresse. <span class="hl">Memory leak permanent.</span>
+  </div>
+</section>
+
+<!-- ============ SECTION 10 ============ -->
+<section id="s10">
+  <h2><span class="num">10</span>Parcourir avec un curseur</h2>
+
+  <p>Pour se balader dans une linked list, on utilise un <b>curseur</b> : un pointeur qu'on déplace de boîte en boîte.</p>
+
+  <pre class="code"><span class="type">t_stack</span> *cur = head;   <span class="com">// le curseur part du head</span>
+<span class="kw">while</span> (cur)            <span class="com">// tant qu'on n'est pas sur NULL</span>
+{
+  printf(<span class="str">"%d\n"</span>, cur-&gt;val);  <span class="com">// fais un truc avec la boîte</span>
+  cur = cur-&gt;next;     <span class="com">// avance d'une boîte</span>
+}</pre>
+
+  <p>Déroulement visuel sur la liste [3, 1, 4] :</p>
+
+  <div class="memory">
+    <div class="title">étape 1 : cur pointe sur la 1ère boîte</div>
+    <div class="cell highlight"><span class="addr">0x7FA0</span><span class="val">val=3</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FC0</span><span class="val">val=4</span></div>
+    <span class="arrow-ascii">→</span>
+    <span class="note">NULL</span>
+    <br><span class="note">cur = 0x7FA0</span>
+  </div>
+
+  <div class="memory">
+    <div class="title">étape 2 : cur = cur-&gt;next</div>
+    <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell highlight"><span class="addr">0x7FB0</span><span class="val">val=1</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FC0</span><span class="val">val=4</span></div>
+    <span class="arrow-ascii">→</span>
+    <span class="note">NULL</span>
+    <br><span class="note">cur = 0x7FB0</span>
+  </div>
+
+  <div class="memory">
+    <div class="title">étape 3 : cur = cur-&gt;next</div>
+    <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1</span></div>
+    <span class="arrow-ascii">→</span>
+    <div class="cell highlight"><span class="addr">0x7FC0</span><span class="val">val=4</span></div>
+    <span class="arrow-ascii">→</span>
+    <span class="note">NULL</span>
+    <br><span class="note">cur = 0x7FC0</span>
+  </div>
+
+  <div class="memory">
+    <div class="title">étape 4 : cur = cur-&gt;next = NULL, la boucle s'arrête</div>
+    <span class="note">cur = NULL ← la condition <span class="inline">while (cur)</span> devient fausse</span>
+  </div>
+
+  <h3>Variante : s'arrêter sur la dernière, pas après</h3>
+
+  <p>Parfois tu veux t'arrêter <b>sur</b> la dernière boîte (pas NULL). C'est le cas si tu veux attacher un nouveau node à la fin.</p>
+
+  <pre class="code"><span class="type">t_stack</span> *cur = head;
+<span class="kw">while</span> (cur-&gt;next)       <span class="com">// tant que le suivant existe</span>
+  cur = cur-&gt;next;       <span class="com">// avance</span>
+<span class="com">// ici : cur est sur la DERNIÈRE boîte (cur-&gt;next == NULL)</span></pre>
+
+  <div class="callout key">
+    <div class="lbl">★ Différence cruciale</div>
+    <span class="inline">while (cur)</span> → s'arrête quand <b>cur</b> est NULL (tu as dépassé la fin).<br>
+    <span class="inline">while (cur-&gt;next)</span> → s'arrête quand <b>le suivant</b> est NULL (tu es pile sur la fin).<br>
+    Pour <span class="inline">stack_add_bottom</span>, tu veux la deuxième forme.
+  </div>
+</section>
+
+<!-- ============ SECTION 11 ============ -->
+<section id="s11">
+  <h2><span class="num">11</span>Pourquoi <span class="inline">t_stack **</span> ?</h2>
+
+  <p>C'est LA notion qui coince le plus. Attaque bien cette partie.</p>
+
+  <h3>Le problème : C passe par valeur</h3>
+
+  <p>En C, quand tu passes un argument à une fonction, la fonction reçoit une <b>copie</b>. Si la fonction modifie cette copie, l'original <b>ne bouge pas</b>.</p>
+
+  <pre class="code"><span class="type">void</span> <span class="fn">essayer_de_modifier</span>(<span class="kw">int</span> x)
+{
+  x = <span class="num">99</span>;   <span class="com">// modifie la COPIE locale</span>
+}
+
+<span class="type">int</span> <span class="fn">main</span>(<span class="type">void</span>)
+{
+  <span class="kw">int</span> a = <span class="num">10</span>;
+  essayer_de_modifier(a);
+  printf(<span class="str">"%d\n"</span>, a);   <span class="com">// affiche 10, pas 99 !</span>
+}</pre>
+
+  <h3>La solution : passer un pointeur</h3>
+
+  <p>Si on veut modifier une variable depuis une fonction, on passe <b>l'adresse</b> de cette variable :</p>
+
+  <pre class="code"><span class="type">void</span> <span class="fn">modifier_pour_de_vrai</span>(<span class="kw">int</span> *x)
+{
+  *x = <span class="num">99</span>;   <span class="com">// va à l'adresse reçue, écris 99 là-bas</span>
+}
+
+<span class="type">int</span> <span class="fn">main</span>(<span class="type">void</span>)
+{
+  <span class="kw">int</span> a = <span class="num">10</span>;
+  modifier_pour_de_vrai(&amp;a);   <span class="com">// passe l'adresse de a</span>
+  printf(<span class="str">"%d\n"</span>, a);    <span class="com">// affiche 99</span>
+}</pre>
+
+  <h3>Appliqué à notre pile</h3>
+
+  <p>Dans <span class="inline">build_stack</span>, on a une variable <span class="inline">t_stack *stack</span> (un pointeur vers un node, qui est le head). On veut qu'<span class="inline">stack_add_bottom</span> puisse <b>modifier ce head</b> (cas de la pile vide).</p>
+
+  <p>Le <span class="inline">stack</span> de <span class="inline">build_stack</span> est <b>déjà</b> un pointeur (<span class="inline">t_stack *</span>). Pour le modifier depuis une autre fonction, il nous faut <b>un pointeur vers ce pointeur</b> → <span class="inline">t_stack **</span>.</p>
+
+  <div class="memory">
+    <div class="title">appel : stack_add_bottom(&amp;stack, 3)</div>
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <div>
+        <span class="note">dans build_stack :</span><br>
+        <div class="cell highlight" style="min-width: 160px;">
+          <span class="addr">0x100</span>
+          <span class="val">stack = NULL</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="note">dans stack_add_bottom :</span><br>
+        <div class="cell" style="min-width: 160px;">
+          <span class="addr">0x200</span>
+          <span class="val">stack (param) = 0x100</span>
+        </div>
+        <span class="note" style="margin-left:10px;">← contient l'adresse de la variable d'en haut</span>
+      </div>
+
+    </div>
+  </div>
+
+  <h3>Lecture des expressions</h3>
+
+  <p>Dans <span class="inline">stack_add_bottom</span> :</p>
+
+  <table>
+    <tr><th>Expression</th><th>Type</th><th>Ce que c'est</th><th>Valeur (ici)</th></tr>
+    <tr><td><span class="inline">stack</span></td><td><span class="inline">t_stack **</span></td><td>adresse de la variable d'en haut</td><td><span class="inline">0x100</span></td></tr>
+    <tr><td><span class="inline">*stack</span></td><td><span class="inline">t_stack *</span></td><td><b>la variable d'en haut elle-même</b> (le head)</td><td><span class="inline">NULL</span></td></tr>
+    <tr><td><span class="inline">**stack</span></td><td><span class="inline">t_stack</span></td><td>la struct pointée par le head (crash si head = NULL !)</td><td>—</td></tr>
+  </table>
+
+  <div class="callout key">
+    <div class="lbl">★ La règle d'or</div>
+    Pour <b>modifier</b> le head de celui qui nous a appelés, il faut écrire <span class="inline">*stack = ...</span>. Pas <span class="inline">stack = ...</span> (qui ne ferait que changer notre copie locale du pointeur).
+  </div>
+
+  <div class="check">
+    <div class="q">Check : si on veut faire pointer le head vers une nouvelle boîte <span class="inline">new</span></div>
+    <details>
+      <summary>On écrit quoi ?</summary>
+      <div class="answer">
+        <span class="inline">*stack = new;</span><br>
+        → "va à l'adresse stockée dans <span class="inline">stack</span> (c'est-à-dire l'endroit où vit la variable head de l'appelant), et écris <span class="inline">new</span>".
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ SECTION 12 ============ -->
+<section id="s12">
+  <h2><span class="num">12</span>Décrypter <span class="inline">stack_add_bottom</span></h2>
+
+  <p>Maintenant tu as tout. Regardons le squelette ligne par ligne.</p>
+
+  <pre class="code"><span class="type">void</span> <span class="fn">stack_add_bottom</span>(<span class="type">t_stack</span> **stack, <span class="kw">int</span> val)
+{
+  <span class="type">t_stack</span> *new;
+  <span class="type">t_stack</span> *cur;
+
+  <span class="com">/* TROU B1 : new = stack_new(val). Si NULL, return. */</span>
+  <span class="com">/* TROU B2 : si *stack est NULL, c'est le 1er : *stack = new, return. */</span>
+  <span class="com">/* TROU B3 : sinon, parcours jusqu'au dernier (cur-&gt;next == NULL). */</span>
+  <span class="com">/* TROU B4 : attache le new au dernier (cur-&gt;next = new). */</span>
+}</pre>
+
+  <h3>Signature : qu'est-ce qu'on reçoit ?</h3>
+
+  <ul style="list-style: none; padding-left: 20px;">
+    <li>▸ <span class="inline">t_stack **stack</span> : l'adresse de la variable head de l'appelant. Sert à modifier le head si besoin.</li>
+    <li>▸ <span class="inline">int val</span> : la valeur à ajouter. Un simple int, pas de pointeur.</li>
+    <li>▸ Retour <span class="inline">void</span> : on ne retourne rien, la modification se fait via <span class="inline">*stack</span>.</li>
+  </ul>
+
+  <h3>Variables locales</h3>
+
+  <ul style="list-style: none; padding-left: 20px;">
+    <li>▸ <span class="inline">new</span> : pointeur vers la boîte fraîchement fabriquée</li>
+    <li>▸ <span class="inline">cur</span> : pointeur curseur pour parcourir la chaîne</li>
+  </ul>
+
+  <h3>Logique des 4 trous</h3>
+
+  <div class="callout hint">
+    <div class="lbl">💡 B1 — fabriquer la boîte</div>
+    <b>Quoi faire</b> : créer la boîte en appelant <span class="inline">stack_new(val)</span>, stocker le résultat dans <span class="inline">new</span>.<br>
+    <b>Cas d'erreur</b> : si <span class="inline">stack_new</span> retourne NULL (malloc a raté), il faut sortir de la fonction avec <span class="inline">return</span> (la fonction est void, donc juste <span class="inline">return ;</span>).
+  </div>
+
+  <div class="callout hint">
+    <div class="lbl">💡 B2 — pile vide</div>
+    <b>Test</b> : est-ce que la pile est vide ? → <span class="inline">*stack == NULL</span> (ou <span class="inline">!*stack</span>).<br>
+    <b>Si oui</b> : le head doit devenir <span class="inline">new</span>. Tu écris <span class="inline">*stack = new;</span> puis <span class="inline">return ;</span>.<br>
+    <span class="note">Pourquoi <span class="inline">*stack</span> et pas <span class="inline">stack</span> ? Parce que <span class="inline">stack</span> c'est l'adresse de la variable d'en haut, et <span class="inline">*stack</span> c'est la variable elle-même. On veut modifier la variable, donc <span class="inline">*stack = ...</span>.</span>
+  </div>
+
+  <div class="callout hint">
+    <div class="lbl">💡 B3 — parcourir jusqu'au dernier</div>
+    <b>Initialiser</b> : <span class="inline">cur = *stack</span> (cur part du head).<br>
+    <b>Boucle</b> : tant que <span class="inline">cur-&gt;next</span> n'est pas NULL, <span class="inline">cur = cur-&gt;next</span>.<br>
+    <b>Après la boucle</b> : cur est sur la dernière boîte (la seule dont le next vaut NULL).<br>
+    <span class="note">Attention à la condition : <span class="inline">while (cur)</span> va trop loin (cur devient NULL, crash après). <span class="inline">while (cur-&gt;next)</span> s'arrête pile sur la dernière.</span>
+  </div>
+
+  <div class="callout hint">
+    <div class="lbl">💡 B4 — attacher</div>
+    <b>Une ligne</b> : <span class="inline">cur-&gt;next = new;</span>. On remplace le NULL de la dernière boîte par l'adresse de la nouvelle boîte. La chaîne est allongée d'un cran.
+  </div>
+
+  <h3>Diagramme des 2 chemins</h3>
+
+  <pre style="font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--paper-dark); padding: 20px; border-radius: 8px; line-height: 1.4;">
+                  ┌─────────────────────────────────┐
+                  │  B1 : new = stack_new(val)      │
+                  │       si NULL → return ;        │
+                  └──────────────┬──────────────────┘
+                                 │
+                 ┌───────────────┴───────────────┐
+                 │                               │
+           *stack == NULL                  *stack != NULL
+           (pile vide)                    (pile a des éléments)
+                 │                               │
+                 ▼                               ▼
+         ┌──────────────┐               ┌─────────────────┐
+         │     B2       │               │      B3         │
+         │ *stack = new │               │ cur = *stack    │
+         │ return ;     │               │ while (cur->next)│
+         └──────────────┘               │   cur = cur->next│
+                                        └────────┬────────┘
+                                                 │
+                                                 ▼
+                                        ┌──────────────────┐
+                                        │      B4          │
+                                        │ cur->next = new  │
+                                        └──────────────────┘
+  </pre>
+</section>
+
+<!-- ============ SECTION 13 ============ -->
+<section id="s13">
+  <h2><span class="num">13</span>Tu es prêt à coder</h2>
+
+  <p>Voilà la check-list mentale quand tu écris <span class="inline">stack_add_bottom</span> :</p>
+
+  <ol style="padding-left: 30px; line-height: 2;">
+    <li><b>Crée</b> la boîte avec <span class="inline">stack_new</span>, gère le cas où ça rate.</li>
+    <li><b>Teste</b> si la pile est vide (<span class="inline">*stack == NULL</span>). Si oui, fait de <span class="inline">new</span> le nouveau head et sors.</li>
+    <li><b>Sinon</b>, initialise un curseur à partir du head et avance jusqu'à la dernière boîte.</li>
+    <li><b>Attache</b> la nouvelle boîte au <span class="inline">next</span> de la dernière.</li>
+  </ol>
+
+  <div class="callout key">
+    <div class="lbl">★ Test mental avant de taper</div>
+    Déroule sur papier avec ces 3 cas :<br>
+    1. <span class="inline">*stack = NULL</span>, tu ajoutes <span class="inline">5</span> → résultat attendu ?<br>
+    2. <span class="inline">*stack = [7|NULL]</span>, tu ajoutes <span class="inline">5</span> → résultat attendu ?<br>
+    3. <span class="inline">*stack = [7|●] → [3|NULL]</span>, tu ajoutes <span class="inline">5</span> → résultat attendu ?<br>
+    Si tu peux dire à voix haute ce qui se passe dans les 3, tu peux coder.
+  </div>
+
+  <div class="check">
+    <div class="q">Check final</div>
+    <details>
+      <summary>Quelle ligne est fausse ? <span class="inline">stack = new</span> ou <span class="inline">*stack = new</span> ?</summary>
+      <div class="answer">
+        <span class="inline">stack = new</span> est faux (ne modifie que la copie locale du paramètre).<br>
+        <span class="inline">*stack = new</span> est correct (modifie la vraie variable de l'appelant).
+      </div>
+    </details>
+    <details>
+      <summary>Quelle boucle est correcte pour s'arrêter sur le dernier node ?</summary>
+      <div class="answer">
+        <span class="inline">while (cur-&gt;next) cur = cur-&gt;next;</span><br>
+        (<span class="inline">while (cur)</span> irait trop loin, jusqu'à NULL)
+      </div>
+    </details>
+    <details>
+      <summary>Pourquoi le return après B2 ?</summary>
+      <div class="answer">
+        Pour ne <b>pas</b> entrer dans la logique B3/B4. Si la pile était vide, on a fait <span class="inline">*stack = new</span> et c'est terminé — il n'y a pas de "fin de chaîne" à parcourir, la chaîne contient une seule boîte.
+      </div>
+    </details>
+  </div>
+
+  <p>Maintenant retourne dans <span class="inline">stack.c</span> et remplis les TROUs B1 → B4. Tu as toutes les clés.</p>
+</section>
+
+<footer>
+  fiche compagnon du push_swap — à lire avant de coder <span class="inline">stack_add_bottom</span>
+</footer>
+
+</div>
+
+</body>
+</html>
