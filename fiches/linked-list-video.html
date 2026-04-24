@@ -674,6 +674,96 @@ const SCENES = [
     code: null
   },
 
+  // 11a. stack_add_bottom — cas 1 : pile vide
+  {
+    dur: 11000,
+    title: "stack_add_bottom — cas 1 : pile vide",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:30px;">
+          <div style="display:flex; align-items:center; gap:20px;">
+            <div style="font-family:'Kalam',cursive; font-size:22px; color:#c0b3e0;">*stack =</div>
+            <div class="null-marker in" style="font-size:24px;">NULL</div>
+          </div>
+          <div class="big-label in" style="font-size:30px;">↓ stack_add_bottom(&stack, 3)</div>
+          <div class="heap-zone in" style="padding:25px 35px;">
+            <div class="box in">3</div>
+          </div>
+          <div style="font-family:'Patrick Hand',cursive; font-size:20px; color:#9dd6a8; text-align:center;">
+            *stack pointe maintenant vers la nouvelle boîte.
+          </div>
+        </div>`;
+    },
+    activate: () => {},
+    caption: "Si <code>*stack == NULL</code> (pile vide), on crée le node via <code>stack_new</code> et on fait <code>*stack = new</code>. <b>C'est le seul cas où on modifie *stack.</b>",
+    code: { title: "stack_add_bottom (ton TROU B1+B2)", body: wrapLines(
+`new = stack_new(val);
+if (!new)
+  return ;
+if (!*stack)
+{
+  *stack = new;
+  return ;
+}
+/* sinon : parcourir jusqu'à la fin */`, [4, 5, 6, 7, 8]).replace(/if|return/g, m => `<span class="kw">${m}</span>`)
+       .replace(/\/\*.*?\*\//g, m => `<span class="com">${m}</span>`)
+       .replace(/stack_new/g, '<span class="fn">stack_new</span>')
+    }
+  },
+
+  // 11b. stack_add_bottom — cas 2 : parcourir jusqu'au bout
+  {
+    dur: 12000,
+    title: "stack_add_bottom — cas 2 : pile non vide",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:25px;">
+          <div class="row" id="traverse">
+            <div class="box highlight" id="t0">3</div>
+            <span class="arrow in">→</span>
+            <div class="box in" id="t1">1</div>
+            <span class="arrow in">→</span>
+            <div class="box in" id="t2">4</div>
+            <span class="arrow in">→</span>
+            <span class="null-marker in" id="tnull">NULL</span>
+          </div>
+          <div style="font-family:'Patrick Hand',cursive; font-size:18px; color:#c0b3e0;">
+            cur marche jusqu'à <b>cur->next == NULL</b>
+          </div>
+          <div class="row" id="final" style="opacity:0; transition: opacity 0.8s ease;">
+            <div class="box in">3</div>
+            <span class="arrow in">→</span>
+            <div class="box in">1</div>
+            <span class="arrow in">→</span>
+            <div class="box in">4</div>
+            <span class="arrow in">→</span>
+            <div class="box in" style="border-color:#9dd6a8;">7</div>
+            <span class="arrow in">→</span>
+            <span class="null-marker in">NULL</span>
+          </div>
+        </div>`;
+    },
+    activate: () => {
+      const ids = ['t0', 't1', 't2'];
+      ids.forEach((id, i) => {
+        setTimeout(() => {
+          ids.forEach(x => document.getElementById(x)?.classList.remove('highlight'));
+          document.getElementById(id)?.classList.add('highlight');
+        }, i * 2000);
+      });
+      setTimeout(() => {
+        document.getElementById('final').style.opacity = '1';
+      }, 7000);
+    },
+    caption: "Sinon on parcourt avec <code>cur = *stack</code> jusqu'à ce que <code>cur->next == NULL</code>, puis on attache : <code>cur->next = new</code>.",
+    code: { title: "stack_add_bottom (ton TROU B3+B4)", body: wrapLines(
+`cur = *stack;
+while (cur->next)
+  cur = cur->next;
+cur->next = new;`, [1, 2, 3, 4]).replace(/while/g, m => `<span class="kw">${m}</span>`)
+    }
+  },
+
   // 11. Building a chain — WITH CODE showing build_stack
   {
     dur: 10000,
@@ -698,17 +788,18 @@ const SCENES = [
         setTimeout(() => el.classList.add('in'), parseInt(el.dataset.d));
       });
     },
-    caption: "En appelant <code>stack_new</code> plusieurs fois et en chaînant avec <code>stack_add_bottom</code>, tu construis ta pile <b>une boîte à la fois</b>.",
-    code: { title: "idée build_stack", body: wrapLines(
-`i = 0;
+    caption: "<code>build_stack</code> boucle sur <code>values</code> et appelle <code>stack_add_bottom</code> avec chaque <code>values[i]</code>. Pas besoin de toucher à <code>stack_new</code> ici — c'est <code>stack_add_bottom</code> qui l'appelle en interne.",
+    code: { title: "build_stack (ton TROU E)", body: wrapLines(
+`stack = NULL;
+i = 0;
 while (i < n)
 {
-  node = stack_new(values[i]);
-  stack_add_bottom(&stack, node);
+  stack_add_bottom(&stack, values[i]);
   i++;
 }
-return (stack);`, [4, 5]).replace(/while|return/g, m => `<span class="kw">${m}</span>`)
-       .replace(/stack_new|stack_add_bottom/g, m => `<span class="fn">${m}</span>`)
+return (stack);`, [1, 5]).replace(/while|return/g, m => `<span class="kw">${m}</span>`)
+       .replace(/NULL/g, '<span class="num">NULL</span>')
+       .replace(/stack_add_bottom/g, '<span class="fn">stack_add_bottom</span>')
     }
   },
 
