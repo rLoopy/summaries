@@ -24,44 +24,112 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
+  padding: 30px 40px 70px 40px;
 }
 
 .scene-title {
   font-family: 'Kalam', cursive;
-  font-size: 42px;
+  font-size: 38px;
   color: #ffe96b;
   text-align: center;
-  margin-bottom: 30px;
-  min-height: 60px;
+  margin-bottom: 20px;
+  min-height: 50px;
   opacity: 0;
   transform: translateY(-20px);
   transition: all 0.8s ease;
 }
 .scene-title.in { opacity: 1; transform: translateY(0); }
 
-.stage {
+.main {
   flex: 1;
-  width: 100%;
-  max-width: 1200px;
+  display: flex;
+  gap: 30px;
+  min-height: 0;
+}
+
+.stage-wrap {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 400px;
+  min-height: 0;
 }
+
+.stage {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.code-panel {
+  width: 440px;
+  background: #1a1825;
+  border: 2px solid #2a2833;
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #c0b3e0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  display: flex;
+  flex-direction: column;
+}
+.code-panel.in { opacity: 1; }
+.code-panel.hidden { display: none; }
+
+.code-panel .code-title {
+  font-family: 'Kalam', cursive;
+  font-size: 14px;
+  color: #79b8d8;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #2a2833;
+}
+
+.code-panel pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+  color: #8f89a6;
+}
+
+.code-panel .line {
+  display: block;
+  padding: 0 8px;
+  border-radius: 4px;
+  transition: all 0.4s ease;
+}
+.code-panel .line.hl {
+  background: rgba(255, 233, 107, 0.15);
+  color: #ffe96b;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #ffe96b;
+}
+
+.code-panel .kw { color: #ff9f7a; }
+.code-panel .fn { color: #79b8d8; }
+.code-panel .type { color: #9dd6a8; }
+.code-panel .str { color: #ffe96b; }
+.code-panel .com { color: #5c5a75; font-style: italic; }
+.code-panel .num { color: #c9a6ff; }
 
 .caption {
   font-family: 'Patrick Hand', cursive;
-  font-size: 26px;
+  font-size: 22px;
   color: #f0e9d8;
   text-align: center;
-  max-width: 900px;
-  line-height: 1.5;
-  margin-top: 30px;
-  min-height: 80px;
+  max-width: 1000px;
+  line-height: 1.55;
+  margin: 20px auto 0 auto;
+  min-height: 70px;
   opacity: 0;
   transform: translateY(20px);
   transition: all 0.8s ease;
@@ -69,7 +137,7 @@ body {
 .caption.in { opacity: 1; transform: translateY(0); }
 
 .caption b { color: #ff9f7a; }
-.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 22px; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 19px; }
 .caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
 
 /* Boxes (nodes) */
@@ -78,14 +146,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 110px;
-  height: 80px;
+  width: 90px;
+  height: 70px;
   background: #2a2833;
   border: 3px solid #ff9f7a;
   border-radius: 12px;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 24px;
   color: #f0e9d8;
   box-shadow: 4px 4px 0 #c0b3e0;
   opacity: 0;
@@ -103,7 +171,7 @@ body {
 
 .box .label {
   font-family: 'Caveat', cursive;
-  font-size: 14px;
+  font-size: 12px;
   color: #5c5a75;
   font-weight: 400;
   margin-top: 2px;
@@ -111,9 +179,9 @@ body {
 
 .arrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 40px;
+  font-size: 32px;
   color: #c0b3e0;
-  margin: 0 8px;
+  margin: 0 6px;
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -121,7 +189,7 @@ body {
 
 .null-marker {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 18px;
+  font-size: 16px;
   color: #5c5a75;
   font-style: italic;
   opacity: 0;
@@ -141,7 +209,7 @@ body {
   position: absolute;
   font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 24px;
   color: #9dd6a8;
   opacity: 0;
   transition: all 0.6s ease;
@@ -150,7 +218,7 @@ body {
 
 .head-arrow {
   position: absolute;
-  font-size: 40px;
+  font-size: 32px;
   color: #9dd6a8;
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -161,9 +229,9 @@ body {
   background: #2a2833;
   border: 3px solid #79b8d8;
   border-radius: 12px;
-  padding: 24px 32px;
+  padding: 20px 28px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 24px;
+  font-size: 20px;
   color: #f0e9d8;
   box-shadow: 5px 5px 0 #79b8d8;
   opacity: 0;
@@ -173,21 +241,23 @@ body {
 }
 .struct-box.in { opacity: 1; transform: scale(1); }
 .struct-box .field {
-  padding: 6px 0;
+  padding: 5px 0;
   border-bottom: 1px dashed rgba(255,255,255,0.1);
 }
 .struct-box .field:last-child { border-bottom: none; }
 .struct-box .field .kw { color: #a5d8a8; }
 .struct-box .field .name { color: #ffe96b; }
-.struct-box .field .note { color: #5c5a75; font-size: 16px; font-family: 'Caveat', cursive; font-style: italic; margin-left: 10px; }
+.struct-box .field .note { color: #5c5a75; font-size: 14px; font-family: 'Caveat', cursive; font-style: italic; margin-left: 10px; }
 
 .big-label {
   font-family: 'Caveat', cursive;
-  font-size: 48px;
+  font-size: 40px;
   color: #ffe96b;
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.6s ease;
+  text-align: center;
+  line-height: 1.4;
 }
 .big-label.in { opacity: 1; transform: scale(1); }
 
@@ -195,7 +265,7 @@ body {
   background: rgba(157, 214, 168, 0.1);
   border: 2px dashed #9dd6a8;
   border-radius: 12px;
-  padding: 30px 40px;
+  padding: 25px 35px;
   position: relative;
   opacity: 0;
   transition: all 0.6s ease;
@@ -204,13 +274,13 @@ body {
 .heap-zone::before {
   content: "HEAP";
   position: absolute;
-  top: -14px;
-  left: 20px;
+  top: -12px;
+  left: 16px;
   background: #0f0e1a;
   color: #9dd6a8;
   padding: 0 10px;
   font-family: 'Kalam', cursive;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 2px;
 }
 
@@ -220,38 +290,50 @@ body {
   left: 0;
   height: 4px;
   background: #ffe96b;
-  transition: width 0.3s linear;
+  transition: width 0.2s linear;
   z-index: 100;
 }
 
 .controls {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 14px;
+  right: 14px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   z-index: 100;
 }
 .controls button {
   font-family: 'Kalam', cursive;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   background: #2a2833;
   color: #f0e9d8;
   border: 2px solid #f0e9d8;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 .controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.controls button:active { transform: translateY(1px); }
 
 .scene-counter {
   position: fixed;
-  bottom: 20px;
+  bottom: 18px;
   left: 20px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  font-size: 12px;
   color: #5c5a75;
+  z-index: 100;
+}
+
+.keyhint {
+  position: fixed;
+  bottom: 42px;
+  left: 20px;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #3a3849;
   z-index: 100;
 }
 </style>
@@ -260,59 +342,108 @@ body {
 
 <div class="video">
   <div class="scene-title" id="title">Linked lists</div>
-  <div class="stage" id="stage"></div>
+  <div class="main">
+    <div class="stage-wrap">
+      <div class="stage" id="stage"></div>
+    </div>
+    <div class="code-panel hidden" id="code">
+      <div class="code-title" id="code-title">CODE</div>
+      <pre id="code-body"></pre>
+    </div>
+  </div>
   <div class="caption" id="caption">La vidéo démarre...</div>
 </div>
 
 <div class="progress" id="progress"></div>
 <div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
 <div class="controls">
+  <button id="btn-prev">⏮ prev</button>
   <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
   <button id="btn-replay">↺ replay</button>
 </div>
 
 <script>
+// Helper to build a code panel from HTML (with highlight lines)
+function code(title, html) {
+  return { title, html };
+}
+
+const STRUCT_CODE = code("push_swap.h", `<span class="kw">typedef struct</span> <span class="type">s_stack</span>
+{
+  <span class="kw">int</span>              <span class="fn">val</span>;
+  <span class="kw">struct</span> <span class="type">s_stack</span>  *<span class="fn">next</span>;
+} <span class="type">t_stack</span>;`);
+
+const NEW_CODE_FULL = `<span class="type">t_stack</span> *<span class="fn">stack_new</span>(<span class="kw">int</span> val)
+{
+  <span class="type">t_stack</span> *node;
+
+  node = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(*node));
+  <span class="kw">if</span> (!node)
+    <span class="kw">return</span> (<span class="num">NULL</span>);
+  node-&gt;val = val;
+  node-&gt;next = <span class="num">NULL</span>;
+  <span class="kw">return</span> (node);
+}`;
+
+// Wrap lines with .line class, highlighting the ones specified
+function wrapLines(src, hlLines = []) {
+  return src.split('\n').map((ln, i) => {
+    const isHl = hlLines.includes(i + 1);
+    return `<span class="line${isHl ? ' hl' : ''}">${ln || ' '}</span>`;
+  }).join('\n');
+}
+
 const SCENES = [
+  // 1. Title
   {
-    dur: 3500,
+    dur: 6000,
     title: "Linked lists",
     render: (stage) => {
-      stage.innerHTML = '<div class="big-label" id="e1">✦ la vidéo ✦</div>';
+      stage.innerHTML = '<div class="big-label" id="e1">✦ la vidéo ✦<br><span style="font-size:24px; color:#c0b3e0;">comprendre ce que fait stack_new</span></div>';
     },
     activate: () => setTimeout(() => document.getElementById('e1')?.classList.add('in'), 100),
-    caption: "On va piger les <b>linked lists</b> et comprendre ce que fait <code>stack_new</code> — visuellement, sans code."
+    caption: "On va piger les <b>linked lists</b> visuellement, et voir <b>quel bout de code</b> fait quoi.",
+    code: null
   },
+
+  // 2. Problem : multiple boxes
   {
-    dur: 4000,
+    dur: 7000,
     title: "Le problème : stocker plusieurs valeurs",
     render: (stage) => {
       stage.innerHTML = `
         <div class="row" id="r1">
           <div class="box" data-d="0">3</div>
-          <div class="box" data-d="200">1</div>
-          <div class="box" data-d="400">4</div>
-          <div class="box" data-d="600">2</div>
+          <div class="box" data-d="400">1</div>
+          <div class="box" data-d="800">4</div>
+          <div class="box" data-d="1200">2</div>
         </div>`;
     },
     activate: () => {
-      document.querySelectorAll('#r1 .box').forEach((b, i) => {
+      document.querySelectorAll('#r1 .box').forEach((b) => {
         setTimeout(() => b.classList.add('in'), parseInt(b.dataset.d));
       });
     },
-    caption: "Imagine que tu as plusieurs nombres à stocker en mémoire. <b>Chacun dans sa boîte</b>."
+    caption: "Imagine que tu as plusieurs nombres à stocker. <b>Chacun dans sa boîte</b> en mémoire.",
+    code: null
   },
+
+  // 3. Arrows
   {
-    dur: 4500,
+    dur: 8000,
     title: "Les relier : les flèches",
     render: (stage) => {
       stage.innerHTML = `
         <div class="row">
           <div class="box in">3</div>
-          <span class="arrow" data-d="200">→</span>
+          <span class="arrow" data-d="400">→</span>
           <div class="box in">1</div>
-          <span class="arrow" data-d="800">→</span>
+          <span class="arrow" data-d="1200">→</span>
           <div class="box in">4</div>
-          <span class="arrow" data-d="1400">→</span>
+          <span class="arrow" data-d="2000">→</span>
           <div class="box in">2</div>
         </div>`;
     },
@@ -321,10 +452,13 @@ const SCENES = [
         setTimeout(() => a.classList.add('in'), parseInt(a.dataset.d));
       });
     },
-    caption: "Chaque boîte <b>pointe vers la suivante</b> via une flèche. C'est ça, une <span class='hl'>linked list</span>."
+    caption: "Chaque boîte <b>pointe vers la suivante</b> via une flèche. C'est ça, une <span class='hl'>linked list</span>.",
+    code: null
   },
+
+  // 4. NULL marker
   {
-    dur: 4000,
+    dur: 7500,
     title: "La fin : NULL",
     render: (stage) => {
       stage.innerHTML = `
@@ -336,24 +470,27 @@ const SCENES = [
           <div class="box in">4</div>
           <span class="arrow in">→</span>
           <div class="box in">2</div>
-          <span class="arrow" id="last-arrow" data-d="200">→</span>
-          <span class="null-marker" id="null-m" data-d="600">NULL</span>
+          <span class="arrow" id="last-arrow" data-d="400">→</span>
+          <span class="null-marker" id="null-m" data-d="1000">NULL</span>
         </div>`;
     },
     activate: () => {
-      setTimeout(() => document.getElementById('last-arrow')?.classList.add('in'), 200);
-      setTimeout(() => document.getElementById('null-m')?.classList.add('in'), 600);
+      setTimeout(() => document.getElementById('last-arrow')?.classList.add('in'), 400);
+      setTimeout(() => document.getElementById('null-m')?.classList.add('in'), 1000);
     },
-    caption: "La dernière boîte pointe vers <b>NULL</b> — c'est le <span class='hl'>marqueur de fin</span>. Quand un programme rencontre NULL, il sait que la chaîne s'arrête."
+    caption: "La dernière boîte pointe vers <b>NULL</b> — le <span class='hl'>marqueur de fin</span>. Quand ton code rencontre NULL, il sait que la chaîne s'arrête.",
+    code: null
   },
+
+  // 5. Head
   {
-    dur: 5000,
+    dur: 8500,
     title: "Le head — l'entrée de la chaîne",
     render: (stage) => {
       stage.innerHTML = `
-        <div style="position:relative; padding-top:80px;">
+        <div style="position:relative; padding-top:70px;">
           <div class="head-label" id="hl" style="top:0; left:20px;">head</div>
-          <div class="head-arrow" id="ha" style="top:30px; left:55px;">↓</div>
+          <div class="head-arrow" id="ha" style="top:28px; left:45px;">↓</div>
           <div class="row">
             <div class="box in">3</div>
             <span class="arrow in">→</span>
@@ -368,18 +505,21 @@ const SCENES = [
         </div>`;
     },
     activate: () => {
-      setTimeout(() => document.getElementById('hl')?.classList.add('in'), 200);
-      setTimeout(() => document.getElementById('ha')?.classList.add('in'), 600);
+      setTimeout(() => document.getElementById('hl')?.classList.add('in'), 400);
+      setTimeout(() => document.getElementById('ha')?.classList.add('in'), 1000);
     },
-    caption: "Pour accéder à la chaîne, tu as besoin d'<b>UN SEUL point d'entrée</b> : le <span class='hl'>head</span>. C'est un pointeur vers la 1ère boîte."
+    caption: "Pour accéder à la chaîne il te faut <b>UN SEUL point d'entrée</b> : le <span class='hl'>head</span>. C'est un pointeur vers la 1ère boîte.",
+    code: null
   },
+
+  // 6. Losing head
   {
-    dur: 5500,
+    dur: 9000,
     title: "Si tu perds le head...",
     render: (stage) => {
       stage.innerHTML = `
-        <div style="position:relative; padding-top:80px;">
-          <div class="head-label in" id="hl2" style="top:0; left:20px; text-decoration: line-through; color: #ff6b6b;">head ✗</div>
+        <div style="position:relative; padding-top:70px;">
+          <div class="head-label in" style="top:0; left:20px; text-decoration: line-through; color: #ff6b6b;">head ✗</div>
           <div class="row" id="faderow">
             <div class="box in">3</div>
             <span class="arrow in">→</span>
@@ -396,14 +536,17 @@ const SCENES = [
     activate: () => {
       setTimeout(() => {
         document.querySelectorAll('#faderow .box').forEach((b, i) => {
-          setTimeout(() => b.classList.add('fade'), i * 200);
+          setTimeout(() => b.classList.add('fade'), i * 400);
         });
-      }, 1500);
+      }, 2500);
     },
-    caption: "...<b>tu perds tout</b>. Les boîtes sont toujours en mémoire, mais tu n'as plus d'adresse pour y accéder. <span class='hl'>Memory leak définitif.</span>"
+    caption: "...<b>tu perds tout</b>. Les boîtes sont toujours en mémoire, mais tu n'as plus d'adresse pour y accéder. <span class='hl'>Memory leak définitif.</span>",
+    code: null
   },
+
+  // 7. Struct — WITH CODE PANEL
   {
-    dur: 4500,
+    dur: 10000,
     title: "Chaque boîte = une struct",
     render: (stage) => {
       stage.innerHTML = `
@@ -414,67 +557,140 @@ const SCENES = [
           <div class="field"><span class="kw">t_stack</span>;</div>
         </div>`;
     },
-    activate: () => setTimeout(() => document.getElementById('sb')?.classList.add('in'), 200),
-    caption: "En C, une boîte c'est une <b>struct</b> avec 2 champs : la <span class='hl'>valeur</span> et un <span class='hl'>pointeur vers la suivante</span>."
+    activate: () => setTimeout(() => document.getElementById('sb')?.classList.add('in'), 400),
+    caption: "En C, une boîte c'est une <b>struct</b> avec 2 champs : la <span class='hl'>valeur</span> et un <span class='hl'>pointeur vers la suivante</span>. Voilà le code exact →",
+    code: { title: "push_swap.h", body: wrapLines(
+`typedef struct s_stack
+{
+  int              val;
+  struct s_stack  *next;
+} t_stack;`, [3, 4]).replace(/typedef|struct|int/g, m => `<span class="kw">${m}</span>`)
+       .replace(/s_stack|t_stack/g, m => `<span class="type">${m}</span>`)
+       .replace(/val|next/g, m => `<span class="fn">${m}</span>`)
+    }
   },
+
+  // 8. stack_new — WITH CODE, line 4 highlighted (malloc)
   {
-    dur: 5000,
-    title: "stack_new : fabriquer UNE boîte",
+    dur: 11000,
+    title: "stack_new(3) — étape 1 : malloc",
     render: (stage) => {
       stage.innerHTML = `
-        <div style="display:flex; align-items:center; gap:50px;">
-          <div class="big-label" id="e1">stack_new(3)</div>
-          <div class="arrow" id="a1" style="font-size:60px;">→</div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:30px;">
+          <div class="big-label in" style="font-size:30px;">stack_new(3)</div>
           <div class="heap-zone" id="hz">
             <div class="box" id="nb">
-              <div>3</div>
-              <div class="label">next: NULL</div>
+              <div>?</div>
+              <div class="label">next: ?</div>
             </div>
+          </div>
+          <div style="font-family:'Patrick Hand',cursive; font-size:18px; color:#9dd6a8;">
+            malloc a réservé une boîte <b>vide</b> sur le heap.
           </div>
         </div>`;
     },
     activate: () => {
-      setTimeout(() => document.getElementById('e1')?.classList.add('in'), 100);
-      setTimeout(() => document.getElementById('a1')?.classList.add('in'), 800);
-      setTimeout(() => document.getElementById('hz')?.classList.add('in'), 1500);
-      setTimeout(() => document.getElementById('nb')?.classList.add('in'), 2000);
+      setTimeout(() => document.getElementById('hz')?.classList.add('in'), 500);
+      setTimeout(() => document.getElementById('nb')?.classList.add('in'), 1200);
     },
-    caption: "<code>stack_new(3)</code> demande à <b>malloc</b> une boîte vide sur le <b>heap</b>, écrit <b>3</b> dedans et <b>NULL</b> dans next. Puis retourne son adresse."
+    caption: "<code>malloc(sizeof(*node))</code> demande une boîte de la bonne taille sur le <b>heap</b>. Elle est là, mais <b>vide</b> (valeurs indéfinies).",
+    code: { title: "stack.c — ligne 5", body: wrapLines(
+`t_stack *stack_new(int val)
+{
+  t_stack *node;
+
+  node = malloc(sizeof(*node));
+  if (!node)
+    return (NULL);
+  node->val = val;
+  node->next = NULL;
+  return (node);
+}`, [5]).replace(/malloc|sizeof|return|if/g, m => `<span class="kw">${m}</span>`)
+       .replace(/\bint\b/g, '<span class="kw">int</span>')
+       .replace(/t_stack/g, '<span class="type">t_stack</span>')
+       .replace(/NULL/g, '<span class="num">NULL</span>')
+       .replace(/stack_new/g, '<span class="fn">stack_new</span>')
+    }
   },
+
+  // 9. stack_new step 2: check null + write
   {
-    dur: 5500,
-    title: "Le heap — la mémoire qui survit",
+    dur: 11000,
+    title: "stack_new(3) — étape 2 : remplir",
     render: (stage) => {
       stage.innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; gap:30px;">
-          <div class="heap-zone in" style="padding:40px 50px;">
-            <div class="box in">3</div>
+          <div class="heap-zone in" style="padding:35px 45px;">
+            <div class="box in" id="nb" style="transition: all 0.6s ease;">
+              <div id="v">3</div>
+              <div class="label" id="n">next: NULL</div>
+            </div>
           </div>
-          <div class="big-label in" style="font-size:36px;">↑</div>
-          <div style="font-family:'Patrick Hand',cursive; font-size:24px; color:#9dd6a8;">
-            Le heap <b>survit après la fin de la fonction</b>.
+          <div class="big-label in" style="font-size:22px; color:#9dd6a8;">
+            val ← 3<br>next ← NULL
           </div>
         </div>`;
     },
     activate: () => {},
-    caption: "Contrairement au stack (variables locales qui meurent à la fin), le <span class='hl'>heap survit</span> tant que tu n'appelles pas <code>free()</code>."
+    caption: "On écrit <code>val = 3</code> et <code>next = NULL</code> dans la boîte. Puis on <b>retourne son adresse</b>.",
+    code: { title: "stack.c — lignes 8-10", body: wrapLines(
+`t_stack *stack_new(int val)
+{
+  t_stack *node;
+
+  node = malloc(sizeof(*node));
+  if (!node)
+    return (NULL);
+  node->val = val;
+  node->next = NULL;
+  return (node);
+}`, [8, 9, 10]).replace(/malloc|sizeof|return|if/g, m => `<span class="kw">${m}</span>`)
+       .replace(/\bint\b/g, '<span class="kw">int</span>')
+       .replace(/t_stack/g, '<span class="type">t_stack</span>')
+       .replace(/NULL/g, '<span class="num">NULL</span>')
+       .replace(/stack_new/g, '<span class="fn">stack_new</span>')
+    }
   },
+
+  // 10. Heap survives
   {
-    dur: 5500,
+    dur: 8500,
+    title: "Le heap — la mémoire qui survit",
+    render: (stage) => {
+      stage.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:25px;">
+          <div class="heap-zone in" style="padding:35px 45px;">
+            <div class="box in">3</div>
+          </div>
+          <div class="big-label in" style="font-size:30px;">↑</div>
+          <div style="font-family:'Patrick Hand',cursive; font-size:22px; color:#9dd6a8; text-align:center;">
+            La fonction <code style="background:#2a2833;color:#ffb380;padding:2px 8px;border-radius:4px;">stack_new</code> est finie.<br>
+            La boîte <b>est toujours là</b>.
+          </div>
+        </div>`;
+    },
+    activate: () => {},
+    caption: "Contrairement au <b>stack</b> (variables locales qui meurent à la sortie de la fonction), le <span class='hl'>heap survit</span> tant que tu n'appelles pas <code>free()</code>.",
+    code: null
+  },
+
+  // 11. Building a chain — WITH CODE showing build_stack
+  {
+    dur: 10000,
     title: "Construire une chaîne",
     render: (stage) => {
       stage.innerHTML = `
         <div class="row" id="build">
           <div class="head-label in" style="position:static; margin-right: 15px;">head →</div>
           <div class="box" data-d="0">3</div>
-          <span class="arrow" data-d="500">→</span>
-          <div class="box" data-d="1000">1</div>
-          <span class="arrow" data-d="1500">→</span>
-          <div class="box" data-d="2000">4</div>
-          <span class="arrow" data-d="2500">→</span>
-          <div class="box" data-d="3000">2</div>
-          <span class="arrow" data-d="3500">→</span>
-          <span class="null-marker" data-d="4000">NULL</span>
+          <span class="arrow" data-d="1000">→</span>
+          <div class="box" data-d="1800">1</div>
+          <span class="arrow" data-d="2800">→</span>
+          <div class="box" data-d="3600">4</div>
+          <span class="arrow" data-d="4600">→</span>
+          <div class="box" data-d="5400">2</div>
+          <span class="arrow" data-d="6400">→</span>
+          <span class="null-marker" data-d="7000">NULL</span>
         </div>`;
     },
     activate: () => {
@@ -482,10 +698,23 @@ const SCENES = [
         setTimeout(() => el.classList.add('in'), parseInt(el.dataset.d));
       });
     },
-    caption: "En appelant <code>stack_new</code> plusieurs fois et en chaînant avec <code>stack_add_bottom</code>, tu construis ta pile <b>une boîte à la fois</b>."
+    caption: "En appelant <code>stack_new</code> plusieurs fois et en chaînant avec <code>stack_add_bottom</code>, tu construis ta pile <b>une boîte à la fois</b>.",
+    code: { title: "idée build_stack", body: wrapLines(
+`i = 0;
+while (i < n)
+{
+  node = stack_new(values[i]);
+  stack_add_bottom(&stack, node);
+  i++;
+}
+return (stack);`, [4, 5]).replace(/while|return/g, m => `<span class="kw">${m}</span>`)
+       .replace(/stack_new|stack_add_bottom/g, m => `<span class="fn">${m}</span>`)
+    }
   },
+
+  // 12. Walking — WITH CODE showing while(cur) cur = cur->next
   {
-    dur: 4500,
+    dur: 10000,
     title: "Parcourir la chaîne",
     render: (stage) => {
       stage.innerHTML = `
@@ -507,20 +736,38 @@ const SCENES = [
         setTimeout(() => {
           ids.forEach(x => document.getElementById(x)?.classList.remove('highlight'));
           document.getElementById(id)?.classList.add('highlight');
-        }, i * 900);
+        }, i * 2000);
       });
     },
-    caption: "Pour parcourir : tu pars du head, tu <b>suis next</b> à chaque étape jusqu'à NULL. Pattern : <code>while (cur) cur = cur-&gt;next;</code>"
+    caption: "Pour parcourir : pars du head, <b>suis next</b> à chaque étape jusqu'à NULL. Pattern universel des linked lists.",
+    code: { title: "pattern de parcours", body: wrapLines(
+`cur = head;
+while (cur)
+{
+  // ... fais un truc avec cur->val
+  cur = cur->next;
+}`, [2, 5]).replace(/while/g, m => `<span class="kw">${m}</span>`)
+       .replace(/\/\/.*$/gm, m => `<span class="com">${m}</span>`)
+    }
   },
+
+  // 13. Recap
   {
-    dur: 4000,
+    dur: 8000,
     title: "C'est tout ce qu'il y a à savoir",
     render: (stage) => {
       stage.innerHTML = `
-        <div class="big-label" id="e1">✓ boîte = struct<br>✓ chaîne via next<br>✓ head = entrée<br>✓ NULL = fin<br>✓ heap = survie</div>`;
+        <div class="big-label" id="e1" style="text-align:left;">
+          ✓ boîte = struct (val + next)<br>
+          ✓ chaîne via next<br>
+          ✓ head = entrée unique<br>
+          ✓ NULL = fin de chaîne<br>
+          ✓ heap = mémoire qui survit
+        </div>`;
     },
-    activate: () => setTimeout(() => document.getElementById('e1')?.classList.add('in'), 200),
-    caption: "À ton tour de coder. Les <b>4 autres fonctions</b> (add_bottom, size, free, build) suivent la même logique."
+    activate: () => setTimeout(() => document.getElementById('e1')?.classList.add('in'), 300),
+    caption: "Les <b>4 autres fonctions</b> (add_bottom, size, free, build) ne font qu'appliquer ces 5 idées. À ton tour de coder.",
+    code: null
   },
 ];
 
@@ -535,24 +782,41 @@ const titleEl = document.getElementById('title');
 const captionEl = document.getElementById('caption');
 const progressEl = document.getElementById('progress');
 const counterEl = document.getElementById('counter');
+const codeEl = document.getElementById('code');
+const codeTitleEl = document.getElementById('code-title');
+const codeBodyEl = document.getElementById('code-body');
 
 function playScene(idx) {
-  if (idx >= SCENES.length) { idx = 0; } // loop
+  if (idx >= SCENES.length) { idx = 0; }
+  if (idx < 0) { idx = SCENES.length - 1; }
   currentScene = idx;
   const s = SCENES[idx];
 
   titleEl.classList.remove('in');
   captionEl.classList.remove('in');
+  codeEl.classList.remove('in');
 
   setTimeout(() => {
     titleEl.textContent = s.title;
     captionEl.innerHTML = s.caption;
     s.render(stage);
 
+    // Code panel
+    if (s.code) {
+      codeEl.classList.remove('hidden');
+      codeTitleEl.textContent = s.code.title;
+      codeBodyEl.innerHTML = s.code.body;
+    } else {
+      codeEl.classList.add('hidden');
+    }
+
     setTimeout(() => {
       titleEl.classList.add('in');
       s.activate();
-      setTimeout(() => captionEl.classList.add('in'), 400);
+      setTimeout(() => {
+        captionEl.classList.add('in');
+        if (s.code) codeEl.classList.add('in');
+      }, 300);
     }, 100);
 
     counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
@@ -589,8 +853,27 @@ function replay() {
   playScene(0);
 }
 
+function prev() {
+  if (timer) clearTimeout(timer);
+  playScene(currentScene - 1);
+}
+
+function next() {
+  if (timer) clearTimeout(timer);
+  playScene(currentScene + 1);
+}
+
 document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
 
 playScene(0);
 </script>
