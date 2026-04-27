@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pourquoi *src = head ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0f0e1a;
+  color: #f0e9d8;
+  font-family: 'Patrick Hand', cursive;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.video {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 36px 70px 36px;
+}
+
+.scene-title {
+  font-family: 'Kalam', cursive;
+  font-size: 32px;
+  color: #ffe96b;
+  text-align: center;
+  margin-bottom: 6px;
+  min-height: 42px;
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: all 0.6s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #c0b3e0;
+  text-align: center;
+  margin-bottom: 16px;
+  min-height: 24px;
+}
+
+.stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 21px;
+  color: #f0e9d8;
+  text-align: center;
+  max-width: 1100px;
+  line-height: 1.5;
+  margin: 16px auto 0 auto;
+  min-height: 60px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.6s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 17px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Stack frames */
+.frame {
+  background: rgba(42, 40, 51, 0.6);
+  border: 2px solid #79b8d8;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 10px;
+  position: relative;
+  min-width: 280px;
+  box-shadow: 4px 4px 0 rgba(121, 184, 216, 0.3);
+}
+
+.frame .frame-name {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #0f0e1a;
+  color: #79b8d8;
+  font-family: 'Kalam', cursive;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 0 10px;
+  font-weight: 700;
+}
+
+.var-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.var-name {
+  color: #ffe96b;
+  min-width: 60px;
+}
+
+.var-addr {
+  color: #5c5a75;
+  font-size: 12px;
+}
+
+.var-val {
+  color: #ff9f7a;
+  background: #1a1825;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #2a2833;
+}
+
+.var-val.highlight { background: #ffe96b; color: #0f0e1a; border-color: #ffe96b; }
+.var-val.head-val { background: rgba(111, 176, 126, 0.2); color: #6fb07e; border-color: #6fb07e; }
+
+/* Boxes */
+.box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 95px;
+  height: 60px;
+  background: #2a2833;
+  border: 3px solid #ff9f7a;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 22px;
+  color: #f0e9d8;
+  box-shadow: 3px 3px 0 #c0b3e0;
+}
+
+.box .addr { font-size: 10px; color: #5c5a75; font-weight: 400; margin-top: 2px; }
+.box.highlight { background: #ffe96b; color: #0f0e1a; border-color: #ffe96b; }
+.box.highlight .addr { color: #5c5a75; }
+
+.heap-area {
+  background: rgba(111, 176, 126, 0.08);
+  border: 2px dashed #6fb07e;
+  border-radius: 12px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.heap-area::before {
+  content: "HEAP";
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #0f0e1a;
+  color: #6fb07e;
+  padding: 0 10px;
+  font-family: 'Kalam', cursive;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.arrow-h {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  color: #c0b3e0;
+}
+
+.arrow-flow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  color: #ffe96b;
+  margin: 4px 0;
+  text-align: center;
+}
+
+.layout-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.layout-h {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.big-text {
+  font-family: 'Kalam', cursive;
+  font-size: 28px;
+  color: #ffe96b;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.invariant-box {
+  background: rgba(255, 233, 107, 0.1);
+  border: 3px solid #ffe96b;
+  border-radius: 14px;
+  padding: 24px 32px;
+  font-family: 'Kalam', cursive;
+  font-size: 24px;
+  color: #ffe96b;
+  text-align: center;
+  box-shadow: 5px 5px 0 rgba(255, 233, 107, 0.3);
+}
+
+pre.code {
+  background: #1a1825;
+  color: #f0e9d8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+pre.code .kw { color: #ff9f7a; }
+pre.code .fn { color: #79b8d8; }
+pre.code .com { color: #5c5a75; font-style: italic; }
+pre.code .num { color: #c9a6ff; }
+pre.code .hl-line { background: rgba(255, 233, 107, 0.15); color: #ffe96b; display: block; margin: 0 -20px; padding: 0 20px; }
+
+.progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #ffe96b;
+  transition: width 0.2s linear;
+}
+
+.controls {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+}
+.controls button {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 14px;
+  background: #2a2833;
+  color: #f0e9d8;
+  border: 2px solid #f0e9d8;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+
+.scene-counter {
+  position: fixed;
+  bottom: 18px;
+  left: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #5c5a75;
+}
+
+.keyhint {
+  position: fixed;
+  bottom: 42px;
+  left: 20px;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #3a3849;
+}
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">pourquoi *src = head ?</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="stage" id="stage"></div>
+  <div class="caption" id="caption">démarrage…</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+const SCENES = [
+  // 1. Intro
+  {
+    dur: 7000,
+    title: "Pourquoi *src est le head ?",
+    subtitle: "remontée de la chaîne d'appels",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text">
+          <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">*src</code>
+          n'est pas le head <b style="color:#ff9f7a;">par magie</b>.<br><br>
+          C'est parce qu'<b style="color:#ffe96b;">on l'a décidé</b><br>
+          partout dans le code.
+        </div>`;
+      caption.innerHTML = "On va remonter la chaîne d'appels <code>main → pa → push_top</code> pour voir comment <code>*src</code> finit toujours par pointer sur le 1er node.";
+    }
+  },
+
+  // 2. main et ses variables
+  {
+    dur: 9000,
+    title: "1. Dans main",
+    subtitle: "stack_a et stack_b sont déclarés ici",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-vertical">
+          <div class="frame">
+            <div class="frame-name">FRAME main</div>
+            <div class="var-row">
+              <span class="var-name">stack_a</span>
+              <span class="var-addr">@ 0x100</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val head-val">0x7FA0</span>
+              <span class="var-addr">← head de la pile A</span>
+            </div>
+            <div class="var-row">
+              <span class="var-name">stack_b</span>
+              <span class="var-addr">@ 0x108</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val">NULL</span>
+              <span class="var-addr">← pile B vide</span>
+            </div>
+          </div>
+
+          <div class="arrow-flow">↓ pointe vers ↓</div>
+
+          <div class="heap-area">
+            <div class="box highlight">3<span class="addr">0x7FA0</span></div>
+            <span class="arrow-h">→</span>
+            <div class="box">1<span class="addr">0x7FB0</span></div>
+            <span class="arrow-h">→</span>
+            <div class="box">4<span class="addr">0x7FC0</span></div>
+            <span class="arrow-h">→</span>
+            <span style="color:#5c5a75;">NULL</span>
+          </div>
+        </div>`;
+      caption.innerHTML = "<code>stack_a</code> est une variable locale dans <b>main</b>, vivant à l'adresse <span class='hl'>0x100</span>. Elle <b>contient</b> <code>0x7FA0</code> = l'adresse de la 1ère boîte. C'est <b>le head</b>.";
+    }
+  },
+
+  // 3. main appelle pa
+  {
+    dur: 10000,
+    title: "2. main appelle pa(&stack_a, &stack_b)",
+    subtitle: "& = adresse-de",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-vertical">
+          <div class="frame">
+            <div class="frame-name">FRAME main</div>
+            <div class="var-row">
+              <span class="var-name">stack_a</span>
+              <span class="var-addr">@ 0x100</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val head-val">0x7FA0</span>
+            </div>
+            <div class="var-row">
+              <span class="var-name">stack_b</span>
+              <span class="var-addr">@ 0x108</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val">NULL</span>
+            </div>
+          </div>
+
+          <pre class="code"><span class="hl-line"><span class="fn">pa</span>(&amp;stack_a, &amp;stack_b);</span>
+<span class="com">// &amp;stack_a → 0x100  (l'adresse où vit stack_a)</span>
+<span class="com">// &amp;stack_b → 0x108  (l'adresse où vit stack_b)</span></pre>
+
+          <div class="arrow-flow">↓ ces adresses sont passées à pa ↓</div>
+
+          <div class="frame" style="border-color: #c0b3e0;">
+            <div class="frame-name" style="color: #c0b3e0;">FRAME pa</div>
+            <div class="var-row">
+              <span class="var-name">a (param)</span>
+              <span class="var-addr">@ 0x200</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val highlight">0x100</span>
+              <span class="var-addr">← l'adresse de stack_a</span>
+            </div>
+            <div class="var-row">
+              <span class="var-name">b (param)</span>
+              <span class="var-addr">@ 0x208</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val highlight">0x108</span>
+              <span class="var-addr">← l'adresse de stack_b</span>
+            </div>
+          </div>
+        </div>`;
+      caption.innerHTML = "Quand main appelle <code>pa(&amp;stack_a, &amp;stack_b)</code>, il passe les <b>adresses</b> de ses variables. Le param <code>a</code> de pa reçoit <span class='hl'>0x100</span>, donc <code>a</code> pointe vers la variable stack_a de main.";
+    }
+  },
+
+  // 4. pa appelle push_top
+  {
+    dur: 11000,
+    title: "3. pa appelle push_top(a, b)",
+    subtitle: "les mêmes adresses sont transmises",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-vertical">
+          <div class="frame">
+            <div class="frame-name">FRAME main</div>
+            <div class="var-row">
+              <span class="var-name">stack_a</span>
+              <span class="var-addr">@ 0x100</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val head-val">0x7FA0</span>
+            </div>
+          </div>
+
+          <div class="arrow-flow">↓</div>
+
+          <div class="frame" style="border-color: #c0b3e0;">
+            <div class="frame-name" style="color: #c0b3e0;">FRAME pa</div>
+            <div class="var-row">
+              <span class="var-name">a (param)</span>
+              <span class="var-addr">@ 0x200</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val">0x100</span>
+            </div>
+          </div>
+
+          <pre class="code"><span class="hl-line"><span class="fn">push_top</span>(a, b);  <span class="com">// pa appelle push_top en repassant a et b</span></span></pre>
+
+          <div class="frame" style="border-color: #ff9f7a;">
+            <div class="frame-name" style="color: #ff9f7a;">FRAME push_top</div>
+            <div class="var-row">
+              <span class="var-name">dst (param)</span>
+              <span class="var-addr">@ 0x300</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val highlight">0x100</span>
+              <span class="var-addr">← copié depuis a</span>
+            </div>
+            <div class="var-row">
+              <span class="var-name">src (param)</span>
+              <span class="var-addr">@ 0x308</span>
+              <span class="arrow-h">=</span>
+              <span class="var-val highlight">0x108</span>
+              <span class="var-addr">← copié depuis b</span>
+            </div>
+          </div>
+        </div>`;
+      caption.innerHTML = "<code>push_top</code> reçoit les mêmes adresses : <code>src</code> contient toujours <span class='hl'>0x108</span> = l'adresse de stack_b dans main. Les frames s'empilent, mais l'adresse cible reste celle de la variable de main.";
+    }
+  },
+
+  // 5. *src lit la variable de main
+  {
+    dur: 11000,
+    title: "4. *src déréférence vers la variable de main",
+    subtitle: "*src = la valeur stockée à 0x108 = stack_b",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-h" style="align-items: center;">
+          <div>
+            <div class="frame">
+              <div class="frame-name">FRAME main</div>
+              <div class="var-row">
+                <span class="var-name">stack_a</span>
+                <span class="var-addr">@ 0x100</span>
+                <span class="arrow-h">=</span>
+                <span class="var-val head-val">0x7FA0</span>
+              </div>
+              <div class="var-row" style="background: rgba(255,233,107,0.1); padding: 4px 8px; border-radius: 4px;">
+                <span class="var-name">stack_b</span>
+                <span class="var-addr">@ 0x108</span>
+                <span class="arrow-h">=</span>
+                <span class="var-val highlight">0x7FA0</span>
+                <span class="var-addr">← head !</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 40px; color: #ffe96b;">⇄</div>
+
+          <div>
+            <div class="frame" style="border-color: #ff9f7a;">
+              <div class="frame-name" style="color: #ff9f7a;">FRAME push_top</div>
+              <div class="var-row">
+                <span class="var-name">src</span>
+                <span class="var-addr">@ 0x308</span>
+                <span class="arrow-h">=</span>
+                <span class="var-val">0x108</span>
+              </div>
+              <div class="var-row" style="background: rgba(255,233,107,0.15); padding: 4px 8px; border-radius: 4px;">
+                <span class="var-name">*src</span>
+                <span class="arrow-h">→</span>
+                <span class="var-val highlight">0x7FA0</span>
+                <span class="var-addr">← head !</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-flow" style="margin-top:24px;">↓ pointe vers ↓</div>
+        <div class="heap-area">
+          <div class="box highlight">3<span class="addr">0x7FA0</span></div>
+          <span class="arrow-h">→</span>
+          <div class="box">1<span class="addr">0x7FB0</span></div>
+          <span class="arrow-h">→</span>
+          <div class="box">4<span class="addr">0x7FC0</span></div>
+        </div>`;
+      caption.innerHTML = "<code>*src</code> = "lis la valeur stockée à l'adresse <code>src</code>" = "lis ce qu'il y a à <span class='hl'>0x108</span>" = la valeur de <b>stack_b</b> dans main = <span class='hl'>0x7FA0</span> = l'adresse du head.";
+    }
+  },
+
+  // 6. L'invariant
+  {
+    dur: 9000,
+    title: "5. L'invariant qu'on respecte partout",
+    subtitle: "stack_a et stack_b pointent TOUJOURS sur le head",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="invariant-box">
+          ★ Règle d'or ★<br><br>
+          Dans tout le code,<br>
+          <code style="color:#ff9f7a; background:#2a2833; padding:2px 8px; border-radius:4px;">stack_a</code>
+          et
+          <code style="color:#ff9f7a; background:#2a2833; padding:2px 8px; border-radius:4px;">stack_b</code>
+          contiennent<br>
+          <b>l'adresse du 1er node</b>.<br><br>
+          → Donc <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">*src</code>
+          est <b>toujours</b> le head.
+        </div>`;
+      caption.innerHTML = "C'est <b>nous</b> qui maintenons cette propriété, pas le langage C. Toutes nos fonctions (build_stack, stack_add_bottom, push_top, etc.) sont écrites pour <b>préserver</b> cet invariant.";
+    }
+  },
+
+  // 7. Comment l'invariant est maintenu
+  {
+    dur: 11000,
+    title: "6. Comment on maintient l'invariant",
+    subtitle: "exemple : push_top met à jour *src au bon moment",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <pre class="code">
+<span class="kw">static void</span> <span class="fn">push_top</span>(<span class="kw">t_stack</span> **dst, <span class="kw">t_stack</span> **src)
+{
+  <span class="kw">t_stack</span> *top;
+
+  top = *src;          <span class="com">// on note l'ancien head</span>
+<span class="hl-line">  *src = top-&gt;next;    <span class="com">// ★ ICI on met à jour stack_a (ou stack_b) de main</span></span>
+<span class="hl-line">                       <span class="com">// pour que *src continue de pointer sur le NOUVEAU head</span></span>
+  top-&gt;next = *dst;
+  *dst = top;
+}</pre>
+
+        <div style="margin-top: 20px;" class="layout-vertical">
+          <div class="big-text" style="font-size: 22px;">
+            Si on oubliait <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">*src = top-&gt;next</code>...<br>
+            <span style="color: #d94848;">→ stack_a continuerait de pointer sur l'ancien node (déménagé)</span><br>
+            <span style="color: #d94848;">→ pile A serait corrompue</span>
+          </div>
+        </div>`;
+      caption.innerHTML = "À chaque opération sur la pile, on met à jour <code>*src</code> pour qu'il pointe sur le <b>nouveau</b> head. C'est cette discipline qui garantit que <code>stack_a</code> dans main reste valide en permanence.";
+    }
+  },
+
+  // 8. Récap
+  {
+    dur: 8000,
+    title: "Récap complet",
+    subtitle: "la chaîne main → pa → push_top",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-vertical" style="gap: 6px;">
+          <div class="big-text" style="font-size: 22px;">
+            <code style="color:#ffe96b;">stack_a</code> dans main = <b>head de la pile</b><br>
+            <span style="color:#5c5a75; font-size:18px;">(par convention, maintenue par toutes nos fonctions)</span>
+          </div>
+          <div class="arrow-flow">↓ &amp;stack_a passé en paramètre ↓</div>
+          <div class="big-text" style="font-size: 22px;">
+            <code style="color:#79b8d8;">a</code> dans pa = <b>adresse de stack_a</b>
+          </div>
+          <div class="arrow-flow">↓ retransmis à push_top ↓</div>
+          <div class="big-text" style="font-size: 22px;">
+            <code style="color:#ff9f7a;">src</code> dans push_top = <b>adresse de stack_a</b>
+          </div>
+          <div class="arrow-flow">↓ déréférencement ↓</div>
+          <div class="big-text" style="font-size: 22px;">
+            <code style="color:#ffe96b;">*src</code> = <b>la valeur de stack_a</b> = <b>head</b> ✓
+          </div>
+        </div>`;
+      caption.innerHTML = "<code>*src</code> est le head parce qu'on remonte une chaîne d'adresses jusqu'à <code>stack_a</code> de main, et que <code>stack_a</code> est <b>par invariant</b> toujours l'adresse du 1er node.";
+    }
+  }
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, captionEl);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      setTimeout(() => captionEl.classList.add('in'), 200);
+    }, 80);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(delay) {
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => playScene(currentScene + 1), delay);
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) {
+    if (timer) clearTimeout(timer);
+    remainingTime -= (Date.now() - startTime);
+  } else {
+    startTime = Date.now();
+    scheduleNext(Math.max(remainingTime, 500));
+  }
+}
+
+function replay() {
+  paused = false;
+  document.getElementById('btn-pause').textContent = '⏸ pause';
+  if (timer) clearTimeout(timer);
+  playScene(0);
+}
+
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+
+</body>
+</html>
