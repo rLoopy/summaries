@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>last vs first->next — la différence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0f0e1a;
+  color: #f0e9d8;
+  font-family: 'Patrick Hand', cursive;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.video {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 36px 70px 36px;
+}
+
+.scene-title {
+  font-family: 'Kalam', cursive;
+  font-size: 32px;
+  color: #ffe96b;
+  text-align: center;
+  margin-bottom: 6px;
+  min-height: 42px;
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: all 0.6s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #c0b3e0;
+  text-align: center;
+  margin-bottom: 20px;
+  min-height: 24px;
+}
+
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  gap: 30px;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 21px;
+  color: #f0e9d8;
+  text-align: center;
+  max-width: 1100px;
+  line-height: 1.5;
+  margin: 16px auto 0 auto;
+  min-height: 60px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.6s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 17px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Linked list nodes */
+.chain {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  padding: 60px 0 30px 0;
+}
+
+.node {
+  position: relative;
+  width: 110px;
+  height: 70px;
+  background: #2a2833;
+  border: 3px solid #ff9f7a;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 26px;
+  color: #f0e9d8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0 #c0b3e0;
+  transition: all 0.5s ease;
+}
+
+.node .addr {
+  font-size: 11px;
+  color: #5c5a75;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.node.lastpos {
+  border-color: #6fb07e;
+  box-shadow: 4px 4px 0 #6fb07e;
+}
+
+.arr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  color: #c0b3e0;
+  margin: 0 4px;
+}
+
+/* Pointer markers above the chain */
+.pointer-marker {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Kalam', cursive;
+  transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+
+.pointer-marker .label {
+  font-size: 22px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.pointer-marker .arrow-down {
+  font-size: 26px;
+  margin-top: 2px;
+}
+
+.pointer-marker.first .label { background: #ff9f7a; color: #0f0e1a; }
+.pointer-marker.first .arrow-down { color: #ff9f7a; }
+
+.pointer-marker.head .label { background: #79b8d8; color: #0f0e1a; }
+.pointer-marker.head .arrow-down { color: #79b8d8; }
+
+.pointer-marker.last .label { background: #6fb07e; color: #0f0e1a; }
+.pointer-marker.last .arrow-down { color: #6fb07e; }
+
+.pointer-marker.firstnext .label { background: #c9a6ff; color: #0f0e1a; font-size: 18px; }
+.pointer-marker.firstnext .arrow-down { color: #c9a6ff; }
+
+/* Variables panel */
+.vars-panel {
+  background: rgba(42, 40, 51, 0.6);
+  border: 2px solid #2a2833;
+  border-radius: 12px;
+  padding: 16px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 360px;
+}
+
+.vars-panel .var-line {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transition: all 0.4s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.vars-panel .var-line.flash {
+  background: rgba(255, 233, 107, 0.15);
+}
+
+.vars-panel .var-name {
+  min-width: 100px;
+}
+.vars-panel .var-name.first { color: #ff9f7a; }
+.vars-panel .var-name.firstnext { color: #c9a6ff; }
+.vars-panel .var-name.head { color: #79b8d8; }
+.vars-panel .var-name.last { color: #6fb07e; }
+
+.vars-panel .var-eq { color: #5c5a75; }
+.vars-panel .var-val { color: #f0e9d8; font-weight: 700; }
+.vars-panel .var-comment { color: #5c5a75; font-style: italic; font-family: 'Caveat', cursive; font-size: 16px; }
+
+.code-block {
+  background: #1a1825;
+  color: #f0e9d8;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.code-block .hl-line { background: rgba(255, 233, 107, 0.2); color: #ffe96b; padding: 0 6px; border-radius: 3px; }
+.code-block .com { color: #5c5a75; font-style: italic; }
+.code-block .kw { color: #ff9f7a; }
+
+.warning-box {
+  background: rgba(217, 72, 72, 0.1);
+  border: 2px solid #d94848;
+  border-radius: 10px;
+  padding: 16px 22px;
+  color: #ff8888;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  max-width: 600px;
+  text-align: center;
+}
+
+.success-box {
+  background: rgba(111, 176, 126, 0.1);
+  border: 2px solid #6fb07e;
+  border-radius: 10px;
+  padding: 16px 22px;
+  color: #95d8a8;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  max-width: 700px;
+  text-align: center;
+}
+
+.layout-row {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.big-text {
+  font-family: 'Kalam', cursive;
+  font-size: 26px;
+  color: #ffe96b;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #ffe96b;
+  transition: width 0.2s linear;
+}
+
+.controls {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+}
+.controls button {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 14px;
+  background: #2a2833;
+  color: #f0e9d8;
+  border: 2px solid #f0e9d8;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+
+.scene-counter {
+  position: fixed;
+  bottom: 18px;
+  left: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #5c5a75;
+}
+.keyhint {
+  position: fixed;
+  bottom: 42px;
+  left: 20px;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #3a3849;
+}
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">last vs first-&gt;next</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="stage" id="stage"></div>
+  <div class="caption" id="caption">démarrage…</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+// Build a chain visual where pointers are positioned above specific nodes
+// nodePositions: array indices [0..n-1], each at left = i*128 from start
+
+function chainHTML(values, addrs, pointers) {
+  // pointers = [{name: "first", className: "first", target: 0, label: "first"}, ...]
+  let html = '<div class="chain" id="chain-vis">';
+  values.forEach((v, i) => {
+    const isLast = i === values.length - 1 && pointers.some(p => p.target === i && p.className === 'last');
+    html += `<div class="node${isLast ? ' lastpos' : ''}" data-idx="${i}">${v}<span class="addr">${addrs[i]}</span></div>`;
+    if (i < values.length - 1) html += `<span class="arr">→</span>`;
+  });
+  html += `<span class="arr">→</span><span style="color:#5c5a75; font-family:'JetBrains Mono'; font-style:italic;">NULL</span>`;
+  // Pointer markers
+  pointers.forEach(p => {
+    // calculate left in pixels: each node block is ~110+ for arrows ~36 = ~146 between centers
+    const leftPx = p.target * 146 + 55; // center of node
+    html += `
+      <div class="pointer-marker ${p.className}" style="left: ${leftPx - 50}px;">
+        <div class="label">${p.label}</div>
+        <div class="arrow-down">↓</div>
+      </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+const SCENES = [
+  // 1. Intro
+  {
+    dur: 7000,
+    title: "last vs first->next",
+    subtitle: "deux trucs qui se ressemblent mais sont différents",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text">
+          Question : si on a fait <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">last = first-&gt;next</code>,<br>
+          pourquoi <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">last</code>
+          devient différent de
+          <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">first-&gt;next</code>
+          après le while ?
+        </div>`;
+      caption.innerHTML = "On va dérouler avec la pile <b>[3, 1, 4, 2]</b> pour montrer ce qui bouge et ce qui ne bouge pas.";
+    }
+  },
+
+  // 2. Initial state
+  {
+    dur: 9000,
+    title: "État après R1 et R2",
+    subtitle: "first sauvegardé, *stack a avancé d'un cran",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${chainHTML(['3', '1', '4', '2'], ['0x7FA0', '0x7FB0', '0x7FC0', '0x7FD0'], [
+          {name: 'first', className: 'first', target: 0, label: 'first'},
+          {name: 'head', className: 'head', target: 1, label: '*stack'}
+        ])}
+        <div class="vars-panel">
+          <div class="var-line"><span class="var-name first">first</span><span class="var-eq">=</span><span class="var-val">0x7FA0</span><span class="var-comment">node [3]</span></div>
+          <div class="var-line"><span class="var-name firstnext">first-&gt;next</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span><span class="var-comment">champ next du node [3]</span></div>
+          <div class="var-line"><span class="var-name head">*stack</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span><span class="var-comment">le nouveau head</span></div>
+          <div class="var-line"><span class="var-name last">last</span><span class="var-eq">=</span><span class="var-val" style="color:#5c5a75;">??? (pas encore init)</span></div>
+        </div>`;
+      caption.innerHTML = "À ce stade, <code>first-&gt;next</code> et <code>*stack</code> ont la <b>même valeur</b> (0x7FB0). Logique : on vient de faire <code>*stack = first-&gt;next</code> à la ligne d'avant.";
+    }
+  },
+
+  // 3. last = *stack
+  {
+    dur: 9000,
+    title: "R3 ligne 1 : last = *stack",
+    subtitle: "last reçoit une COPIE de la valeur de *stack",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${chainHTML(['3', '1', '4', '2'], ['0x7FA0', '0x7FB0', '0x7FC0', '0x7FD0'], [
+          {name: 'first', className: 'first', target: 0, label: 'first'},
+          {name: 'head', className: 'head', target: 1, label: '*stack'},
+          {name: 'last', className: 'last', target: 1, label: 'last'}
+        ])}
+        <div class="vars-panel">
+          <div class="var-line"><span class="var-name first">first</span><span class="var-eq">=</span><span class="var-val">0x7FA0</span></div>
+          <div class="var-line"><span class="var-name firstnext">first-&gt;next</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span></div>
+          <div class="var-line"><span class="var-name head">*stack</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span></div>
+          <div class="var-line flash"><span class="var-name last">last</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span><span class="var-comment">copie de *stack</span></div>
+        </div>
+        <div class="big-text" style="font-size:22px;">
+          ★ À cet instant : <code style="color:#6fb07e; background:#2a2833; padding:2px 8px; border-radius:4px;">last</code>
+          == <code style="color:#c9a6ff; background:#2a2833; padding:2px 8px; border-radius:4px;">first-&gt;next</code>
+          == <code style="color:#79b8d8; background:#2a2833; padding:2px 8px; border-radius:4px;">*stack</code>
+          (toutes 0x7FB0)
+        </div>`;
+      caption.innerHTML = "<code>last</code> est une <b>nouvelle variable indépendante</b>. Elle a juste <b>copié la valeur</b> de <code>*stack</code>. Les 3 pointeurs visent le même node, mais c'est <b>3 boîtes mémoire séparées</b>.";
+    }
+  },
+
+  // 4. While iteration 1 — last advances
+  {
+    dur: 10000,
+    title: "Itération 1 : last = last->next",
+    subtitle: "last avance d'un cran, first->next ne bouge pas",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${chainHTML(['3', '1', '4', '2'], ['0x7FA0', '0x7FB0', '0x7FC0', '0x7FD0'], [
+          {name: 'first', className: 'first', target: 0, label: 'first'},
+          {name: 'firstnext', className: 'firstnext', target: 1, label: 'first->next'},
+          {name: 'last', className: 'last', target: 2, label: 'last'}
+        ])}
+        <div class="vars-panel">
+          <div class="var-line"><span class="var-name first">first</span><span class="var-eq">=</span><span class="var-val">0x7FA0</span></div>
+          <div class="var-line"><span class="var-name firstnext">first-&gt;next</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span><span class="var-comment">★ INCHANGÉ</span></div>
+          <div class="var-line flash"><span class="var-name last">last</span><span class="var-eq">=</span><span class="var-val">0x7FC0</span><span class="var-comment">a bougé sur node [4]</span></div>
+        </div>
+        <div class="warning-box" style="border-color:#ffe96b; color:#ffe96b;">
+          Modifier <code style="color:#ffe96b; background:#2a2833; padding:2px 6px;">last</code>
+          ne touche <b>pas</b>
+          <code style="color:#ffe96b; background:#2a2833; padding:2px 6px;">first-&gt;next</code>.
+          Ce sont deux cases mémoire séparées qui contenaient juste la même valeur.
+        </div>`;
+      caption.innerHTML = "On écrit <code>0x7FC0</code> dans <code>last</code>. Le node [3] et son champ <code>next</code> n'ont <b>pas été touchés</b> — toujours <code>0x7FB0</code>.";
+    }
+  },
+
+  // 5. While iteration 2 — last on the last node
+  {
+    dur: 10000,
+    title: "Itération 2 : last sur le dernier node",
+    subtitle: "last->next == NULL → la boucle s'arrête",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${chainHTML(['3', '1', '4', '2'], ['0x7FA0', '0x7FB0', '0x7FC0', '0x7FD0'], [
+          {name: 'first', className: 'first', target: 0, label: 'first'},
+          {name: 'firstnext', className: 'firstnext', target: 1, label: 'first->next'},
+          {name: 'last', className: 'last', target: 3, label: 'last'}
+        ])}
+        <div class="vars-panel">
+          <div class="var-line"><span class="var-name first">first</span><span class="var-eq">=</span><span class="var-val">0x7FA0</span></div>
+          <div class="var-line"><span class="var-name firstnext">first-&gt;next</span><span class="var-eq">=</span><span class="var-val">0x7FB0</span><span class="var-comment">★ TOUJOURS inchangé</span></div>
+          <div class="var-line flash"><span class="var-name last">last</span><span class="var-eq">=</span><span class="var-val">0x7FD0</span><span class="var-comment">node [2], le DERNIER</span></div>
+        </div>
+        <div class="big-text" style="font-size: 22px;">
+          last et first-&gt;next pointent sur des nodes <b style="color:#ff8888;">différents</b> maintenant.
+        </div>`;
+      caption.innerHTML = "Au bout de 2 itérations, <code>last</code> est sur le node [2] (le vrai dernier). <code>first-&gt;next</code> pointe toujours sur [1]. <span class='hl'>Ils ne sont plus égaux.</span>";
+    }
+  },
+
+  // 6. Pourquoi R4 et R5 sont nécessaires
+  {
+    dur: 12000,
+    title: "Pourquoi R4 ET R5 sont les deux nécessaires",
+    subtitle: "deux opérations distinctes pour deux nodes différents",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="layout-row">
+          <div class="vars-panel">
+            <div class="var-line"><span class="var-name last">last-&gt;next = first;</span></div>
+            <div class="var-comment" style="margin-left: 12px;">→ R4 : modifie le champ next<br>du node [2] (le dernier)</div>
+          </div>
+          <div class="vars-panel">
+            <div class="var-line"><span class="var-name first">first-&gt;next = NULL;</span></div>
+            <div class="var-comment" style="margin-left: 12px;">→ R5 : modifie le champ next<br>du node [3] (qui devient le bout)</div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          ⚠ Si tu oubliais R5, le node [3] aurait toujours<br>
+          <code style="color:#ff8888; background:#2a2833; padding:2px 6px;">first-&gt;next = 0x7FB0</code>
+          (pointant sur [1])<br>
+          → la chaîne deviendrait :<br>
+          [1] → [4] → [2] → [3] → [1] → [4] → [2] → [3] → ... <b>boucle infinie !</b>
+        </div>`;
+      caption.innerHTML = "R4 modifie le node [2] (l'ancien dernier). R5 modifie le node [3] (le nouveau dernier). <b>Deux nodes distincts, deux assignations distinctes.</b>";
+    }
+  },
+
+  // 7. Final: chain after rotate
+  {
+    dur: 9000,
+    title: "État final après R5",
+    subtitle: "la pile a tourné : [3] est maintenant à la fin",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${chainHTML(['1', '4', '2', '3'], ['0x7FB0', '0x7FC0', '0x7FD0', '0x7FA0'], [
+          {name: 'head', className: 'head', target: 0, label: '*stack'}
+        ])}
+        <div class="success-box">
+          ✓ La rotation est complète.<br>
+          [3] (l'ancien 1er) est maintenant à la fin avec <code style="color:#95d8a8; background:#2a2833; padding:2px 6px;">next = NULL</code>.<br>
+          [1] (l'ancien 2e) est devenu le nouveau head.
+        </div>`;
+      caption.innerHTML = "Les <b>valeurs n'ont pas bougé</b>, ce sont les <b>liens entre les nodes</b> qui ont été réorganisés. C'est ça la puissance des linked lists : on déplace les attaches, pas les données.";
+    }
+  },
+
+  // 8. Récap
+  {
+    dur: 8000,
+    title: "Le take-away",
+    subtitle: "à graver",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="text-align: left; font-size: 22px;">
+          1. Une <b style="color:#ff9f7a;">variable</b> (comme <code style="color:#ffb380; background:#2a2833; padding:2px 6px;">last</code>)<br>
+          &nbsp;&nbsp;&nbsp;est une boîte mémoire indépendante.<br><br>
+          2. Un <b style="color:#c9a6ff;">champ de struct</b> (comme <code style="color:#ffb380; background:#2a2833; padding:2px 6px;">first-&gt;next</code>)<br>
+          &nbsp;&nbsp;&nbsp;est une autre boîte mémoire, à l'intérieur d'un node.<br><br>
+          3. <code style="color:#ffe96b;">a = b</code> copie la <b>valeur</b>, pas la liaison.<br>
+          &nbsp;&nbsp;&nbsp;→ après, ils évoluent indépendamment.<br><br>
+          4. Modifier <code style="color:#6fb07e;">last</code> ne touche <b style="color:#ff8888;">jamais</b> <code style="color:#c9a6ff;">first-&gt;next</code>,<br>
+          &nbsp;&nbsp;&nbsp;même s'ils ont eu la même valeur à un moment.
+        </div>`;
+      caption.innerHTML = "Garde ça en tête pour <code>op_reverse.c</code> aussi — même logique avec <code>cur</code> qui marche jusqu'à l'avant-dernier.";
+    }
+  }
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, captionEl);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      setTimeout(() => captionEl.classList.add('in'), 200);
+    }, 80);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(delay) {
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => playScene(currentScene + 1), delay);
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) {
+    if (timer) clearTimeout(timer);
+    remainingTime -= (Date.now() - startTime);
+  } else {
+    startTime = Date.now();
+    scheduleNext(Math.max(remainingTime, 500));
+  }
+}
+
+function replay() {
+  paused = false;
+  document.getElementById('btn-pause').textContent = '⏸ pause';
+  if (timer) clearTimeout(timer);
+  playScene(0);
+}
+
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+
+</body>
+</html>
