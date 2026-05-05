@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sort_5 step-by-step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+
+.video {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 36px 70px 36px;
+}
+
+.scene-title {
+  font-family: 'Kalam', cursive;
+  font-size: 32px;
+  color: #ffe96b;
+  text-align: center;
+  margin-bottom: 6px;
+  min-height: 42px;
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: all 0.6s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #c0b3e0;
+  text-align: center;
+  margin-bottom: 16px;
+  min-height: 24px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  min-height: 0;
+}
+
+.stage-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  gap: 30px;
+}
+
+.code-panel {
+  width: 440px;
+  background: #1a1825;
+  border: 2px solid #2a2833;
+  border-radius: 12px;
+  padding: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  color: #c0b3e0;
+  display: flex;
+  flex-direction: column;
+}
+.code-panel .code-title {
+  font-family: 'Kalam', cursive;
+  font-size: 13px;
+  color: #79b8d8;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #2a2833;
+}
+.code-panel pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #8f89a6;
+}
+.code-panel .line {
+  display: block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  transition: all 0.4s ease;
+}
+.code-panel .line.hl { background: rgba(255,233,107,0.18); color: #ffe96b; font-weight: 700; box-shadow: inset 4px 0 0 #ffe96b; }
+.code-panel .line.done { color: #6fb07e; }
+.code-panel .kw { color: #ff9f7a; }
+.code-panel .fn { color: #79b8d8; }
+.code-panel .com { color: #5c5a75; font-style: italic; }
+.code-panel .num { color: #c9a6ff; }
+.code-panel .type { color: #9dd6a8; }
+
+.action-card {
+  background: rgba(255, 233, 107, 0.08);
+  border: 2px solid #ffe96b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 14px;
+  color: #ffe96b;
+  line-height: 1.4;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 20px;
+  color: #f0e9d8;
+  text-align: center;
+  max-width: 1100px;
+  line-height: 1.5;
+  margin: 14px auto 0 auto;
+  min-height: 60px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.6s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 16px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Stacks display */
+.stacks-row {
+  display: flex;
+  gap: 80px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.stack-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px;
+}
+
+.stack-label {
+  font-family: 'Kalam', cursive;
+  font-size: 26px;
+  color: #ff9f7a;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 4px;
+}
+
+.top-marker {
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: #ffe96b;
+  height: 20px;
+}
+
+.box {
+  width: 95px;
+  height: 50px;
+  background: #2a2833;
+  border: 3px solid #ff9f7a;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 22px;
+  color: #f0e9d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 3px 0 #c0b3e0;
+  transition: all 0.5s ease;
+}
+.box.min { background: #6fb07e; color: #0f0e1a; border-color: #6fb07e; box-shadow: 3px 3px 0 #2a2833; }
+.box.ontop { background: #ffe96b; color: #0f0e1a; border-color: #ffe96b; }
+.box.onb { background: #c9a6ff; color: #0f0e1a; border-color: #c9a6ff; box-shadow: 3px 3px 0 #2a2833; }
+
+.empty {
+  width: 95px;
+  height: 50px;
+  border: 2px dashed #5c5a75;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5c5a75;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+}
+
+.bottom-marker {
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #5c5a75;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.steps-banner {
+  background: rgba(121, 184, 216, 0.08);
+  border: 2px solid #79b8d8;
+  border-radius: 10px;
+  padding: 14px 22px;
+  display: flex;
+  gap: 30px;
+  font-family: 'Kalam', cursive;
+  font-size: 18px;
+}
+.steps-banner .step { color: #5c5a75; }
+.steps-banner .step.active { color: #ffe96b; font-weight: 700; }
+.steps-banner .step.done { color: #6fb07e; }
+
+.big-text {
+  font-family: 'Kalam', cursive;
+  font-size: 24px;
+  color: #ffe96b;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s linear; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+.keyhint { position: fixed; bottom: 42px; left: 20px; font-family: 'Caveat', cursive; font-size: 13px; color: #3a3849; }
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">sort_5</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="main">
+    <div class="stage-wrap" id="stage"></div>
+    <div class="code-panel">
+      <div class="code-title" id="code-title">CODE</div>
+      <pre id="code-body"></pre>
+      <div class="action-card" id="action-card">→ démarrage…</div>
+    </div>
+  </div>
+  <div class="caption" id="caption">démarrage…</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+function renderStacks(aArr, bArr, opts = {}) {
+  function renderCol(name, arr, label, hlIdx, hlClass) {
+    let html = '<div class="stack-col">';
+    html += `<div class="stack-label">${label}</div>`;
+    html += `<div class="top-marker">↓ top</div>`;
+    if (arr.length === 0) {
+      html += `<div class="empty">vide</div>`;
+    } else {
+      arr.forEach((v, i) => {
+        let cls = 'box';
+        if (i === hlIdx) cls += ' ' + hlClass;
+        html += `<div class="${cls}">${v}</div>`;
+      });
+    }
+    html += `<div class="bottom-marker">bottom</div>`;
+    html += '</div>';
+    return html;
+  }
+  let h = '<div class="stacks-row">';
+  h += renderCol('a', aArr, 'A', opts.aHl, opts.aHlClass || 'min');
+  h += renderCol('b', bArr, 'B', opts.bHl, opts.bHlClass || 'onb');
+  h += '</div>';
+  return h;
+}
+
+function renderSteps(active, done) {
+  const steps = [
+    {n: 1, label: '1) push (size-3) plus petits sur B'},
+    {n: 2, label: '2) sort_3 sur A'},
+    {n: 3, label: '3) pa pa pa ramène B sur A'}
+  ];
+  let h = '<div class="steps-banner">';
+  steps.forEach(s => {
+    let cls = 'step';
+    if (done.includes(s.n)) cls += ' done';
+    if (active === s.n) cls += ' active';
+    h += `<div class="${cls}">${s.label}</div>`;
+  });
+  h += '</div>';
+  return h;
+}
+
+const SORT5_CODE = [
+  '<span class="kw">void</span> <span class="fn">sort_5</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)',
+  '{',
+  '  <span class="kw">int</span> to_push;',
+  '',
+  '  to_push = <span class="fn">stack_size</span>(*a) - <span class="num">3</span>;',
+  '  <span class="kw">while</span> (to_push-- &gt; <span class="num">0</span>)',
+  '  {',
+  '    <span class="fn">rotate_min_to_top</span>(a);',
+  '    <span class="fn">pb</span>(a, b);',
+  '  }',
+  '  <span class="fn">sort_3</span>(a);',
+  '  <span class="kw">while</span> (*b)',
+  '    <span class="fn">pa</span>(a, b);',
+  '}'
+];
+
+function renderCode(hl=[], done=[]) {
+  return SORT5_CODE.map((ln, i) => {
+    const lineNum = i + 1;
+    const cls = hl.includes(lineNum) ? ' hl' : (done.includes(lineNum) ? ' done' : '');
+    return `<span class="line${cls}">${ln || ' '}</span>`;
+  }).join('\n');
+}
+
+const SCENES = [
+  // 1. Title
+  {
+    dur: 6500,
+    title: "sort_5 — trier 4 ou 5 éléments",
+    subtitle: "stratégie : utiliser sort_3 + la pile B comme buffer",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="big-text">
+          On a déjà <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">sort_3</code>
+          qui trie 3 éléments en max 2 ops.<br><br>
+          Pour 4 ou 5 éléments,<br>
+          <b style="color:#ff9f7a;">on triche : on ramène le problème à 3 éléments</b>.
+        </div>`;
+      code.innerHTML = renderCode();
+      action.textContent = '→ on va dérouler avec [3, 5, 1, 4, 2]';
+      caption.innerHTML = "L'idée : <b>déléguer</b> à sort_3 quand c'est possible. Pour ça, il faut d'abord retirer 1 ou 2 éléments de A pour qu'il n'en reste que 3.";
+    }
+  },
+
+  // 2. The 3-step strategy
+  {
+    dur: 8000,
+    title: "Stratégie en 3 étapes",
+    subtitle: "B sert de buffer temporaire",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(0, [])}
+        <div class="big-text" style="font-size: 20px; line-height: 1.7; text-align: left;">
+          1) Push les <b style="color:#6fb07e;">2 plus petits</b> de A vers B<br>
+          &nbsp;&nbsp;&nbsp;<span style="color:#5c5a75; font-size:16px;">→ il reste exactement 3 sur A</span><br><br>
+          2) Appel <code style="color:#79b8d8; background:#2a2833; padding:2px 8px; border-radius:4px;">sort_3(a)</code><br>
+          &nbsp;&nbsp;&nbsp;<span style="color:#5c5a75; font-size:16px;">→ A est trié</span><br><br>
+          3) Ramène B sur A avec <code style="color:#79b8d8; background:#2a2833; padding:2px 8px; border-radius:4px;">pa</code><br>
+          &nbsp;&nbsp;&nbsp;<span style="color:#5c5a75; font-size:16px;">→ comme on a poussé les + petits, ils ressortent dans l'ordre</span>
+        </div>`;
+      action.innerHTML = "B est utilisée comme<br><b>réservoir trié</b>.";
+      caption.innerHTML = "Petite astuce qui rend tout l'algo intelligent : <b>quand on push les plus petits sur B, ils ressortent au-dessus du tri final</b>. Donc <code>pa</code> à la fin termine le boulot.";
+    }
+  },
+
+  // 3. Initial state
+  {
+    dur: 7000,
+    title: "État initial : a=[3,5,1,4,2], b=[]",
+    subtitle: "to_push = size(a) - 3 = 5 - 3 = 2",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(1, [])}
+        ${renderStacks(['3','5','1','4','2'], [])}`;
+      code.innerHTML = renderCode([5]);
+      action.innerHTML = 'to_push = 2<br>→ on va push 2 éléments sur B';
+      caption.innerHTML = "On a 5 éléments dans A. Il faut en retirer 2 pour qu'il en reste 3 (la taille que sort_3 sait gérer). On va donc pousser <b>les 2 plus petits</b> sur B.";
+    }
+  },
+
+  // 4. Iteration 1 - find min
+  {
+    dur: 7500,
+    title: "Itération 1 — find_min_pos trouve 1 (pos=2)",
+    subtitle: "rotate_min_to_top(a) va l'amener en haut",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(1, [])}
+        ${renderStacks(['3','5','1','4','2'], [], {aHl: 2})}`;
+      code.innerHTML = renderCode([8], [5]);
+      action.innerHTML = 'min = 1, à la position 2.<br>size = 5, size/2 = 2.<br>2 ≤ 2 → on utilise ra (par le haut)';
+      caption.innerHTML = "Le min (le <b style='color:#6fb07e;'>1</b>) est à l'index 2. Comme c'est dans la 1ère moitié, on le ramène en haut avec <code>ra</code> (2 fois).";
+    }
+  },
+
+  // 5. ra ra
+  {
+    dur: 8000,
+    title: "ra ra → le 1 est en haut",
+    subtitle: "[3,5,1,4,2] → [5,1,4,2,3] → [1,4,2,3,5]",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(1, [])}
+        ${renderStacks(['1','4','2','3','5'], [], {aHl: 0, aHlClass: 'min'})}`;
+      code.innerHTML = renderCode([8], [5]);
+      action.innerHTML = '2 ra effectués.<br>Le 1 est maintenant le top de A.';
+      caption.innerHTML = "Après <code>ra</code> deux fois, A = <b>[1, 4, 2, 3, 5]</b>. Le min est en haut, prêt à être push sur B.";
+    }
+  },
+
+  // 6. pb 1
+  {
+    dur: 7500,
+    title: "pb → le 1 part sur B",
+    subtitle: "a=[4,2,3,5], b=[1]",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(1, [])}
+        ${renderStacks(['4','2','3','5'], ['1'], {bHl: 0})}`;
+      code.innerHTML = renderCode([9], [5, 8]);
+      action.innerHTML = '1 push effectué.<br>to_push = 1, on continue.';
+      caption.innerHTML = "On <code>pb</code>: le 1 part sur B. A perd son top, B gagne le sien. <b>Première itération terminée.</b>";
+    }
+  },
+
+  // 7. Iteration 2
+  {
+    dur: 8500,
+    title: "Itération 2 — find_min_pos trouve 2 (pos=1)",
+    subtitle: "rotate_min_to_top : 1 ra suffit",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(1, [])}
+        ${renderStacks(['4','2','3','5'], ['1'], {aHl: 1})}`;
+      code.innerHTML = renderCode([8, 9], [5]);
+      action.innerHTML = 'min de A = 2, position 1.<br>1 ra → [2,3,5,4]<br>pb → b=[2,1]';
+      caption.innerHTML = "Le min est <b style='color:#6fb07e;'>2</b> en position 1. <code>ra</code> l'amène en haut, <code>pb</code> l'envoie sur B. <b>B = [2, 1]</b>.";
+    }
+  },
+
+  // 8. After both pushes
+  {
+    dur: 7000,
+    title: "Après les 2 push : a=[3,5,4], b=[2,1]",
+    subtitle: "to_push = 0, on sort de la boucle",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(2, [1])}
+        ${renderStacks(['3','5','4'], ['2','1'])}`;
+      code.innerHTML = renderCode([], [5, 6, 7, 8, 9, 10]);
+      action.innerHTML = "Étape 1 ✓<br>A a exactement 3 éléments.<br>On peut appeler sort_3.";
+      caption.innerHTML = "<b>Étape 1 terminée.</b> A a 3 éléments comme prévu, B contient les 2 plus petits triés (le plus grand des 2 sur le top). Place à <code>sort_3</code>.";
+    }
+  },
+
+  // 9. sort_3
+  {
+    dur: 8000,
+    title: "Étape 2 — sort_3(a) trie [3,5,4]",
+    subtitle: "CAS 1,3,2 → rra puis sa",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(2, [1])}
+        ${renderStacks(['3','4','5'], ['2','1'])}`;
+      code.innerHTML = renderCode([11], [5, 6, 7, 8, 9, 10]);
+      action.innerHTML = '[3,5,4] -- rra --> [4,3,5]<br>      -- sa  --> [3,4,5] ✓';
+      caption.innerHTML = "<code>sort_3</code> reconnaît le cas <b>1,3,2</b> et applique <code>rra</code> + <code>sa</code>. A est maintenant trié : <b>[3, 4, 5]</b>.";
+    }
+  },
+
+  // 10. pa pa
+  {
+    dur: 8500,
+    title: "Étape 3 — pa pa ramène B sur A",
+    subtitle: "while (*b) pa(a, b)",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(3, [1, 2])}
+        ${renderStacks(['1','2','3','4','5'], [])}`;
+      code.innerHTML = renderCode([12, 13], [5, 6, 7, 8, 9, 10, 11]);
+      action.innerHTML = "pa : a=[2,3,4,5], b=[1]<br>pa : a=[1,2,3,4,5], b=[]<br>✅ trié !";
+      caption.innerHTML = "On vide B sur A. <b>Le 2 sort en premier, puis le 1</b> — donc le 1 finit en haut. Comme A était [3,4,5], on obtient <span class='hl'>[1, 2, 3, 4, 5]</span>.";
+    }
+  },
+
+  // 11. Done
+  {
+    dur: 7500,
+    title: "✅ sort_5 terminé",
+    subtitle: "9 ops au total : ra ra pb ra pb rra sa pa pa",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderSteps(0, [1, 2, 3])}
+        ${renderStacks(['1','2','3','4','5'], [])}
+        <div class="big-text" style="font-size: 22px;">
+          ✓ Triée en <b>9 ops</b><br>
+          <span style="color:#5c5a75; font-size:16px;">(le sujet ne fixe pas de limite stricte pour 5 nums,<br>mais 9 ops c'est très bon)</span>
+        </div>`;
+      code.innerHTML = renderCode([], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+      action.innerHTML = "✅ Algo complet.<br>Réutilise sort_3 + 2 helpers.";
+      caption.innerHTML = "L'élégance de sort_5 : <b>il ne fait presque rien lui-même</b>. Il orchestre <code>rotate_min_to_top</code>, <code>pb</code>, <code>sort_3</code>, et <code>pa</code> dans le bon ordre.";
+    }
+  }
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const codeBodyEl = document.getElementById('code-body');
+const actionCardEl = document.getElementById('action-card');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, codeBodyEl, actionCardEl, captionEl);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      setTimeout(() => captionEl.classList.add('in'), 200);
+    }, 80);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(delay) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), delay); }
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-pause').textContent = '⏸ pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+
+</body>
+</html>
