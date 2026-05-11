@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 07 — Les 11 opérations</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie III <span class="sep">/</span> Chapitre 07</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Vue d'ensemble</a></li>
+      <li><a href="#s2"><code>swap</code> (sa/sb/ss)</a></li>
+      <li><a href="#s3"><code>push</code> (pa/pb)</a></li>
+      <li><a href="#s4"><code>rotate</code> (ra/rb/rr)</a></li>
+      <li><a href="#s5"><code>reverse_rotate</code> (rra/rrb/rrr)</a></li>
+      <li><a href="#s6">Le <code>write</code> à la fin</a></li>
+      <li><a href="#s7">Récap des 11 ops</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><b>7. Les 11 ops</b></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE III · CHAPITRE 07</div>
+      <h1>Les 11 opérations</h1>
+      <div class="ch-sub">recâblage de pointeurs étape par étape pour chaque op</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">7.1</span>Vue d'ensemble — 4 familles + pattern commun</h2>
+
+      <p>Les 11 ops se répartissent en <b>4 familles</b>, chacune dans son fichier :</p>
+
+      <table>
+        <tr><th>Famille</th><th>Fichier</th><th>Ops</th><th>Helper static</th></tr>
+        <tr><td>swap (échange top et 2e)</td><td><code>op_swap.c</code></td><td><code>sa</code>, <code>sb</code>, <code>ss</code></td><td><code>swap_top</code></td></tr>
+        <tr><td>push (déplace 1 node entre piles)</td><td><code>op_push.c</code></td><td><code>pa</code>, <code>pb</code></td><td><code>push_top</code></td></tr>
+        <tr><td>rotate (1er → dernier)</td><td><code>op_rotate.c</code></td><td><code>ra</code>, <code>rb</code>, <code>rr</code></td><td><code>rotate</code></td></tr>
+        <tr><td>reverse rotate (dernier → 1er)</td><td><code>op_reverse.c</code></td><td><code>rra</code>, <code>rrb</code>, <code>rrr</code></td><td><code>reverse_rotate</code></td></tr>
+      </table>
+
+      <h3>Le pattern uniforme</h3>
+
+      <p>Chaque fichier suit le même squelette :</p>
+
+      <pre class="code"><span class="com">/* helper static : la logique pure, sans I/O */</span>
+<span class="kw">static void</span> <span class="fn">do_op</span>(<span class="type">t_stack</span> **stack)
+{
+    <span class="com">/* logique de l'opération */</span>
+}
+
+<span class="com">/* wrapper public : appelle le helper + write le nom */</span>
+<span class="kw">void</span> <span class="fn">xa</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="fn">do_op</span>(a);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"xa\n"</span>, <span class="num">3</span>);
+}</pre>
+
+      <p>L'idée : <b>la logique d'op n'a pas à savoir si elle fait <code>sa</code> ou <code>sb</code></b>. Elle fait le travail de "swap les 2 premiers de cette pile", peu importe quelle pile. C'est le wrapper qui sait quel nom écrire sur stdout.</p>
+
+      <p>Bénéfices :</p>
+      <ul>
+        <li>DRY : code de logique écrit une seule fois</li>
+        <li>Norme : ≤ 5 fonctions par fichier</li>
+        <li>Test : on peut tester le helper sans avoir le bruit du <code>write</code></li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">7.2</span><code>swap</code> (sa/sb/ss)</h2>
+
+      <h3>Définition</h3>
+
+      <p><code>sa</code> = "swap les 2 premiers éléments de <code>a</code>". Si la pile a 0 ou 1 élément, ne fait rien.</p>
+
+      <div class="ascii">avant sa :   [3, 1, 4, 2]
+après sa :   [1, 3, 4, 2]
+              ↑  ↑
+            les 2 premiers échangés, le reste intact
+</div>
+
+      <h3>L'astuce : value swap au lieu de pointer swap</h3>
+
+      <p>Pour échanger les 2 premiers nodes, deux approches possibles :</p>
+
+      <div class="compare">
+        <div class="col good">
+          <h4>Pointer swap (compliqué)</h4>
+          <p>Recâbler les <code>next</code> pour que :</p>
+          <ul>
+            <li>Le 2e node devienne le head</li>
+            <li>Le 1er node devienne le 2e</li>
+            <li>Le 3e reste 3e</li>
+          </ul>
+          <p>→ 4 lignes de manipulation de pointeurs, facile à se tromper.</p>
+        </div>
+        <div class="col good">
+          <h4>Value swap (notre choix)</h4>
+          <p>Échanger juste les valeurs des 2 nodes :</p>
+          <pre class="code">tmp = a-&gt;val;
+a-&gt;val = a-&gt;next-&gt;val;
+a-&gt;next-&gt;val = tmp;</pre>
+          <p>→ 3 lignes, pas de pointer juggling, pas de risque de bug. Les nodes restent à leurs adresses, seules les valeurs bougent.</p>
+        </div>
+      </div>
+
+      <p>On choisit l'approche value swap.</p>
+
+      <h3>Le helper <code>swap_top</code></h3>
+
+      <pre class="code"><span class="kw">static void</span> <span class="fn">swap_top</span>(<span class="type">t_stack</span> **stack)
+{
+    <span class="kw">int</span>     tmp;
+
+    <span class="kw">if</span> (!*stack || !(*stack)-&gt;next)
+        <span class="kw">return</span> ;
+    tmp = (*stack)-&gt;val;
+    (*stack)-&gt;val = (*stack)-&gt;next-&gt;val;
+    (*stack)-&gt;next-&gt;val = tmp;
+}</pre>
+
+      <p>Décortiquage :</p>
+      <ul>
+        <li><code>if (!*stack || !(*stack)-&gt;next) return ;</code> : garde-fou. Si la pile est vide ou n'a qu'un seul élément, on ne fait rien (conforme au sujet).</li>
+        <li>Pattern de swap classique en 3 lignes avec <code>tmp</code>.</li>
+        <li>Note les parenthèses obligatoires : <code>(*stack)-&gt;val</code>, pas <code>*stack-&gt;val</code>.</li>
+      </ul>
+
+      <h3>Les wrappers</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">sa</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="fn">swap_top</span>(a);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"sa\n"</span>, <span class="num">3</span>);
+}
+
+<span class="kw">void</span> <span class="fn">sb</span>(<span class="type">t_stack</span> **b)
+{
+    <span class="fn">swap_top</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"sb\n"</span>, <span class="num">3</span>);
+}
+
+<span class="kw">void</span> <span class="fn">ss</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">swap_top</span>(a);
+    <span class="fn">swap_top</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"ss\n"</span>, <span class="num">3</span>);
+}</pre>
+
+      <p><code>ss</code> appelle le helper sur les 2 piles, puis écrit "ss" UNE SEULE FOIS sur stdout (pas "sa" puis "sb"). Bien lire la spec.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">7.3</span><code>push</code> (pa/pb)</h2>
+
+      <h3>Définition</h3>
+
+      <p><code>pb</code> = "prends le top de <code>a</code> et mets-le au top de <code>b</code>". Si <code>a</code> est vide, ne fait rien. <code>pa</code> = l'inverse.</p>
+
+      <div class="ascii">avant pb :   a = [3, 1, 4]    b = [9, 7]
+après pb :   a = [1, 4]       b = [3, 9, 7]
+              ↑                 ↑
+         3 a été retiré    3 est arrivé en top
+</div>
+
+      <h3>Le helper <code>push_top</code> — 4 étapes critiques</h3>
+
+      <p>Ici, value swap ne marche pas : on doit <b>vraiment déplacer un node</b> d'une pile à l'autre. On manipule des pointeurs.</p>
+
+      <pre class="code"><span class="kw">static void</span> <span class="fn">push_top</span>(<span class="type">t_stack</span> **dst, <span class="type">t_stack</span> **src)
+{
+    <span class="type">t_stack</span> *top;
+
+    <span class="kw">if</span> (!*src)
+        <span class="kw">return</span> ;
+    top = *src;
+    *src = top-&gt;next;
+    top-&gt;next = *dst;
+    *dst = top;
+}</pre>
+
+      <h3>Les 4 étapes du recâblage</h3>
+
+      <p>État initial : <code>src → [X] → [Y] → [Z] → NULL</code> et <code>dst → [A] → [B] → NULL</code>.</p>
+
+      <p><b>Étape 1 : <code>top = *src;</code></b></p>
+      <p>On sauvegarde l'adresse du top de src dans une variable locale <code>top</code>. Maintenant <code>top</code> pointe sur [X].</p>
+
+      <p><b>Étape 2 : <code>*src = top-&gt;next;</code></b></p>
+      <p>On déplace le head de src vers le suivant. Maintenant <code>*src → [Y]</code>. Le node [X] est "détaché" de src (mais on garde sa référence dans <code>top</code>).</p>
+
+      <p><b>Étape 3 : <code>top-&gt;next = *dst;</code></b></p>
+      <p>On chaîne [X] devant l'ancien head de dst. Maintenant <code>top → [X] → [A] → [B] → NULL</code>.</p>
+
+      <p><b>Étape 4 : <code>*dst = top;</code></b></p>
+      <p>On dit à dst : "ton nouveau head, c'est <code>top</code>". Maintenant <code>*dst → [X] → [A] → [B] → NULL</code>.</p>
+
+      <h3>Schéma de transition</h3>
+
+      <div class="ascii">avant :
+   *src → [X] → [Y] → [Z]      *dst → [A] → [B] → NULL
+
+étape 1 : top = *src
+   *src → [X] → [Y] → [Z]      top → [X]
+
+étape 2 : *src = top->next
+   *src → [Y] → [Z]            top → [X] → [Y] (mais X n'est plus dans src)
+
+étape 3 : top->next = *dst
+   top → [X] → [A] → [B]       *dst → [A] → [B]
+
+étape 4 : *dst = top
+   *src → [Y] → [Z]            *dst → [X] → [A] → [B]
+</div>
+
+      <p>👉 Animation détaillée : <a href="../push-operation-video.html">push operation step-by-step</a></p>
+
+      <h3>L'ordre des étapes est critique</h3>
+
+      <p>Si tu inverses 2 et 3, par exemple, tu casses tout :</p>
+
+      <pre class="code"><span class="com">/* ❌ ordre incorrect */</span>
+top = *src;
+top-&gt;next = *dst;     <span class="com">// top->next change, mais src->next pointe ENCORE sur top</span>
+*src = top-&gt;next;     <span class="com">// *src = *dst maintenant — la chaîne src est cassée</span></pre>
+
+      <p>L'ordre <b>1 → 2 → 3 → 4</b> est le seul qui fonctionne. Mémorise ce pattern, c'est exactement le même qu'on retrouvera ailleurs.</p>
+
+      <h3>Les wrappers</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">pa</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">push_top</span>(a, b);    <span class="com">// dst=a, src=b → top de b va dans a</span>
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"pa\n"</span>, <span class="num">3</span>);
+}
+
+<span class="kw">void</span> <span class="fn">pb</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">push_top</span>(b, a);    <span class="com">// dst=b, src=a → top de a va dans b</span>
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"pb\n"</span>, <span class="num">3</span>);
+}</pre>
+
+      <p>Note bien : <b>pa et pb prennent les mêmes paramètres (a, b)</b>, mais les passent au helper dans un <b>ordre différent</b>. <code>pa</code> = "push vers a" = a est dst. <code>pb</code> = "push vers b" = b est dst.</p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">7.4</span><code>rotate</code> (ra/rb/rr)</h2>
+
+      <h3>Définition</h3>
+
+      <p><code>ra</code> = "tous les éléments montent d'un cran, le 1er passe à la fin".</p>
+
+      <div class="ascii">avant ra :   [3, 1, 4, 2]
+après ra :   [1, 4, 2, 3]
+              ↑        ↑
+         3 disparait, est repassé à la fin
+</div>
+
+      <h3>Le helper <code>rotate</code> — 5 étapes</h3>
+
+      <pre class="code"><span class="kw">static void</span> <span class="fn">rotate</span>(<span class="type">t_stack</span> **stack)
+{
+    <span class="type">t_stack</span> *first;
+    <span class="type">t_stack</span> *last;
+
+    <span class="kw">if</span> (!*stack || !(*stack)-&gt;next)
+        <span class="kw">return</span> ;
+    first = *stack;
+    *stack = first-&gt;next;
+    last = *stack;
+    <span class="kw">while</span> (last-&gt;next)
+        last = last-&gt;next;
+    last-&gt;next = first;
+    first-&gt;next = <span class="num">NULL</span>;
+}</pre>
+
+      <p>5 étapes (après le garde-fou) :</p>
+
+      <ol>
+        <li><b>Sauvegarder le 1er</b> : <code>first = *stack;</code> — on garde sa référence parce qu'on va le déplacer à la fin</li>
+        <li><b>Avancer le head</b> : <code>*stack = first-&gt;next;</code> — le 2e devient le nouveau head</li>
+        <li><b>Trouver le dernier</b> : <code>last = *stack; while (last-&gt;next) last = last-&gt;next;</code> — on parcourt jusqu'au node dont <code>next == NULL</code></li>
+        <li><b>Attacher first au bout</b> : <code>last-&gt;next = first;</code> — la chaîne s'allonge d'un cran</li>
+        <li><b>first devient le nouveau bout</b> : <code>first-&gt;next = NULL;</code> — important pour éviter la boucle infinie (sinon first pointe encore sur l'ancien 2e)</li>
+      </ol>
+
+      <h3>Le piège de l'étape 5</h3>
+
+      <p>Si tu oublies <code>first-&gt;next = NULL</code>, voilà ce qui se passe :</p>
+
+      <div class="ascii">après étape 4, sans étape 5 :
+   *stack → [1] → [4] → [2] → [3] → [1] → [4] → [2] → [3] → ...
+                                    ↑
+                       first->next pointe encore sur [1] !
+</div>
+
+      <p>Boucle infinie. Le node [3] (= first) pointe encore sur [1] (son ancien <code>next</code>), donc [3] et [1] forment un cycle.</p>
+
+      <p>L'étape 5 coupe ce lien : <code>first-&gt;next = NULL</code> → [3] devient officiellement la fin de la chaîne.</p>
+
+      <p>👉 Animation détaillée : <a href="../rotate-step-by-step.html">rotate step-by-step</a></p>
+
+      <h3>Les wrappers</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">ra</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="fn">rotate</span>(a);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"ra\n"</span>, <span class="num">3</span>);
+}
+
+<span class="kw">void</span> <span class="fn">rb</span>(<span class="type">t_stack</span> **b)
+{
+    <span class="fn">rotate</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"rb\n"</span>, <span class="num">3</span>);
+}
+
+<span class="kw">void</span> <span class="fn">rr</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">rotate</span>(a);
+    <span class="fn">rotate</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"rr\n"</span>, <span class="num">3</span>);
+}</pre>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">7.5</span><code>reverse_rotate</code> (rra/rrb/rrr)</h2>
+
+      <h3>Définition</h3>
+
+      <p><code>rra</code> = "le dernier passe en 1er". L'inverse de <code>ra</code>.</p>
+
+      <div class="ascii">avant rra :  [3, 1, 4, 2]
+après rra :  [2, 3, 1, 4]
+              ↑        ↑
+         2 arrive en top, 4 plus à la fin
+</div>
+
+      <h3>Le helper <code>reverse_rotate</code> — 6 étapes</h3>
+
+      <pre class="code"><span class="kw">static void</span> <span class="fn">reverse_rotate</span>(<span class="type">t_stack</span> **stack)
+{
+    <span class="type">t_stack</span> *cur;
+    <span class="type">t_stack</span> *last;
+
+    <span class="kw">if</span> (!*stack || !(*stack)-&gt;next)
+        <span class="kw">return</span> ;
+    cur = *stack;
+    <span class="kw">while</span> (cur-&gt;next-&gt;next)
+        cur = cur-&gt;next;
+    last = cur-&gt;next;
+    cur-&gt;next = <span class="num">NULL</span>;
+    last-&gt;next = *stack;
+    *stack = last;
+}</pre>
+
+      <h3>La différence avec <code>rotate</code></h3>
+
+      <p>Avec <code>rotate</code>, on s'arrêtait sur <b>le dernier</b> node (<code>while (last-&gt;next)</code>). Avec <code>reverse_rotate</code>, on s'arrête sur l'<b>avant-dernier</b> (<code>while (cur-&gt;next-&gt;next)</code>).</p>
+
+      <p>Pourquoi ? Parce qu'on veut <b>déconnecter le dernier de l'avant-dernier</b>. Pour ça, on doit avoir une référence à l'avant-dernier pour pouvoir mettre <code>cur-&gt;next = NULL</code>.</p>
+
+      <h3>Les 6 étapes</h3>
+
+      <ol>
+        <li><b>Init curseur</b> : <code>cur = *stack;</code></li>
+        <li><b>Marche jusqu'à l'avant-dernier</b> : <code>while (cur-&gt;next-&gt;next) cur = cur-&gt;next;</code> — à la sortie, <code>cur-&gt;next-&gt;next == NULL</code>, donc <code>cur-&gt;next</code> est le dernier.</li>
+        <li><b>Sauvegarder le dernier</b> : <code>last = cur-&gt;next;</code></li>
+        <li><b>Déconnecter le dernier</b> : <code>cur-&gt;next = NULL;</code> — maintenant l'avant-dernier devient le nouveau bout.</li>
+        <li><b>Chaîner last devant l'ancien head</b> : <code>last-&gt;next = *stack;</code></li>
+        <li><b>last devient le nouveau head</b> : <code>*stack = last;</code></li>
+      </ol>
+
+      <h3>Schéma de transition</h3>
+
+      <div class="ascii">avant :  *stack → [A] → [B] → [C] → [D] → NULL
+
+étape 1-2 : cur = *stack, avance jusqu'à l'avant-dernier
+   cur → [C]   (cur->next = [D], cur->next->next = NULL → exit)
+
+étape 3 : last = cur->next
+   last → [D]
+
+étape 4 : cur->next = NULL
+   *stack → [A] → [B] → [C] → NULL    et last → [D] (orphelin)
+
+étape 5 : last->next = *stack
+   last → [D] → [A] → [B] → [C] → NULL    *stack → [A] (toujours)
+
+étape 6 : *stack = last
+   *stack → [D] → [A] → [B] → [C] → NULL
+</div>
+
+      <p>👉 Animation détaillée : <a href="../reverse-rotate-step-by-step.html">reverse rotate step-by-step</a></p>
+
+      <h3>Les wrappers</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">rra</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="fn">reverse_rotate</span>(a);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"rra\n"</span>, <span class="num">4</span>);
+}
+
+<span class="kw">void</span> <span class="fn">rrb</span>(<span class="type">t_stack</span> **b)
+{
+    <span class="fn">reverse_rotate</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"rrb\n"</span>, <span class="num">4</span>);
+}
+
+<span class="kw">void</span> <span class="fn">rrr</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">reverse_rotate</span>(a);
+    <span class="fn">reverse_rotate</span>(b);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"rrr\n"</span>, <span class="num">4</span>);
+}</pre>
+
+      <div class="callout note">
+        <div class="lbl">★ Note sur le nombre d'octets</div>
+        Pour <code>write</code>, le 3e argument est le nombre d'octets à écrire. <code>"sa\n"</code> = 3 octets (s, a, \n). <code>"rra\n"</code> = 4 octets. Toujours compter <code>\n</code>.
+      </div>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">7.6</span>Le <code>write</code> à la fin — pourquoi</h2>
+
+      <p>Chaque op imprime son nom sur stdout. C'est <b>le cœur du sujet</b> : le programme push_swap ne trie pas, il <b>affiche les instructions de tri</b>. Le checker exécutera ces instructions et vérifiera le résultat.</p>
+
+      <p>Cas spécial : si le helper ne fait rien (pile vide), on imprime quand même ? <b>Oui</b>, parce que le helper a la condition de garde mais le wrapper imprime <b>quoi qu'il arrive</b>.</p>
+
+      <pre class="code"><span class="com">/* Exemple : sa sur pile vide */</span>
+<span class="type">t_stack</span> *a = <span class="num">NULL</span>;
+<span class="fn">sa</span>(&amp;a);
+<span class="com">// swap_top fait rien (garde-fou)</span>
+<span class="com">// MAIS write(1, "sa\n", 3) s'exécute → stdout aura "sa"</span></pre>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Conséquence pratique</div>
+        On ne doit <b>jamais appeler une op dans un contexte où elle ne ferait rien</b> — sinon on imprime une op inutile qui gonfle le compteur. Dans le tri, on prend soin de tester les conditions avant chaque op (genre <code>if ((*a)-&gt;val &gt; (*a)-&gt;next-&gt;val) sa(a);</code>).
+      </div>
+
+      <h3>Pourquoi <code>write</code> et pas <code>printf</code> ?</h3>
+
+      <p>Le sujet interdit <code>printf</code>. On utilise <code>write</code> (fonction système basse-niveau, autorisée par la liste des fonctions externes).</p>
+
+      <p>Signature : <code>ssize_t write(int fd, const void *buf, size_t count);</code></p>
+      <ul>
+        <li><code>fd = 1</code> : stdout</li>
+        <li><code>fd = 2</code> : stderr</li>
+        <li><code>buf</code> : pointeur sur les données à écrire</li>
+        <li><code>count</code> : nombre d'octets</li>
+      </ul>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">7.7</span>Récap des 11 ops</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les techniques par famille</div>
+        <ul style="margin-bottom: 0;">
+          <li><b>swap (sa/sb/ss)</b> : value swap avec tmp, 3 lignes, pas de pointer juggling.</li>
+          <li><b>push (pa/pb)</b> : 4 étapes de recâblage : save top, avancer src, lier top → dst, dst = top.</li>
+          <li><b>rotate (ra/rb/rr)</b> : 5 étapes : save first, avancer head, marche au dernier, attache, first.next = NULL.</li>
+          <li><b>reverse rotate (rra/rrb/rrr)</b> : 6 étapes, condition <code>while (cur-&gt;next-&gt;next)</code> pour s'arrêter sur l'avant-dernier.</li>
+        </ul>
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Le pattern universel des fichiers <code>op_*.c</code></div>
+        Chaque fichier : 1 helper <code>static</code> + N wrappers publics. Total ≤ 5 fonctions, conforme à la norme. Le helper fait le travail, le wrapper ajoute le <code>write</code>.
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi value swap pour <code>sa</code> au lieu de pointer swap ?</summary>
+          <div class="answer">
+            Beaucoup plus simple : 3 lignes au lieu de 4+ avec moins de risque de bug. Les nodes restent à leurs adresses, seules les valeurs internes changent. Pour <code>sa</code>, le résultat visible est identique (le top et le 2e sont échangés). C'est un cas où la solution la moins "puriste" est la meilleure.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi <code>rotate</code> a 5 étapes et <code>reverse_rotate</code> en a 6 ?</summary>
+          <div class="answer">
+            Différence dans la stratégie de parcours :<br>
+            <code>rotate</code> : on s'arrête sur le dernier (<code>while (last-&gt;next)</code>), on attache <code>first</code> derrière, on coupe son next.<br>
+            <code>reverse_rotate</code> : on s'arrête sur l'avant-dernier (<code>while (cur-&gt;next-&gt;next)</code>), on sauvegarde le dernier, on coupe le lien, on rechaîne devant le head. Une étape de plus parce qu'on doit gérer 2 nodes (cur et last) au lieu d'un (first).
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi le helper est <code>static</code> ?</summary>
+          <div class="answer">
+            Pour qu'il soit invisible des autres fichiers (linkage interne) et que le compilateur puisse l'optimiser. Il ne doit pas être dans le header public. Et ça nous laisse les 5 fonctions de la norme pour les wrappers + le helper.
+          </div>
+        </details>
+        <details>
+          <summary>Si je veux savoir si la pile <code>a</code> a au moins 2 éléments avant <code>sa</code>, qu'est-ce que je teste ?</summary>
+          <div class="answer">
+            <code>if ((*a) &amp;&amp; (*a)-&gt;next)</code> — ça vérifie que <code>*a</code> n'est pas NULL ET que le 2e node existe (<code>(*a)-&gt;next</code> non NULL). Si l'une des 2 conditions échoue, on n'a pas 2 éléments.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="06-stack.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">06 — stack.c</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="08-petits-tris.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">08 — Tris petites piles</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

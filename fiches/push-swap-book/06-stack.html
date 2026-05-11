@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 06 — stack.c</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie III <span class="sep">/</span> Chapitre 06</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Vue d'ensemble</a></li>
+      <li><a href="#s2"><code>stack_new</code></a></li>
+      <li><a href="#s3"><code>stack_add_bottom</code></a></li>
+      <li><a href="#s4">Pourquoi <code>t_stack **</code></a></li>
+      <li><a href="#s5"><code>stack_size</code></a></li>
+      <li><a href="#s6"><code>stack_free</code></a></li>
+      <li><a href="#s7"><code>build_stack</code></a></li>
+      <li><a href="#s8">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><b>6. stack.c</b></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE III · CHAPITRE 06</div>
+      <h1><code>stack.c</code> — la pile chaînée</h1>
+      <div class="ch-sub">5 fonctions pour créer, modifier, mesurer, libérer la struct <code>t_stack</code></div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">6.1</span>Vue d'ensemble</h2>
+
+      <p><code>stack.c</code> contient les 5 fonctions <b>de base</b> sur la struct <code>t_stack</code>. C'est la couche bas-niveau : tout le reste du projet s'appuie dessus.</p>
+
+      <table>
+        <tr><th>Fonction</th><th>Job</th><th>Signature</th></tr>
+        <tr><td><code>stack_new</code></td><td>fabriquer 1 node</td><td><code>t_stack *stack_new(int val)</code></td></tr>
+        <tr><td><code>stack_add_bottom</code></td><td>ajouter 1 node à la fin</td><td><code>void stack_add_bottom(t_stack **stack, int val)</code></td></tr>
+        <tr><td><code>stack_size</code></td><td>compter les nodes</td><td><code>int stack_size(t_stack *stack)</code></td></tr>
+        <tr><td><code>stack_free</code></td><td>libérer toute la pile</td><td><code>void stack_free(t_stack **stack)</code></td></tr>
+        <tr><td><code>build_stack</code></td><td>int[] → linked list</td><td><code>t_stack *build_stack(int *values, int n)</code></td></tr>
+      </table>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi exactement ces 5 fonctions</div>
+        Le sujet impose 5 max par fichier. On a choisi ces 5 parce qu'elles couvrent <b>tout le cycle de vie</b> d'une pile : création (<code>new</code>), construction (<code>add_bottom</code>, <code>build_stack</code>), mesure (<code>size</code>), destruction (<code>free</code>). Les <b>opérations</b> de tri (sa, pb, ra...) vivent dans les fichiers <code>op_*.c</code>, pas ici.
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">6.2</span><code>stack_new</code> — fabriquer 1 node</h2>
+
+      <pre class="code"><span class="type">t_stack</span> *<span class="fn">stack_new</span>(<span class="kw">int</span> val)
+{
+    <span class="type">t_stack</span> *node;
+
+    node = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(*node));
+    <span class="kw">if</span> (!node)
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    node-&gt;val = val;
+    node-&gt;next = <span class="num">NULL</span>;
+    <span class="kw">return</span> (node);
+}</pre>
+
+      <h3>Décortiquage ligne par ligne</h3>
+
+      <p><b>Ligne 3 :</b> <code>t_stack *node;</code></p>
+      <p>Déclaration d'un pointeur local. À ce stade, <code>node</code> contient des octets aléatoires (variable non-initialisée). On va le remplir tout de suite.</p>
+
+      <p><b>Ligne 5 :</b> <code>node = malloc(sizeof(*node));</code></p>
+      <p>On demande au système 16 octets sur le heap (= <code>sizeof(t_stack)</code>). <code>malloc</code> retourne l'adresse de cette nouvelle zone, qu'on stocke dans <code>node</code>.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ <code>sizeof(*node)</code> vs <code>sizeof(t_stack)</code></div>
+        Les deux donnent 16, mais <code>sizeof(*node)</code> est <b>plus robuste</b> : si tu changes le type de <code>node</code> plus tard, le <code>sizeof</code> s'adapte automatiquement. C'est une convention défensive.
+      </div>
+
+      <p><b>Lignes 6-7 :</b> <code>if (!node) return (NULL);</code></p>
+      <p>Si <code>malloc</code> a échoué (RAM saturée), il retourne NULL. On propage l'erreur en retournant NULL aussi. Sans cette ligne, la ligne suivante crasherait (déréférencement de NULL).</p>
+
+      <p><b>Lignes 8-9 :</b> <code>node->val = val; node->next = NULL;</code></p>
+      <p>On remplit les 2 champs du node. <code>val</code> reçoit la valeur passée. <code>next = NULL</code> parce qu'un node fraîchement créé n'a pas encore de suivant.</p>
+
+      <p><b>Ligne 10 :</b> <code>return (node);</code></p>
+      <p>On retourne l'adresse du node, prêt à être utilisé.</p>
+
+      <h3>État mémoire après <code>stack_new(42)</code></h3>
+
+      <div class="ascii">     stack (caller)               heap
+   ┌────────────┐         ┌──────────────────────┐
+   │ p = 0x7FA0 │ ──────► │ 0x7FA0: val=42      │
+   └────────────┘         │         next=NULL    │
+                          └──────────────────────┘
+</div>
+
+      <h3>Test mental</h3>
+
+      <pre class="code"><span class="type">t_stack</span> *a = <span class="fn">stack_new</span>(<span class="num">42</span>);
+<span class="com">// a est un t_stack *, pointe sur un node {val=42, next=NULL}</span>
+<span class="com">// a est la "head" d'une linked list à 1 seul node</span></pre>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">6.3</span><code>stack_add_bottom</code> — ajouter à la fin</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">stack_add_bottom</span>(<span class="type">t_stack</span> **stack, <span class="kw">int</span> val)
+{
+    <span class="type">t_stack</span> *new;
+    <span class="type">t_stack</span> *cur;
+
+    new = <span class="fn">stack_new</span>(val);
+    <span class="kw">if</span> (!new)
+        <span class="kw">return</span> ;
+    <span class="kw">if</span> (*stack == <span class="num">NULL</span>)
+    {
+        *stack = new;
+        <span class="kw">return</span> ;
+    }
+    cur = *stack;
+    <span class="kw">while</span> (cur-&gt;next)
+        cur = cur-&gt;next;
+    cur-&gt;next = new;
+}</pre>
+
+      <h3>Décortiquage par étapes</h3>
+
+      <p><b>Étape 1 :</b> fabriquer le node à ajouter (<code>new = stack_new(val);</code>). Si <code>malloc</code> rate, on sort en silence.</p>
+
+      <p><b>Étape 2 :</b> cas particulier de la pile vide.</p>
+      <pre class="code"><span class="kw">if</span> (*stack == <span class="num">NULL</span>)
+{
+    *stack = new;       <span class="com">// new devient le head</span>
+    <span class="kw">return</span> ;
+}</pre>
+      <p>Si <code>*stack</code> est NULL (= pile vide), notre new node devient le head. On <b>modifie</b> la variable de l'appelant via <code>*stack = new</code> (d'où le besoin du <code>**</code>). Puis on sort.</p>
+
+      <p><b>Étape 3 :</b> cas pile non-vide. On parcourt jusqu'au dernier node.</p>
+      <pre class="code">cur = *stack;
+<span class="kw">while</span> (cur-&gt;next)
+    cur = cur-&gt;next;
+<span class="com">// après la boucle : cur est sur le dernier node (cur->next == NULL)</span></pre>
+
+      <p><b>Étape 4 :</b> attacher new au dernier.</p>
+      <pre class="code">cur-&gt;next = new;</pre>
+
+      <h3>Pourquoi <code>while (cur-&gt;next)</code> et pas <code>while (cur)</code> ?</h3>
+
+      <p>On veut s'arrêter <b>sur le dernier</b> (pour pouvoir lui attacher quelque chose), pas <b>après</b>. <code>while (cur)</code> ferait passer <code>cur</code> sur NULL, on aurait perdu la référence au dernier. <code>while (cur-&gt;next)</code> garantit qu'à la sortie, <code>cur</code> est pile sur le dernier (celui dont <code>next == NULL</code>).</p>
+
+      <h3>Schéma d'exécution sur <code>[3, 1] + add 5</code></h3>
+
+      <div class="ascii">Avant :
+   *stack ─► [3] ─► [1] ─► NULL
+
+Étape 1 : new = stack_new(5)
+   new ─► [5] ─► NULL
+
+Étape 3 : cur démarre sur head
+   cur ─► [3] ─► [1] ─► NULL
+
+   while (cur->next) : cur->next = [1], pas NULL → cur = cur->next
+   cur ─► [1]
+   while (cur->next) : cur->next = NULL → exit
+   cur reste sur [1]
+
+Étape 4 : cur->next = new
+   [1]->next = [5]
+
+Final :
+   *stack ─► [3] ─► [1] ─► [5] ─► NULL
+</div>
+
+      <p>👉 Pour une animation interactive : <a href="../linked-list-video.html">linked list — vidéo</a></p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">6.4</span>Pourquoi <code>t_stack **</code> en paramètre ?</h2>
+
+      <p>Question légitime : pourquoi <code>stack_add_bottom(t_stack **stack, ...)</code> et pas juste <code>t_stack *stack</code> ?</p>
+
+      <h3>L'argument central : modifier le head depuis la fonction</h3>
+
+      <p>Dans le <b>cas pile vide</b>, on doit faire en sorte que la variable head de l'appelant change. Sans <code>**</code>, on ne pourrait modifier qu'une copie locale qui mourrait à la fin de la fonction.</p>
+
+      <p>Recap du §1.13-1.14 du Ch01 :</p>
+
+      <table>
+        <tr><th>Type du paramètre</th><th>Permet de modifier...</th></tr>
+        <tr><td><code>t_stack *stack</code></td><td>les <b>nodes</b> de la pile, pas la variable head de l'appelant</td></tr>
+        <tr><td><code>t_stack **stack</code></td><td>la <b>variable head</b> de l'appelant (= remplacer le head)</td></tr>
+      </table>
+
+      <h3>Démonstration concrète</h3>
+
+      <p>Imagine qu'on n'utilise <b>pas</b> <code>**</code> :</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">add_naif</span>(<span class="type">t_stack</span> *stack, <span class="kw">int</span> val)
+{
+    <span class="type">t_stack</span> *new = <span class="fn">stack_new</span>(val);
+    <span class="kw">if</span> (stack == <span class="num">NULL</span>)
+        stack = new;        <span class="com">// modifie la COPIE locale, pas l'appelant !</span>
+    <span class="com">// ...</span>
+}
+
+<span class="com">/* Dans main : */</span>
+<span class="type">t_stack</span> *a = <span class="num">NULL</span>;
+<span class="fn">add_naif</span>(a, <span class="num">42</span>);
+<span class="com">// a vaut TOUJOURS NULL — on a perdu le node !</span></pre>
+
+      <p>C'est exactement la raison pour laquelle on passe <code>&amp;a</code> et que le paramètre est <code>**</code>.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Règle générale</div>
+        Chaque fois qu'une fonction doit potentiellement <b>remplacer</b> le pointeur head d'une linked list, elle doit prendre un paramètre <code>**</code>.<br>
+        Dans push_swap : <code>stack_add_bottom</code>, <code>stack_free</code>, <code>sa</code>, <code>pb</code>, <code>ra</code>, etc. — toutes les ops qui modifient potentiellement le head.
+      </div>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">6.5</span><code>stack_size</code> — compter les nodes</h2>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">stack_size</span>(<span class="type">t_stack</span> *stack)
+{
+    <span class="kw">int</span>     count;
+
+    count = <span class="num">0</span>;
+    <span class="kw">while</span> (stack)
+    {
+        stack = stack-&gt;next;
+        count++;
+    }
+    <span class="kw">return</span> (count);
+}</pre>
+
+      <h3>Notes</h3>
+
+      <ul>
+        <li>Paramètre <code>t_stack *</code> (simple étoile) : on ne va pas modifier le head, juste lire.</li>
+        <li><code>while (stack)</code> : on continue tant qu'on n'a pas atteint NULL.</li>
+        <li>On <b>réutilise la variable stack elle-même</b> comme curseur. Ça marche parce que c'est une copie locale.</li>
+        <li><code>stack = stack-&gt;next</code> avance d'un cran (modifie la copie locale).</li>
+        <li><code>count++</code> incrémente le compteur.</li>
+      </ul>
+
+      <h3>Pourquoi on peut se permettre de modifier <code>stack</code> ici</h3>
+
+      <p>C'est une <b>copie locale</b> du pointeur head. Modifier <code>stack</code> dans <code>stack_size</code> ne touche pas la variable de l'appelant. C'est juste un curseur réutilisé.</p>
+
+      <p>Tu pourrais aussi écrire avec un curseur séparé :</p>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">stack_size</span>(<span class="type">t_stack</span> *stack)
+{
+    <span class="type">t_stack</span> *cur = stack;
+    <span class="kw">int</span> count = <span class="num">0</span>;
+
+    <span class="kw">while</span> (cur)
+    {
+        cur = cur-&gt;next;
+        count++;
+    }
+    <span class="kw">return</span> (count);
+}</pre>
+
+      <p>Les deux versions fonctionnent identiquement. La 1ère est plus compacte (1 variable au lieu de 2). Question de style.</p>
+
+      <h3>Complexité</h3>
+
+      <p>O(n) — on visite chaque node une fois. Sur 100-500 nums, c'est instantané.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Optim possible (qu'on ne fait pas)</div>
+        On pourrait stocker la taille comme un champ de la struct (genre <code>head->size</code>) et la mettre à jour à chaque <code>pb</code>/<code>pa</code>. Accès O(1). Mais ça complique tout le code des opérations. On préfère la simplicité — <code>stack_size</code> est appelé peu souvent (seulement au démarrage des algos de tri), donc O(n) ne coûte rien dans la pratique.
+      </div>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">6.6</span><code>stack_free</code> — libérer la pile entière</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">stack_free</span>(<span class="type">t_stack</span> **stack)
+{
+    <span class="type">t_stack</span> *cur;
+    <span class="type">t_stack</span> *next;
+
+    cur = *stack;
+    <span class="kw">while</span> (cur)
+    {
+        next = cur-&gt;next;
+        <span class="fn">free</span>(cur);
+        cur = next;
+    }
+    *stack = <span class="num">NULL</span>;
+}</pre>
+
+      <h3>Le piège : pourquoi <b>2 pointeurs</b> ?</h3>
+
+      <p>Question légitime : pourquoi on a besoin de <code>cur</code> ET <code>next</code> ? Pourquoi pas juste boucler avec <code>cur</code> ?</p>
+
+      <p>Réponse : <b>parce qu'on doit free un node avant de pouvoir avancer</b>. Mais si on free d'abord, on n'a plus accès à <code>cur-&gt;next</code> (mémoire libérée). Donc on doit <b>sauvegarder</b> <code>next</code> AVANT le free.</p>
+
+      <h3>Code naïf incorrect</h3>
+
+      <pre class="code"><span class="com">// ❌ NE FAIT PAS ÇA</span>
+<span class="kw">while</span> (cur)
+{
+    <span class="fn">free</span>(cur);
+    cur = cur-&gt;next;     <span class="com">// CRASH : cur a été freed, on lit en zone libérée</span>
+}</pre>
+
+      <h3>Code correct avec sauvegarde</h3>
+
+      <pre class="code"><span class="kw">while</span> (cur)
+{
+    next = cur-&gt;next;    <span class="com">// 1. sauvegarde l'adresse du suivant</span>
+    <span class="fn">free</span>(cur);            <span class="com">// 2. free le courant</span>
+    cur = next;          <span class="com">// 3. avance avec la sauvegarde</span>
+}</pre>
+
+      <h3>Le <code>*stack = NULL</code> final</h3>
+
+      <p>Après la boucle, tous les nodes sont libérés. Mais <code>*stack</code> (= la variable de l'appelant) pointe toujours sur le 1er node libéré → c'est un <b>dangling pointer</b>.</p>
+
+      <p>Pour éviter ça, on met <code>*stack = NULL</code>. Comme ça :</p>
+
+      <ul>
+        <li>L'appelant ne peut pas accidentellement déréférencer un pointeur invalide</li>
+        <li>Un éventuel double-free serait inoffensif (<code>free(NULL)</code> est légal)</li>
+        <li>L'appelant peut tester <code>if (a)</code> ou <code>if (!a)</code> pour savoir si la pile est encore valide</li>
+      </ul>
+
+      <p>👉 Visualisation animée : <a href="../linked-list-video.html#stack_free">section stack_free dans la vidéo</a></p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">6.7</span><code>build_stack</code> — int[] → linked list</h2>
+
+      <pre class="code"><span class="type">t_stack</span> *<span class="fn">build_stack</span>(<span class="kw">int</span> *values, <span class="kw">int</span> n)
+{
+    <span class="type">t_stack</span> *stack;
+    <span class="kw">int</span>     i;
+
+    stack = <span class="num">NULL</span>;
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; n)
+    {
+        <span class="fn">stack_add_bottom</span>(&amp;stack, values[i]);
+        i++;
+    }
+    <span class="kw">return</span> (stack);
+}</pre>
+
+      <h3>Le pattern</h3>
+
+      <ol>
+        <li>Init <code>stack = NULL</code> (pile vide au départ)</li>
+        <li>Pour chaque valeur du tableau, on l'ajoute en bas via <code>stack_add_bottom</code></li>
+        <li>On retourne le head construit</li>
+      </ol>
+
+      <h3>L'ordre dans la pile</h3>
+
+      <p>On utilise <code>stack_add_bottom</code> et pas <code>stack_add_top</code>. Pourquoi ?</p>
+
+      <p>Le sujet impose que <b>le 1er argument soit en top</b> de la pile. Avec <code>stack_add_top</code>, on aurait l'ordre inversé (le 1er argument finit en bas). Avec <code>stack_add_bottom</code>, l'ordre des arguments est <b>préservé</b> :</p>
+
+      <pre class="code"><span class="com">// args : 3 1 4 1 5</span>
+<span class="com">// build_stack itère i=0..4</span>
+
+i=0: add_bottom(3) → stack = [3]
+i=1: add_bottom(1) → stack = [3, 1]
+i=2: add_bottom(4) → stack = [3, 1, 4]
+i=3: add_bottom(1) → stack = [3, 1, 4, 1]
+i=4: add_bottom(5) → stack = [3, 1, 4, 1, 5]
+
+<span class="com">// Top = 3 (le 1er argument) ✓</span></pre>
+
+      <h3>Et l'argument <code>&amp;stack</code> ?</h3>
+
+      <p><code>stack_add_bottom</code> a besoin de pouvoir modifier le head, donc on passe <code>&amp;stack</code> (l'adresse de la variable locale <code>stack</code>). Au premier appel, <code>stack</code> vaut NULL → <code>stack_add_bottom</code> remplit le head.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Cohérence dans le projet</div>
+        On utilise <code>build_stack</code> juste après <code>parse_args</code> dans <code>main</code>. Le flow est : <code>argv</code> → <code>parse_args</code> → <code>int *values</code> → <code>build_stack</code> → <code>t_stack *a</code> → on peut commencer à trier.
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">6.8</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les 5 fonctions et leur intention</div>
+        <ul style="margin-bottom: 0;">
+          <li><code>stack_new(val)</code> : malloc + init un node. Retourne NULL si malloc rate.</li>
+          <li><code>stack_add_bottom(**, val)</code> : 2 cas (vide → modifie head, sinon → attache à la fin). <code>**</code> nécessaire pour le cas vide.</li>
+          <li><code>stack_size(*)</code> : compte O(n), simple parcours.</li>
+          <li><code>stack_free(**)</code> : pattern save-next-then-free + final <code>*stack = NULL</code> contre dangling.</li>
+          <li><code>build_stack(values, n)</code> : convertit int[] en linked list, préserve l'ordre.</li>
+        </ul>
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi <code>**</code> vs <code>*</code></div>
+        <ul style="margin-bottom: 0;">
+          <li><code>**</code> si la fonction <b>peut remplacer le head</b> (cas pile vide pour <code>add_bottom</code>, cas final pour <code>free</code>)</li>
+          <li><code>*</code> si la fonction <b>lit seulement</b> (<code>size</code>) ou retourne un pointeur (<code>build_stack</code>)</li>
+        </ul>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval du chapitre</div>
+        <details>
+          <summary>Pourquoi 2 pointeurs dans <code>stack_free</code> ?</summary>
+          <div class="answer">
+            Pour pouvoir sauvegarder <code>cur->next</code> AVANT de free <code>cur</code>. Si on free d'abord, <code>cur->next</code> est en mémoire libérée → comportement indéfini. Le pattern <code>next = cur-&gt;next; free(cur); cur = next;</code> protège contre ça.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi <code>stack_add_bottom</code> prend <code>**</code> et <code>stack_size</code> prend <code>*</code> ?</summary>
+          <div class="answer">
+            <code>stack_add_bottom</code> doit pouvoir remplacer le head (cas pile vide) → besoin de <code>**</code>.<br>
+            <code>stack_size</code> ne modifie rien, juste lit → <code>*</code> suffit, copie locale du pointeur utilisée comme curseur.
+          </div>
+        </details>
+        <details>
+          <summary>Que fait <code>*stack = NULL</code> à la fin de <code>stack_free</code> ?</summary>
+          <div class="answer">
+            Évite le <b>dangling pointer</b>. Sans cette ligne, la variable head de l'appelant pointerait sur de la mémoire libérée. Avec cette ligne, l'appelant a un pointeur NULL propre, et peut tester <code>if (a)</code> en confiance.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="05-parser.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">05 — Parser</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="07-ops.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">07 — Les 11 opérations</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
