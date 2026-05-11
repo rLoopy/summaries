@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 03 — Le sujet décortiqué</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -260,46 +260,39 @@ Error</pre>
     <section id="s6">
       <h2><span class="num">3.6</span>Contraintes techniques (la norme et le reste)</h2>
 
-      <h3>Norminette</h3>
+      <p>Cette section te donne <b>l'essentiel</b> de ce qu'il faut respecter. Les détails (comment écrire un Makefile ligne par ligne, comment passer la norminette en pratique) sont dans des chapitres dédiés — pas d'angoisse, on y revient.</p>
 
-      <ul>
-        <li>Max <b>25 lignes par fonction</b> (entre les accolades)</li>
-        <li>Max <b>5 fonctions par fichier</b></li>
-        <li>Max <b>5 déclarations par fonction</b></li>
-        <li>Max <b>4 paramètres par fonction</b></li>
-        <li>Lignes de max <b>80 colonnes</b></li>
-        <li>Header 42 obligatoire en haut de chaque fichier</li>
-        <li>Pas de commentaires inline après code (uniquement avant fonction ou en début de bloc)</li>
-        <li>Pas de ligne vide à l'intérieur d'une fonction (sauf après les déclarations en début)</li>
-        <li>Pas de <code>//</code>, uniquement <code>/* */</code></li>
-      </ul>
+      <div class="callout key">
+        <div class="lbl">★ Norminette en 4 règles à retenir</div>
+        <ul>
+          <li>Max <b>25 lignes par fonction</b>, max <b>5 fonctions par fichier</b>.</li>
+          <li>Max <b>80 colonnes</b> par ligne, header 42 en haut.</li>
+          <li>Pas de variables globales, pas de <code>//</code> (uniquement <code>/* */</code>).</li>
+          <li>Le reste (déclarations groupées en début, pas de ligne vide dans une fonction, etc.) → détail <b>Ch 11 §11.5</b>.</li>
+        </ul>
+      </div>
 
-      <h3>Compilation</h3>
-
-      <ul>
-        <li>Makefile obligatoire avec règles <code>$(NAME)</code>, <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code></li>
-        <li>Flags : <code>-Wall -Wextra -Werror</code></li>
-        <li>Pas de relink inutile (objets .o pour incrémentalité)</li>
-        <li>Si libft : copier dans un dossier <code>libft/</code> et la compiler depuis le Makefile principal</li>
-      </ul>
+      <div class="callout note">
+        <div class="lbl">★ Compilation (vue d'ensemble)</div>
+        Tu dois fournir un <b>Makefile</b> qui compile avec les flags <code>-Wall -Wextra -Werror</code> et expose les règles <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code>. Comment écrire ce Makefile → détail <b>Ch 04 §4.7</b>. Si tu n'as jamais touché à un Makefile, c'est normal d'être perdu ici — c'est expliqué pas à pas dans le Ch 04.
+      </div>
 
       <h3>Fonctions externes autorisées</h3>
 
       <ul>
         <li><code>read</code>, <code>write</code>, <code>malloc</code>, <code>free</code>, <code>exit</code></li>
-        <li>libft (si autorisée — oui pour push_swap)</li>
+        <li>libft (autorisée pour push_swap)</li>
         <li><code>ft_printf</code> ou un équivalent que <b>tu as codé</b></li>
       </ul>
 
       <p><b>Interdit</b> : <code>printf</code>, <code>atoi</code>, <code>strtol</code> et autres natives. C'est pour ça qu'on code <code>ft_atol</code> nous-même.</p>
 
-      <h3>Pas de variables globales</h3>
+      <h3>Deux interdits qui font 0 direct</h3>
 
-      <p>Toute variable doit vivre dans la stack ou le heap. <b>Aucune <code>static int counter;</code> au niveau fichier.</b> Sanction immédiate si trouvé.</p>
-
-      <h3>Pas de fuite mémoire</h3>
-
-      <p>Toute mémoire mallocée doit être freed avant exit. Vérifié au peer-eval avec valgrind. Une seule fuite = 0.</p>
+      <ul>
+        <li><b>Variable globale</b> : aucune <code>static int counter;</code> au niveau fichier. Tout vit dans la stack ou le heap.</li>
+        <li><b>Fuite mémoire</b> : toute mémoire mallocée doit être <code>free</code>'d avant exit. Vérifié au peer-eval avec valgrind. Une seule fuite = 0.</li>
+      </ul>
     </section>
 
     <section id="s7">

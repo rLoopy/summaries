@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 04 — Architecture du projet</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -352,7 +352,26 @@
     <section id="s7">
       <h2><span class="num">4.7</span>Le Makefile</h2>
 
-      <p>Le Makefile orchestre la compilation. Structure type :</p>
+      <p>Le Makefile orchestre la compilation. Avant de balancer le bloc complet, voici <b>les pièces du puzzle</b> que tu vas voir dedans :</p>
+
+      <table>
+        <tr><th>Élément</th><th>Rôle</th></tr>
+        <tr><td><code>$(NAME)</code></td><td>nom de l'exécutable final, ici <code>push_swap</code></td></tr>
+        <tr><td><code>$(SRCS)</code></td><td>liste de tous les .c à compiler</td></tr>
+        <tr><td><code>$(OBJS)</code></td><td>liste des .o (générés depuis SRCS via la règle de substitution)</td></tr>
+        <tr><td><code>$(LIBFT)</code></td><td>la libft à compiler en premier</td></tr>
+        <tr><td><code>.PHONY</code></td><td>cibles qui ne créent pas de fichier (pour que make ne se trompe pas)</td></tr>
+        <tr><td><code>$&lt;</code></td><td>variable Make automatique : le 1er prérequis de la règle (= le .c source)</td></tr>
+        <tr><td><code>$@</code></td><td>variable Make automatique : la cible de la règle (= le .o à produire)</td></tr>
+        <tr><td><code>-L$(DIR) -lft</code></td><td>au linker : "cherche dans <code>DIR</code>, lie avec <code>libft.a</code>"</td></tr>
+      </table>
+
+      <div class="callout note">
+        <div class="lbl">★ Anatomie générale</div>
+        Un Makefile est composé de <b>variables</b> en haut (configuration : flags, dossiers, listes de fichiers) puis de <b>règles</b> en bas (<code>cible: prérequis</code> + commandes en dessous, <b>obligatoirement précédées d'une tabulation</b>). Make sait quand recompiler en regardant les timestamps des prérequis vs cibles.
+      </div>
+
+      <p>Maintenant le bloc complet — relis-le avec la table ci-dessus sous les yeux :</p>
 
       <pre class="code">NAME      = push_swap
 
@@ -399,19 +418,6 @@ fclean:   clean
 re:       fclean all
 
 .PHONY:   all clean fclean re</pre>
-
-      <h3>Concepts clés du Makefile</h3>
-
-      <table>
-        <tr><th>Élément</th><th>Rôle</th></tr>
-        <tr><td><code>$(NAME)</code></td><td>nom de l'exécutable final, ici <code>push_swap</code></td></tr>
-        <tr><td><code>$(SRCS)</code></td><td>liste de tous les .c à compiler</td></tr>
-        <tr><td><code>$(OBJS)</code></td><td>liste des .o (générés depuis SRCS via la règle de substitution)</td></tr>
-        <tr><td><code>$(LIBFT)</code></td><td>la libft à compiler en premier</td></tr>
-        <tr><td><code>.PHONY</code></td><td>cibles qui ne créent pas de fichier (pour que make ne se trompe pas)</td></tr>
-        <tr><td><code>$&lt;</code></td><td>variable Make qui désigne le 1er prérequis (= le .c source)</td></tr>
-        <tr><td><code>$@</code></td><td>variable Make qui désigne la cible (= le .o à produire)</td></tr>
-      </table>
 
       <h3>Les règles obligatoires (norme)</h3>
 

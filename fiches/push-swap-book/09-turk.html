@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 09 — L'algorithme Turk</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -60,6 +60,17 @@
       <h1>L'algorithme Turk</h1>
       <div class="ch-sub">indexation + chunks + max-pull = tri en moins de 700 ops pour 100 nums</div>
     </header>
+
+    <div class="callout warn">
+      <div class="lbl">★ Chapitre long — comment le lire</div>
+      Ce chapitre est <b>le plus dense du gitbook</b>. Si tu débutes, ne le lis pas linéairement d'un coup. Parcours recommandé :
+      <ul>
+        <li><b>§9.1 → §9.3b</b> : comprends l'idée et le walkthrough complet sur 8 nums. C'est <b>le cœur</b>, prends ton temps.</li>
+        <li>Saute ensuite à <b>§9.11 (récap)</b> pour fixer la vue d'ensemble.</li>
+        <li>Reviens à <b>§9.4 → §9.10</b> quand tu codes chaque phase une par une (parser, indexer, push_to_b, push_back_to_a). Lis la section <b>au moment où tu codes la phase</b>, pas avant.</li>
+        <li>Le <b>§9.8 (piège target = n)</b> est à lire <b>avant</b> de coder <code>push_back_to_a</code>, sinon tu vas tomber dans le bug.</li>
+      </ul>
+    </div>
 
     <section id="s1">
       <h2><span class="num">9.1</span>Le problème : trier 100+ nums en moins de 700 ops</h2>

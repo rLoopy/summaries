@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 11 — Tests &amp; qualité</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -74,7 +74,7 @@
 
       <ol>
         <li><b>Custom tester Python</b> : simule les ops, vérifie le tri, compte les ops</li>
-        <li><b>Testers communautaires</b> : LeoFu, gemartin99, SimonCROS — confirment notre simulation</li>
+        <li><b>Testers communautaires</b> : LeoFu, Yoo0lh, gemartin99, SimonCROS — couvrent parsing, tri, perfs, leaks</li>
         <li><b>Valgrind</b> : zéro leak, zéro accès invalide</li>
         <li><b>Norminette</b> : conformité au style 42</li>
       </ol>
@@ -143,47 +143,22 @@
     <section id="s3">
       <h2><span class="num">11.3</span>Testers communautaires</h2>
 
-      <p>Pour redoubler de confiance, on a confronté ton push_swap à 3 testers populaires de la communauté 42 :</p>
+      <p>Le tester custom est bien, mais avant de defendre en peer-eval tu veux <b>croiser</b> avec ce que la communauté 42 utilise. Quatre projets GitHub populaires testent push_swap de manière complémentaire :</p>
 
-      <h3>1. LeoFu9487/push_swap_tester</h3>
+      <table>
+        <tr><th>Tester</th><th>Spécialité</th></tr>
+        <tr><td><a href="https://github.com/LeoFu9487/push_swap_tester"><code>LeoFu9487</code></a></td><td>Parsing + identity test + small stacks (3 et 5) + boucle aléatoire.</td></tr>
+        <tr><td><a href="https://github.com/Yoo0lh/push-swap-tester-42"><code>Yoo0lh</code></a></td><td>Tests bash simples, valide via <code>checker_linux</code>.</td></tr>
+        <tr><td><a href="https://github.com/gemartin99/Push-Swap-Tester"><code>gemartin99</code></a></td><td>Incrémental sur toutes les tailles, valgrind intégré.</td></tr>
+        <tr><td><a href="https://github.com/SimonCROS/push_swap_tester"><code>SimonCROS</code></a></td><td>Le plus rigoureux : multithread, seeds reproductibles, stats JSON.</td></tr>
+      </table>
 
-      <pre class="code">$ git clone https://github.com/LeoFu9487/push_swap_tester
-$ bash basic_test.sh
-$ bash loop.sh 100 20</pre>
+      <p>Combiner ces 4 testers couvre <b>parsing + correction du tri + perfs + leaks</b>. C'est ce que tes peer-evaluateurs vont sûrement utiliser — autant les passer toi-même avant.</p>
 
-      <p>Tests le parsing, l'identity test (résultat sorted), small stacks (3 et 5). Puis une boucle de N tests avec des piles aléatoires.</p>
-
-      <p>Résultats : <b>20/20 OK</b>, ops max 825 pour 100, max 7430 pour 500.</p>
-
-      <h3>2. Yoo0lh/push-swap-tester-42</h3>
-
-      <p>Tester simple en bash. 10 tests pour une taille donnée, valide via checker_Mac (qu'on a remplacé par checker_linux sur le VPS).</p>
-
-      <p>Résultats : <b>10/10 OK</b>, ops entre 695 et 779.</p>
-
-      <h3>3. gemartin99/Push-Swap-Tester</h3>
-
-      <p>Tester incrémental : teste toutes les tailles de 3 à 500+, avec valgrind intégré. Très complet.</p>
-
-      <p>Résultats : <b>555+ tests, 0 KO</b>.</p>
-
-      <h3>4. SimonCROS/push_swap_tester (v2)</h3>
-
-      <p>Le plus rigoureux. Multithread, génère des seeds reproductibles, output JSON avec stats détaillées.</p>
-
-      <pre class="code">$ ./complexity -f push_swap 100 1000
-{
-  "stats": {
-    "worst": 810, "mean": 734.57, "best": 649,
-    "missedGoalCount": 0
-  }
-}</pre>
-
-      <p>Résultats : <b>0 KO sur 1350+ tests</b>.</p>
-
-      <h3>Total combiné</h3>
-
-      <p>~3360 tests aléatoires, 0 fail. Statistiquement insignifiant le risque d'échec en peer-eval.</p>
+      <div class="callout hint">
+        <div class="lbl">★ Comment on lit les résultats</div>
+        Chaque tester rapporte <b>ops par taille</b> (souvent worst / mean / best) et <b>OK/KO</b>. La cible : 0 KO partout, ops max sous les seuils du sujet (cf. Ch 03 §3.7).
+      </div>
     </section>
 
     <section id="s4">
@@ -311,7 +286,7 @@ src/stack.c: OK!
         <div class="lbl">★ Les 4 piliers de la qualité</div>
         <ol style="margin-bottom: 0;">
           <li><b>Tester custom</b> : 1400 cas simulés, 0 fail</li>
-          <li><b>3 testers communautaires</b> : LeoFu, gemartin, SimonCROS — 0 fail combiné</li>
+          <li><b>4 testers communautaires</b> : LeoFu, Yoo0lh, gemartin99, SimonCROS — à passer avant la peer-eval</li>
           <li><b>Valgrind</b> : 0 leak, 0 erreur sur tous les edge cases</li>
           <li><b>Norminette</b> : tous fichiers OK</li>
         </ol>

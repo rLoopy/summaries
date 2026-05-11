@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -291,6 +291,11 @@
 
       <p>C'est <b>LE</b> piège du C qui fait tomber tout le monde. Le symbole <code>*</code> a <b>deux significations complètement différentes</b> selon où il apparaît.</p>
 
+      <div class="callout note">
+        <div class="lbl">★ Petit avertissement</div>
+        Les exemples ci-dessous utilisent <code>t_stack</code> — c'est juste <b>un type qu'on définira au Ch 02</b>. Pour l'instant, mentalement remplace-le par <code>chose</code> ou n'importe quel type : la mécanique <code>*</code> / <code>**</code> est universelle, peu importe ce qui est derrière.
+      </div>
+
       <div class="compare">
         <div class="col good">
           <h4>JOB 1 — Dans un type</h4>
@@ -569,6 +574,11 @@ modifier_pour_de_vrai :
 
     <section id="s14">
       <h2><span class="num">1.14</span>Le pattern <code>**</code> — modifier un pointeur</h2>
+
+      <div class="callout note">
+        <div class="lbl">★ Note rapide sur <code>-&gt;</code></div>
+        Cette section utilise l'opérateur <code>-&gt;</code> qui sera vraiment introduit au <b>Ch 02 §2.7</b>. Pour suivre ici, retiens juste : <code>p-&gt;val</code> = <i>"accède au champ <code>val</code> du node pointé par <code>p</code>"</i>. C'est un raccourci pour <code>(*p).val</code>.
+      </div>
 
       <p>On a vu que pour modifier un <code>int</code>, on prend <code>int *</code>. Par extension :</p>
 

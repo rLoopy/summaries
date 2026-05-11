@@ -653,6 +653,11 @@ body.dark table {
   background: #211e2d;
   color: var(--ink);
 }
+body.dark table th {
+  background: #0f0e1a;
+  color: var(--ink);
+  border-bottom-color: #3a3849;
+}
 body.dark table td {
   border-bottom-color: #3a3849;
 }
