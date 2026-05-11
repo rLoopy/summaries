@@ -754,3 +754,53 @@ body.dark .theme-toggle:hover {
   background: var(--ink);
   color: var(--paper);
 }
+
+/* ============================================================
+   LINK STYLING (light + dark)
+   ============================================================ */
+
+main a:not(.nav-link):not(.home-link),
+.sidebar a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  transition: all 0.15s ease;
+}
+main a:not(.nav-link):not(.home-link):hover,
+.sidebar a:hover {
+  color: var(--accent-soft);
+  border-bottom-color: var(--accent-soft);
+  background: rgba(255, 107, 74, 0.06);
+}
+main a:visited {
+  color: var(--accent);
+}
+
+/* Dark mode link colors — plus lumineux pour le contraste */
+body.dark main a:not(.nav-link):not(.home-link),
+body.dark .sidebar a {
+  color: var(--yellow);
+  border-bottom-color: var(--yellow);
+}
+body.dark main a:not(.nav-link):not(.home-link):hover,
+body.dark .sidebar a:hover {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+  background: rgba(255, 233, 107, 0.1);
+}
+body.dark main a:visited {
+  color: var(--yellow);
+}
+
+/* Code inside links keeps the link color */
+main a code {
+  color: inherit !important;
+  border-color: currentColor !important;
+}
+
+/* Callout links — utilisent la couleur du callout */
+.callout a {
+  color: inherit;
+  font-weight: 700;
+  border-bottom: 1px dashed currentColor;
+}
