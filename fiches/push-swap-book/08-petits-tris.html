@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 08 — Tris pour petites piles</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="theme.js?v=3"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -256,32 +255,43 @@
 
       <p>Pourquoi les <b>plus petits</b> sur b ? Parce qu'à la fin, on les ramène <b>au top de a</b> via <code>pa</code>. Comme on les a poussés dans l'ordre croissant (le plus petit en dernier), ils reviennent dans le bon ordre (le plus petit reste au top de a).</p>
 
-      <h3>Walk-through complet sur [5, 4, 3, 2, 1]</h3>
+      <h3>Walk-through complet sur [3, 5, 1, 4, 2]</h3>
 
-      <div class="ascii">État initial : a = [5, 4, 3, 2, 1]    b = []
+      <p>On déroule pas à pas. Chaque ligne montre l'op, son effet sur A et B, et le compteur d'ops.</p>
 
-Étape 1 : amener 1 (min) au top → push sur b
-   rra rra rra → a = [3, 2, 1, 5, 4]... attendons, faisons plutôt :
-   on calcule la position du min via find_min_pos
-   pos=4 → on choisit rra (plus court, 1 ops) → a = [1, 5, 4, 3, 2]
-   pb → a = [5, 4, 3, 2], b = [1]
+      <div class="ascii">État initial : a = [3, 5, 1, 4, 2]    b = []    ops=0
 
-Étape 2 : amener 2 (nouveau min) au top → push sur b
-   find_min_pos(a) = 3 → rra (1 op) → a = [2, 5, 4, 3]
-   pb → a = [5, 4, 3], b = [2, 1]
+— Étape 1 : push le min (1) sur b —
+  find_min_pos(a) = 2 (le 1 est en position 2, size=5)
+  pos &lt;= size/2 → on choisit ra (par le haut), 2 fois
+  ra   → a = [5, 1, 4, 2, 3]    b = []         ops=1
+  ra   → a = [1, 4, 2, 3, 5]    b = []         ops=2
+  pb   → a = [4, 2, 3, 5]       b = [1]        ops=3
 
-Étape 3 : sort_3 sur [5, 4, 3]
-   top=5, mid=4, bot=3 → top > mid > bot → sa puis rra
-   sa → [4, 5, 3]
-   rra → [3, 4, 5]
+— Étape 2 : push le min (2) sur b —
+  find_min_pos(a) = 1 (le 2 est en position 1, size=4)
+  pos &lt;= size/2 → ra, 1 fois
+  ra   → a = [2, 3, 5, 4]       b = [1]        ops=4
+  pb   → a = [3, 5, 4]          b = [2, 1]     ops=5
 
-Étape 4 : pa pa pour ramener b sur a
-   pa → a = [2, 3, 4, 5], b = [1]
-   pa → a = [1, 2, 3, 4, 5], b = []
+— Étape 3 : sort_3 sur [3, 5, 4] —
+  top=3, mid=5, bot=4 → top&lt;mid, mid&gt;bot, top&lt;bot → CAS 1,3,2 → rra+sa
+  rra  → a = [4, 3, 5]          b = [2, 1]     ops=6
+  sa   → a = [3, 4, 5]          b = [2, 1]     ops=7
 
-Total ops : 9 (1 rra + 1 pb + 1 rra + 1 pb + 1 sa + 1 rra + 2 pa = 8 ops...
-            note : variable selon le cas, max 12 ops)
+— Étape 4 : pa pa pour vider b —
+  pa   → a = [2, 3, 4, 5]       b = [1]        ops=8
+  pa   → a = [1, 2, 3, 4, 5]    b = []         ops=9
+
+✓ Trié en 9 ops : ra ra pb ra pb rra sa pa pa
 </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Vérification manuelle</div>
+        Tu peux reproduire ce trace exactement avec : <code>./push_swap 3 5 1 4 2</code>. Tu obtiendras la même séquence d'ops, dans le même ordre. C'est déterministe.
+      </div>
+
+      <p>Pour 5 nums random, on compte typiquement entre 6 et 12 ops. Le pire cas est quand le min est mal placé et qu'il faut 2 rotations × 2.</p>
 
       <p>👉 Animation détaillée : <a href="../sort5-step-by-step.html">sort_5 step-by-step</a></p>
 

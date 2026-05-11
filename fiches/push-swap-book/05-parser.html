@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 05 — Parser &amp; validator</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="theme.js?v=3"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -139,12 +138,47 @@ argv:
     <span class="kw">return</span> (tokens);
 }</pre>
 
-      <h3>Décortiquage</h3>
+      <h3>⚙️ Rappel : ce que fait <code>ft_split</code> (libft)</h3>
+
+      <p><code>ft_split</code> est une fonction de ta libft. Elle prend une chaîne et un caractère séparateur, et retourne un tableau de sous-chaînes (toutes mallocées séparément). Signature :</p>
+
+      <pre class="code"><span class="kw">char</span> **<span class="fn">ft_split</span>(<span class="kw">char const</span> *s, <span class="kw">char</span> c);</pre>
+
+      <p>Comportement :</p>
+      <ul>
+        <li>Découpe <code>s</code> sur chaque occurrence du séparateur <code>c</code></li>
+        <li>Gère les séparateurs multiples consécutifs (les saute, pas de chaîne vide entre eux)</li>
+        <li>Gère les séparateurs en début/fin de chaîne (skippés)</li>
+        <li>Retourne un <code>char **</code> alloué, terminé par <code>NULL</code></li>
+        <li>Chaque sous-chaîne est une copie mallocée — il faut tout free ensuite</li>
+        <li>Retourne <code>NULL</code> si malloc rate</li>
+      </ul>
+
+      <h3>Exemples d'<code>ft_split</code></h3>
+
+      <pre class="code"><span class="fn">ft_split</span>(<span class="str">"3 1 4 1 5"</span>, <span class="str">' '</span>)
+  → {<span class="str">"3"</span>, <span class="str">"1"</span>, <span class="str">"4"</span>, <span class="str">"1"</span>, <span class="str">"5"</span>, <span class="num">NULL</span>}
+
+<span class="fn">ft_split</span>(<span class="str">"  3   1  "</span>, <span class="str">' '</span>)
+  → {<span class="str">"3"</span>, <span class="str">"1"</span>, <span class="num">NULL</span>}        <span class="com">// les espaces multiples sont gérés</span>
+
+<span class="fn">ft_split</span>(<span class="str">""</span>, <span class="str">' '</span>)
+  → {<span class="num">NULL</span>}                  <span class="com">// chaîne vide → tableau vide</span>
+
+<span class="fn">ft_split</span>(<span class="str">"   "</span>, <span class="str">' '</span>)
+  → {<span class="num">NULL</span>}                  <span class="com">// que des séparateurs → tableau vide aussi</span></pre>
+
+      <div class="callout key">
+        <div class="lbl">★ Pourquoi c'est parfait pour nous</div>
+        Le sujet impose que <code>./push_swap "3 1 4 1 5"</code> marche, donc on doit splitter une chaîne sur les espaces. <code>ft_split</code> fait exactement ça, gère les edge cases (espaces multiples, vides), et renvoie un <code>char **</code> homogène avec NULL final.
+      </div>
+
+      <h3>Décortiquage de notre <code>tokenize</code></h3>
 
       <p><b>Cas 1 : <code>argc == 2</code></b> (l'user a passé une seule chaîne).</p>
       <pre class="code"><span class="kw">if</span> (argc == <span class="num">2</span>)
     <span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">' '</span>));</pre>
-      <p>On délègue à <code>ft_split</code> de la libft, qui découpe la chaîne en morceaux selon le séparateur (<code>' '</code>). Le résultat est un <code>char **</code> alloué, terminé par <code>NULL</code>. Parfait, c'est exactement ce qu'on veut.</p>
+      <p>On délègue à <code>ft_split</code>. Le résultat est un <code>char **</code> alloué, terminé par <code>NULL</code>. Parfait.</p>
 
       <p><b>Cas 2 : <code>argc &gt; 2</code></b> (plusieurs args séparés).</p>
       <p>On construit nous-même un <code>char **</code> en copiant chaque <code>argv[i]</code> avec <code>ft_strdup</code> (qui malloc + copie chaque chaîne). Pourquoi copier au lieu d'utiliser argv directement ? <b>Pour avoir une structure homogène</b> — peu importe le cas d'entrée, on a un <code>char **</code> qu'on peut free uniformément ensuite avec <code>free_tokens</code>.</p>

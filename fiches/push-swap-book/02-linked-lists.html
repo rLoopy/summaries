@@ -7,8 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="theme.js?v=3"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -234,18 +233,30 @@
         <li>Champ <code>struct s_stack *next</code> : un pointeur vers un autre node du même type. <b>Note le <code>struct s_stack</code></b> dans la définition de <code>next</code> — c'est obligatoire parce que à ce moment-là, <code>t_stack</code> n'existe pas encore (le <code>typedef</code> n'est pas terminé).</li>
       </ul>
 
+      <div class="callout note">
+        <div class="lbl">★ Convention de nommage 42</div>
+        Tu remarques le préfixe <code>s_</code> pour la struct et <code>t_</code> pour le typedef. C'est <b>la convention 42 imposée par la norm</b> :
+        <ul style="margin-bottom: 0;">
+          <li><code>s_xxx</code> : nom de la struct elle-même (<i>struct</i>)</li>
+          <li><code>t_xxx</code> : nom du typedef qui sert d'alias (<i>type</i>)</li>
+          <li><code>e_xxx</code> : nom d'un enum (<i>enum</i>)</li>
+          <li><code>u_xxx</code> : nom d'une union (<i>union</i>)</li>
+        </ul>
+        Si tu n'utilises pas ces préfixes, norminette te flag. C'est une question en peer-eval typique : "pourquoi <code>s_stack</code> et <code>t_stack</code> ?"
+      </div>
+
       <h3>Taille en mémoire</h3>
 
-      <div class="ascii">  4 octets   : int val
-  8 octets   : pointeur next (sur 64-bit Linux)
-  4 octets   : padding (alignement mémoire)
-  ─────────
- 16 octets total
+      <div class="ascii">  offset 0  : int val      (4 octets)
+  offset 4  : padding      (4 octets — pour aligner next sur 8)
+  offset 8  : *next        (8 octets sur 64-bit Linux)
+  ─────────────────────
+ sizeof(t_stack) = 16 octets
 </div>
 
       <div class="callout note">
-        <div class="lbl">★ Padding ?</div>
-        Le compilateur ajoute des octets de "remplissage" pour aligner les champs sur des frontières de mots-mémoire (multiples de 8 sur 64-bit). C'est invisible pour toi mais ça explique pourquoi <code>sizeof(t_stack) = 16</code> et pas 12.
+        <div class="lbl">★ Padding ? Pourquoi pas 12 ?</div>
+        Sur 64-bit Linux, un pointeur fait 8 octets et doit être aligné sur une adresse multiple de 8 (= contrainte hardware). Si on mettait <code>next</code> à l'offset 4 juste après <code>val</code>, il serait mal aligné. Le compilateur ajoute donc <b>4 octets de padding entre val et next</b> pour respecter l'alignement. Résultat : 4 + 4 + 8 = <code>sizeof(t_stack) = 16</code> et pas 12.
       </div>
     </section>
 

@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 06 — stack.c</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="theme.js?v=3"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -410,6 +409,13 @@ i=4: add_bottom(5) → stack = [3, 1, 4, 1, 5]
       <div class="callout key">
         <div class="lbl">★ Cohérence dans le projet</div>
         On utilise <code>build_stack</code> juste après <code>parse_args</code> dans <code>main</code>. Le flow est : <code>argv</code> → <code>parse_args</code> → <code>int *values</code> → <code>build_stack</code> → <code>t_stack *a</code> → on peut commencer à trier.
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Petite remarque sur la complexité</div>
+        <code>build_stack</code> appelle <code>stack_add_bottom</code> N fois. Chaque <code>add_bottom</code> parcourt la chaîne jusqu'à la fin, donc visite ~N/2 nodes en moyenne. Au total : <b>O(N²)</b> pour construire une pile de N éléments.<br><br>
+        Pour 500 nums, c'est ~125 000 itérations, soit quelques ms. Largement assez rapide.<br><br>
+        <b>Optim possible (qu'on ne fait pas)</b> : garder un cache du dernier node (un pointeur "tail") qui permettrait un add_bottom en O(1). Mais ça complique <code>stack_free</code> et toutes les ops qui modifient la chaîne. Pour 500 nums max, le gain ne vaut pas la complexité. Question typique en peer-eval : "comment tu accélérerais <code>build_stack</code> pour 1 million de nums ?" → réponse : cache du tail.
       </div>
     </section>
 

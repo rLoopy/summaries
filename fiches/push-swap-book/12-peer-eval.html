@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 12 — Préparation peer-eval</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="theme.js?v=3"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -299,6 +298,11 @@
 
       <p>Tu sais où c'est : dans <code>op_swap.c</code>, ligne du <code>write</code>. Tu changes <code>"sa\n"</code> en <code>"SA\n"</code>. Recompile, test. 30 secondes.</p>
 
+      <div class="callout warn">
+        <div class="lbl">⚠ Attention au checker</div>
+        Si tu fais ce changement, <code>./checker_OS</code> ne reconnaîtra plus les ops (il attend des minuscules). C'est OK pour une démo "regarde ça compile", mais <b>remets en minuscules avant de retester avec le checker</b>. L'évaluateur attend une simple démo de compilation, pas un test fonctionnel.
+      </div>
+
       <h3>Tester un cas particulier</h3>
 
       <p>"Tu passes <code>./push_swap 1 1 1</code> et tu me dis ce qui se passe."</p>
@@ -306,6 +310,34 @@
       <p>Réponse : "Le parser détecte les doublons via <code>has_duplicates</code> et retourne NULL. Le main affiche 'Error' sur stderr et exit 1. Aucune ligne sur stdout."</p>
 
       <p>Si l'évaluateur veut le voir : tu le tapes et tu montres.</p>
+
+      <h3>Pièges classiques en live-coding</h3>
+
+      <p>Quelques demandes courantes et comment ne pas paniquer :</p>
+
+      <table>
+        <tr><th>Demande</th><th>Où modifier</th><th>Difficulté</th></tr>
+        <tr><td>"Ajoute une op <code>pp</code> qui fait <code>pa</code> + <code>pb</code>"</td><td>Nouveau fichier <code>op_pp.c</code> ou rajout dans <code>op_push.c</code> (attention norme 5 fct max), + prototype dans <code>push_swap.h</code>, + ligne dans Makefile SRCS</td><td>⭐⭐</td></tr>
+        <tr><td>"Modifie <code>is_sorted</code> pour qu'il trie DÉCROISSANT au lieu de croissant"</td><td><code>sort.c</code>, change <code>&gt;</code> en <code>&lt;</code> dans la comparaison</td><td>⭐ trivial</td></tr>
+        <tr><td>"Affiche le nombre d'ops total à la fin"</td><td>Compliqué (pas de globale) — ajouter un compteur passé en pointeur dans <code>sort()</code>, à incrémenter dans chaque op. <b>Demande à l'évaluateur si tu peux utiliser une fonction de comptage post-hoc</b></td><td>⭐⭐⭐</td></tr>
+        <tr><td>"Refuse les nombres &gt; 1000"</td><td><code>validator.c</code>, modifier <code>is_number</code> pour ajouter la condition</td><td>⭐</td></tr>
+        <tr><td>"Que se passe-t-il si je passe <code>./push_swap '' 1</code> ?"</td><td>Réponse : <code>tokenize</code> via <code>ft_split</code> ne renvoie aucun token pour la chaîne vide, mais <code>argc &gt; 2</code> donc on entre dans le else branch et on copie via <code>ft_strdup</code>. Le token vide passe à <code>is_number</code> qui le rejette → Error.</td><td>connaître la réponse</td></tr>
+        <tr><td>"Refactor <code>sort_3</code> pour qu'il prenne <code>t_stack *</code> au lieu de <code>**</code>"</td><td>Pas possible directement : <code>sa</code>/<code>ra</code>/<code>rra</code> ont besoin de <code>**</code> pour modifier le head dans le cas pile vide. Tu peux refactor pour passer une variable locale en pointer, mais argue que c'est superflu.</td><td>justifier que non</td></tr>
+      </table>
+
+      <div class="callout key">
+        <div class="lbl">★ La technique anti-panique</div>
+        Si l'évaluateur te demande une modif :
+        <ol style="margin-bottom: 0;">
+          <li><b>Reformule</b> : "Donc tu veux que je fasse XYZ, c'est ça ?"</li>
+          <li><b>Identifie le fichier impacté</b> : "C'est dans <code>tel.c</code>"</li>
+          <li><b>Réfléchis à voix haute</b> : "Je vais devoir modifier la condition / ajouter une ligne / ..."</li>
+          <li><b>Code lentement</b> et lis ce que tu écris</li>
+          <li><b>Compile</b> avec <code>make</code> et corrige les warnings éventuels</li>
+          <li><b>Teste</b> avec un cas simple</li>
+        </ol>
+        Ne réponds pas en théorie sans vérifier — l'évaluateur veut voir <b>la démarche</b>, pas la perfection.
+      </div>
     </section>
 
     <section id="s6">
