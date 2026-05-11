@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 13 — Méta &amp; patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie V <span class="sep">/</span> Chapitre 13</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Ce que push_swap t'a appris</a></li>
+      <li><a href="#s2">Patterns de pointeurs réutilisables</a></li>
+      <li><a href="#s3">Le pattern static helper + wrapper</a></li>
+      <li><a href="#s4">L'art du parcours linked list</a></li>
+      <li><a href="#s5">Gestion mémoire défensive</a></li>
+      <li><a href="#s6">Optimisations algorithmiques</a></li>
+      <li><a href="#s7">Pour les projets suivants</a></li>
+      <li><a href="#s8">Erreurs typiques à éviter</a></li>
+      <li><a href="#s9">Conclusion</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><b>13. Méta</b></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE V · CHAPITRE 13</div>
+      <h1>Méta &amp; patterns réutilisables</h1>
+      <div class="ch-sub">ce que push_swap t'a vraiment appris pour la suite</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">13.1</span>Ce que push_swap t'a appris</h2>
+
+      <p>Push_swap n'est pas qu'un projet à valider. C'est un projet <b>charnière</b> qui te donne plusieurs compétences clés pour la suite :</p>
+
+      <ol>
+        <li><b>Maîtrise des pointeurs</b> : <code>*</code>, <code>**</code>, <code>&amp;</code>, déréférencement, indirection</li>
+        <li><b>Structures dynamiques</b> : linked list, allocation dynamique, gestion mémoire</li>
+        <li><b>Architecture de projet</b> : découpage en modules, conventions, makefile</li>
+        <li><b>Algorithmes</b> : optimisation, complexité, trade-offs</li>
+        <li><b>Tests rigoureux</b> : édge cases, valgrind, automatisation</li>
+        <li><b>Defense de code</b> : tu apprends à expliquer ton travail</li>
+      </ol>
+
+      <p>Ces compétences vont te servir pour <b>tous</b> les projets suivants : philosophers, pipex, minishell, etc.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Position de push_swap dans le cursus</div>
+        Cercle 02 — c'est la "couronne" du cercle 1+2. Pour pouvoir le valider, tu dois avoir solidifié les bases (C, libft, ft_printf, get_next_line). Si tu galères ici, c'est souvent parce qu'une base est friable. Repère laquelle et reviens dessus.
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">13.2</span>Patterns de pointeurs réutilisables</h2>
+
+      <h3>Pattern 1 : modifier une variable depuis une fonction</h3>
+
+      <p>Tu l'as vu pour <code>n</code> dans <code>parse_args(argc, argv, &amp;n)</code>.</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">fct</span>(<span class="kw">int</span> *out)
+{
+    *out = <span class="num">42</span>;
+}
+
+<span class="kw">int</span> n;
+<span class="fn">fct</span>(&amp;n);   <span class="com">// n vaut 42 maintenant</span></pre>
+
+      <p>Tu le réutiliseras dans :</p>
+      <ul>
+        <li><b>get_next_line</b> : passer un buffer modifiable</li>
+        <li><b>pipex</b> : retourner plusieurs valeurs (status, fd, etc.)</li>
+        <li><b>minishell</b> : passer un environnement, status d'exécution</li>
+      </ul>
+
+      <h3>Pattern 2 : modifier un pointeur depuis une fonction</h3>
+
+      <p>Le <code>**</code> de push_swap. Tu l'utilises pour modifier où pointe une variable.</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">fct</span>(<span class="kw">char</span> **out)
+{
+    *out = <span class="fn">malloc</span>(...);
+}
+
+<span class="kw">char</span> *s;
+<span class="fn">fct</span>(&amp;s);   <span class="com">// s pointe maintenant sur l'alloc</span></pre>
+
+      <p>Cas d'usage : retourner un pointeur sans utiliser la valeur de retour de la fonction (qui peut être réservée pour un code d'erreur).</p>
+
+      <h3>Pattern 3 : sentinelle NULL</h3>
+
+      <p>Le <code>NULL</code> en fin de chaîne. Pattern omniprésent :</p>
+
+      <ul>
+        <li>Linked lists : <code>last-&gt;next == NULL</code></li>
+        <li>argv : <code>argv[argc] == NULL</code></li>
+        <li>chaînes C : <code>str[len] == '\0'</code></li>
+        <li>tableaux de chaînes : <code>tokens[n] == NULL</code></li>
+      </ul>
+
+      <p>Bouclage type :</p>
+      <pre class="code"><span class="kw">while</span> (item != <span class="num">NULL</span>)
+{
+    <span class="com">// traite item</span>
+    item = item-&gt;next;  <span class="com">// ou item++ pour les tableaux</span>
+}</pre>
+
+      <p>Réutilisé partout dans le cursus.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">13.3</span>Le pattern static helper + wrapper</h2>
+
+      <p>On l'a utilisé dans <code>op_*.c</code>. Généralisable à <b>plein</b> de situations où tu as N fonctions publiques qui partagent du code.</p>
+
+      <h3>Squelette type</h3>
+
+      <pre class="code"><span class="com">/* Helper interne, fait le boulot */</span>
+<span class="kw">static</span> RET <span class="fn">do_action</span>(ARGS)
+{
+    <span class="com">/* logique */</span>
+}
+
+<span class="com">/* Wrapper 1 : appelle helper + spécificité 1 */</span>
+RET <span class="fn">public_a</span>(ARGS)
+{
+    <span class="fn">do_action</span>(args);
+    <span class="com">/* spécificité a (ex: write "a\n") */</span>
+}
+
+<span class="com">/* Wrapper 2 : appelle helper + spécificité 2 */</span>
+RET <span class="fn">public_b</span>(ARGS)
+{
+    <span class="fn">do_action</span>(args);
+    <span class="com">/* spécificité b */</span>
+}</pre>
+
+      <h3>Cas d'usage à venir</h3>
+
+      <ul>
+        <li><b>ft_printf</b> : helper qui gère le formatage, wrappers pour les types (%d, %s, %x...)</li>
+        <li><b>pipex</b> : helper qui spawn un process, wrappers pour la 1ère commande vs les suivantes</li>
+        <li><b>minishell</b> : helper qui exécute un AST node, wrappers pour les types (cmd, pipe, redirect...)</li>
+      </ul>
+
+      <p>Chaque fois que tu te retrouves à copier-coller 2 fonctions presque identiques → static helper + wrappers.</p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">13.4</span>L'art du parcours linked list</h2>
+
+      <p>Les 4 patterns de parcours que tu as vus :</p>
+
+      <h3>Pattern 1 : compter / afficher (1 pointeur, stop sur NULL)</h3>
+
+      <pre class="code"><span class="type">node</span> *cur = head;
+<span class="kw">while</span> (cur)
+{
+    <span class="com">/* traite cur */</span>
+    cur = cur-&gt;next;
+}</pre>
+
+      <p>Pour stack_size, is_sorted, print_list...</p>
+
+      <h3>Pattern 2 : marche au dernier (1 pointeur, stop sur cur->next == NULL)</h3>
+
+      <pre class="code">cur = head;
+<span class="kw">while</span> (cur-&gt;next)
+    cur = cur-&gt;next;
+<span class="com">/* ici cur est le dernier node */</span></pre>
+
+      <p>Pour stack_add_bottom, rotate, ajouter à la fin...</p>
+
+      <h3>Pattern 3 : marche à l'avant-dernier (stop sur cur->next->next)</h3>
+
+      <pre class="code">cur = head;
+<span class="kw">while</span> (cur-&gt;next-&gt;next)
+    cur = cur-&gt;next;
+<span class="com">/* ici cur est l'avant-dernier */</span></pre>
+
+      <p>Pour reverse_rotate. Plus rare.</p>
+
+      <h3>Pattern 4 : save-next-then-modify (2 pointeurs)</h3>
+
+      <pre class="code">cur = head;
+<span class="kw">while</span> (cur)
+{
+    next = cur-&gt;next;       <span class="com">/* sauvegarde AVANT de modifier */</span>
+    <span class="com">/* modifie ou détruit cur */</span>
+    cur = next;
+}</pre>
+
+      <p>Pour stack_free, et tout ce qui implique de modifier la chaîne pendant qu'on la parcourt.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ La règle générale</div>
+        Si tu ne modifies pas la chaîne pendant le parcours → 1 pointeur suffit.<br>
+        Si tu la modifies (free, déconnecte, etc.) → 2 pointeurs (le 2e sauvegarde l'info dont tu as besoin pour avancer).
+      </div>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">13.5</span>Gestion mémoire défensive</h2>
+
+      <p>Push_swap t'a appris la rigueur mémoire. Les règles à généraliser :</p>
+
+      <h3>1. Chaque malloc a son free</h3>
+
+      <p>Tu n'as pas le droit d'allouer sans planifier la libération. Pose-toi la question <b>au moment de l'alloc</b> : "qui va free cette mémoire et quand ?"</p>
+
+      <h3>2. Check chaque malloc</h3>
+
+      <pre class="code">p = <span class="fn">malloc</span>(...);
+<span class="kw">if</span> (!p)
+    <span class="com">/* gérer l'erreur — return, exit, propager */</span></pre>
+
+      <p>Pas optionnel. valgrind le détectera, et en peer-eval c'est éliminatoire.</p>
+
+      <h3>3. Free sur tous les chemins d'erreur</h3>
+
+      <p>Le pattern qu'on a vu dans <code>convert_tokens</code> : si on alloue puis on rencontre une erreur en milieu de parcours, on free avant de return NULL.</p>
+
+      <pre class="code">tab = <span class="fn">malloc</span>(...);
+<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i++)
+{
+    <span class="kw">if</span> (problème)
+    {
+        <span class="fn">free</span>(tab);     <span class="com">/* free avant de quitter */</span>
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    }
+}</pre>
+
+      <h3>4. Set NULL après free</h3>
+
+      <p>Pour éviter dangling pointers et double-free :</p>
+      <pre class="code"><span class="fn">free</span>(ptr);
+ptr = <span class="num">NULL</span>;</pre>
+
+      <p>Surtout important pour les structures partagées entre fonctions.</p>
+
+      <h3>5. Test avec valgrind avant chaque commit</h3>
+
+      <p>Pas juste à la fin du projet. À chaque grosse modif. Plus tôt tu détectes une fuite, plus facile à corriger.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">13.6</span>Optimisations algorithmiques — quand et comment</h2>
+
+      <p>Push_swap t'a montré qu'on peut faire bien mieux qu'un algo "naïf" en réfléchissant à la structure du problème.</p>
+
+      <h3>Principes généraux</h3>
+
+      <ol>
+        <li><b>Mesurer avant d'optimiser</b> : sans benchmarks, tu optimises à l'aveugle. Notre tester custom permet de mesurer chaque variation.</li>
+        <li><b>Trouver le bottleneck</b> : dans push_swap, la phase coûteuse est <code>push_back_to_a</code> à cause des rotations pour amener le max. C'est là qu'on optimiserait en premier.</li>
+        <li><b>Trade-offs</b> : chaque optim a un coût (complexité du code, risque de bugs). Choisis celles qui payent.</li>
+        <li><b>Simplicité d'abord</b> : tu peux toujours optimiser après. Mais un algo simple et correct est mieux qu'un algo complexe et buggé.</li>
+      </ol>
+
+      <h3>L'astuce de l'indexation</h3>
+
+      <p>Notre indexation (valeurs → rangs 0..n-1) est un pattern réutilisable : <b>normaliser les inputs dans une plage prévisible</b>. Très utile aussi pour radix sort, hash tables, etc.</p>
+
+      <h3>La technique de chunking</h3>
+
+      <p>Découper un problème en paquets et les traiter séquentiellement. Pattern utilisé partout en algorithmique : MapReduce, batching, paginations, etc. Tu le retrouveras.</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">13.7</span>Pour les projets suivants</h2>
+
+      <h3>philosophers</h3>
+
+      <p>Projet sur les threads et les mutex. Push_swap t'aide via :</p>
+      <ul>
+        <li>Structure des données partagées (struct philo avec pointeurs vers data partagée)</li>
+        <li>Gestion fine de la mémoire (mutex à détruire = équivalent de free)</li>
+        <li>Tests rigoureux (race conditions = bugs subtils)</li>
+      </ul>
+
+      <h3>pipex</h3>
+
+      <p>Pipes et processus. Réutilise :</p>
+      <ul>
+        <li>Le parsing argv (split sur séparateurs, validation)</li>
+        <li>L'allocation et le free conditionnels</li>
+        <li>La gestion d'erreurs avec early returns</li>
+      </ul>
+
+      <h3>minishell</h3>
+
+      <p>Le gros morceau du cursus. Tu réutiliseras :</p>
+      <ul>
+        <li>Linked lists (pour les tokens, les AST nodes, l'env)</li>
+        <li>Parser robuste avec gestion d'erreurs</li>
+        <li>Pattern static helper + wrapper public (pour les builtins, exécutions...)</li>
+        <li>Architecture modulaire (10-15 fichiers comme push_swap)</li>
+      </ul>
+
+      <h3>Les "graphics" (so_long, fdf, fract_ol)</h3>
+
+      <p>Moins de chevauchement, mais les compétences générales restent :</p>
+      <ul>
+        <li>Découper un projet en modules</li>
+        <li>Gérer la mémoire avec MiniLibX</li>
+        <li>Optimiser les boucles de rendu</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">13.8</span>Erreurs typiques à éviter (dans tous les projets)</h2>
+
+      <table>
+        <tr><th>Erreur</th><th>Pourquoi c'est mauvais</th><th>Comment éviter</th></tr>
+        <tr><td>Allouer sans check de retour</td><td>Crash silencieux si malloc fail</td><td>Toujours <code>if (!p) ...</code> après malloc</td></tr>
+        <tr><td>Free puis utiliser</td><td>Use-after-free, comportement indéfini</td><td>Set <code>p = NULL</code> après free</td></tr>
+        <tr><td>Free deux fois</td><td>Double-free, crash</td><td>Set NULL après free, ou ne pas free deux fois</td></tr>
+        <tr><td>Oublier <code>*</code> ou <code>&amp;</code></td><td>Modifications fantômes ou crash</td><td>Réfléchir au type attendu</td></tr>
+        <tr><td>Modifier la valeur d'iteration pendant le parcours</td><td>Boucle qui rate des éléments ou cycle</td><td>Utiliser un curseur séparé (cf §13.4)</td></tr>
+        <tr><td>Variables globales</td><td>État partagé invisible, bugs subtils</td><td>Passer en paramètre, retourner les résultats</td></tr>
+        <tr><td>Fonction qui fait trop de choses</td><td>Difficile à tester, à maintenir, à réutiliser</td><td>Refactor en fonctions plus petites (norme 25 lignes aide)</td></tr>
+        <tr><td>Code dupliqué (copy-paste)</td><td>Maintenance d'enfer, divergence</td><td>Extract en helper static</td></tr>
+        <tr><td>Pas de tests</td><td>Bugs découverts en peer-eval = 0</td><td>Test au fur et à mesure, automatise quand possible</td></tr>
+      </table>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">13.9</span>Conclusion</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Ce que tu as construit</div>
+        Un programme C de ~600 lignes (sans la libft) qui :
+        <ul style="margin-bottom: 0;">
+          <li>Parse des arguments arbitraires avec validation rigoureuse</li>
+          <li>Manipule une linked list sans fuite mémoire</li>
+          <li>Implémente 11 opérations complexes sur 2 piles</li>
+          <li>Trie 500 nums en ~7270 ops (un algo qui tient en 50 lignes)</li>
+          <li>Compile sans warning, passe norminette, valgrind clean</li>
+          <li>Validé sur ~3000 cas tests, 0 fail</li>
+        </ul>
+      </div>
+
+      <p>C'est du <b>vrai code</b>, pas un exercice scolaire. Tu peux en être fier. Et surtout, tu peux maintenant l'<b>expliquer</b>, ce qui est la vraie compétence visée par 42.</p>
+
+      <h3>Les compétences que tu emportes</h3>
+
+      <ul>
+        <li>Lecture et écriture fluides de code C avec pointeurs</li>
+        <li>Compréhension de la mémoire (stack vs heap, malloc, free)</li>
+        <li>Conception d'algorithmes (analyse, complexité, optimisation)</li>
+        <li>Architecture modulaire et conventions de projet</li>
+        <li>Discipline de test et de qualité</li>
+        <li>Capacité à expliquer ton travail</li>
+      </ul>
+
+      <h3>Le mot de la fin</h3>
+
+      <p>Push_swap, c'est dur. Si tu es arrivé jusqu'ici, c'est que t'as bossé. Bravo.</p>
+
+      <p>Le projet suivant sera moins étranger maintenant que tu maîtrises les outils. Tu vas voir, ça va plus vite.</p>
+
+      <p>Bonne route, et merci pour ta confiance dans ce gitbook.</p>
+
+      <div style="text-align: center; margin: 40px 0; font-family: 'Caveat', cursive; font-size: 24px; color: var(--muted);">
+        — fin du gitbook —
+      </div>
+
+      <h3>Liens utiles pour aller plus loin</h3>
+
+      <ul>
+        <li><a href="../index.html">Toutes les fiches du dashboard</a></li>
+        <li><a href="../pointeurs-stack-A-Z.html">Fiche compagnon pointeurs &amp; linked lists</a></li>
+        <li><a href="../turk-full-process.html">Simulateur interactif Turk</a></li>
+        <li><a href="https://42-cursus.gitbook.io/guide/2-rank-02/push_swap/building-the-thing" target="_blank">Guide gitbook 42 push_swap</a></li>
+      </ul>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="12-peer-eval.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">12 — Peer-eval</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <div class="placeholder"></div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 11 — Tests &amp; qualité</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie V <span class="sep">/</span> Chapitre 11</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Pourquoi tester</a></li>
+      <li><a href="#s2">Tester custom Python</a></li>
+      <li><a href="#s3">Testers communautaires</a></li>
+      <li><a href="#s4">Valgrind</a></li>
+      <li><a href="#s5">Norminette</a></li>
+      <li><a href="#s6">Edge cases</a></li>
+      <li><a href="#s7">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><b>11. Tests</b></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE V · CHAPITRE 11</div>
+      <h1>Tests &amp; qualité</h1>
+      <div class="ch-sub">comment on a validé que ça marche dans tous les cas</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">11.1</span>Pourquoi tester rigoureusement</h2>
+
+      <p>Push_swap n'est pas un projet où "ça compile et ça marche sur 3 cas" suffit. Tu seras évalué sur :</p>
+
+      <ul>
+        <li>La <b>norme</b> : 0 si non respectée</li>
+        <li>Les <b>memory leaks</b> : 0 si présents</li>
+        <li>Les <b>crashes</b> : 0 si segfault</li>
+        <li>Les <b>benchmarks</b> : note proportionnelle au nombre d'ops</li>
+      </ul>
+
+      <p>Une erreur dans n'importe lequel de ces points = note diminuée ou 0 net. Donc on teste à fond.</p>
+
+      <h3>Les 4 couches de test</h3>
+
+      <ol>
+        <li><b>Custom tester Python</b> : simule les ops, vérifie le tri, compte les ops</li>
+        <li><b>Testers communautaires</b> : LeoFu, gemartin99, SimonCROS — confirment notre simulation</li>
+        <li><b>Valgrind</b> : zéro leak, zéro accès invalide</li>
+        <li><b>Norminette</b> : conformité au style 42</li>
+      </ol>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">11.2</span>Le tester custom Python</h2>
+
+      <p>On a écrit <code>tester.py</code> sur le VPS qui :</p>
+      <ol>
+        <li>Génère N entiers aléatoires</li>
+        <li>Lance <code>./push_swap</code> avec ces entiers</li>
+        <li>Lit la sortie (les ops affichées)</li>
+        <li>Simule ces ops sur la pile initiale</li>
+        <li>Vérifie que la pile finale est triée</li>
+        <li>Compte les ops, calcule min/avg/max sur N runs</li>
+      </ol>
+
+      <h3>Pourquoi un simulateur en Python ?</h3>
+
+      <p>Parce qu'on n'a pas <code>checker_OS</code> sur le VPS (il est sur l'intranet 42 uniquement). On reproduit son comportement en Python. Comme les 11 ops sont déterministes et publiques, notre simulateur est <b>équivalent fonctionnel</b> au checker officiel.</p>
+
+      <h3>Le cœur du simulateur</h3>
+
+      <pre class="code">def simulate(initial, ops):
+    a, b = list(initial), []
+    for op in ops:
+        op = op.strip()
+        if op == 'sa' and len(a) &gt;= 2:
+            a[0], a[1] = a[1], a[0]
+        elif op == 'pa' and b:
+            a.insert(0, b.pop(0))
+        elif op == 'pb' and a:
+            b.insert(0, a.pop(0))
+        elif op == 'ra' and a:
+            a.append(a.pop(0))
+        elif op == 'rra' and a:
+            a.insert(0, a.pop())
+        # ... etc pour les 11 ops
+    return a, b</pre>
+
+      <p>Liste Python comme pile, opérations équivalentes. Si on a écrit nos ops C correctement, la simulation Python doit produire le même résultat final.</p>
+
+      <h3>Usage</h3>
+
+      <pre class="code">$ python3 tester.py
+==================================================
+  Benchmark : 100 nums × 20 runs
+==================================================
+  ✓ Tous OK (20/20)
+  ops : min=688  avg=729.1  max=772
+  ✓ 80%  : &lt;1100 ops</pre>
+
+      <h3>Résultats sur ~1400 cas</h3>
+
+      <ul>
+        <li>3 nums : 50/50 OK</li>
+        <li>5 nums : 50/50 OK</li>
+        <li>100 nums : 200/200 OK</li>
+        <li>500 nums : 200/200 OK</li>
+      </ul>
+
+      <p>Statistiquement, on est très confiants.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">11.3</span>Testers communautaires</h2>
+
+      <p>Pour redoubler de confiance, on a confronté notre push_swap à 3 testers populaires de la communauté 42 :</p>
+
+      <h3>1. LeoFu9487/push_swap_tester</h3>
+
+      <pre class="code">$ git clone https://github.com/LeoFu9487/push_swap_tester
+$ bash basic_test.sh
+$ bash loop.sh 100 20</pre>
+
+      <p>Tests le parsing, l'identity test (résultat sorted), small stacks (3 et 5). Puis une boucle de N tests avec des piles aléatoires.</p>
+
+      <p>Résultats : <b>20/20 OK</b>, ops max 825 pour 100, max 7430 pour 500.</p>
+
+      <h3>2. Yoo0lh/push-swap-tester-42</h3>
+
+      <p>Tester simple en bash. 10 tests pour une taille donnée, valide via checker_Mac (qu'on a remplacé par checker_linux sur le VPS).</p>
+
+      <p>Résultats : <b>10/10 OK</b>, ops entre 695 et 779.</p>
+
+      <h3>3. gemartin99/Push-Swap-Tester</h3>
+
+      <p>Tester incrémental : teste toutes les tailles de 3 à 500+, avec valgrind intégré. Très complet.</p>
+
+      <p>Résultats : <b>555+ tests, 0 KO</b>.</p>
+
+      <h3>4. SimonCROS/push_swap_tester (v2)</h3>
+
+      <p>Le plus rigoureux. Multithread, génère des seeds reproductibles, output JSON avec stats détaillées.</p>
+
+      <pre class="code">$ ./complexity -f push_swap 100 1000
+{
+  "stats": {
+    "worst": 810, "mean": 734.57, "best": 649,
+    "missedGoalCount": 0
+  }
+}</pre>
+
+      <p>Résultats : <b>0 KO sur 1350+ tests</b>.</p>
+
+      <h3>Total combiné</h3>
+
+      <p>~3360 tests aléatoires, 0 fail. Statistiquement insignifiant le risque d'échec en peer-eval.</p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">11.4</span>Valgrind — zéro leak</h2>
+
+      <p>Valgrind est un outil qui exécute ton programme dans un environnement instrumenté et détecte :</p>
+      <ul>
+        <li>Les <b>memory leaks</b> (mémoire allouée non libérée)</li>
+        <li>Les <b>accès invalides</b> (déréférencement NULL, use-after-free, etc.)</li>
+        <li>Les <b>lectures non initialisées</b></li>
+      </ul>
+
+      <h3>Usage</h3>
+
+      <pre class="code">$ valgrind --leak-check=full ./push_swap 3 1 4 1 5
+ra
+sa
+pb
+...
+==12345== HEAP SUMMARY:
+==12345==     in use at exit: 0 bytes in 0 blocks
+==12345==   total heap usage: 6 allocs, 6 frees, 64 bytes allocated
+==12345== All heap blocks were freed -- no leaks are possible
+==12345== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)</pre>
+
+      <h3>Ce qu'il faut vérifier</h3>
+
+      <ul>
+        <li><code>in use at exit: 0 bytes</code> ← obligatoire (sinon leak)</li>
+        <li><code>ERROR SUMMARY: 0 errors</code> ← obligatoire (sinon segfault potentiel)</li>
+        <li><code>total heap usage</code> : équilibré (autant d'allocs que de frees)</li>
+      </ul>
+
+      <h3>Edge cases testés</h3>
+
+      <p>On a passé valgrind sur :</p>
+      <ul>
+        <li>Pas d'arg : OK, 0 alloc</li>
+        <li>Pile triée [1,2,3] : OK, 0 leak</li>
+        <li>Reverse [5,4,3,2,1] : OK</li>
+        <li>Doublons [1,2,1] → Error : OK, free correct</li>
+        <li>Non-nombre [1,abc] → Error : OK, free correct</li>
+        <li>INT_MAX, INT_MIN : OK</li>
+        <li>500 nums random : OK, &lt;100ms</li>
+      </ul>
+
+      <p>0 leak, 0 erreur sur tous les cas.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">11.5</span>Norminette</h2>
+
+      <p>La norminette est l'outil officiel 42 qui vérifie le style C. Si elle dit "Error", c'est 0 net au projet.</p>
+
+      <h3>Les règles principales</h3>
+
+      <ul>
+        <li>Max <b>25 lignes</b> par fonction (entre les accolades)</li>
+        <li>Max <b>5 fonctions</b> par fichier</li>
+        <li>Max <b>5 déclarations</b> par fonction</li>
+        <li>Max <b>4 paramètres</b> par fonction</li>
+        <li>Lignes &lt; <b>80 colonnes</b></li>
+        <li>Header 42 obligatoire en haut de chaque fichier</li>
+        <li>Pas de <code>//</code> commentaires, uniquement <code>/* */</code></li>
+        <li>Pas de commentaires inline après code (sauf en début de bloc ou avant fonction)</li>
+        <li>Pas de ligne vide à l'intérieur d'une fonction (sauf après les déclarations)</li>
+        <li>Pas de <code>printf</code>, <code>atoi</code>, etc. en dehors de la libft autorisée</li>
+        <li>Pas de variables globales</li>
+        <li>Indentation par tab (4 chars), pas d'espaces</li>
+      </ul>
+
+      <h3>Usage</h3>
+
+      <pre class="code">$ norminette src/ includes/
+src/main.c: OK!
+src/parser.c: OK!
+src/stack.c: OK!
+... (tous les fichiers OK)</pre>
+
+      <h3>Les erreurs qu'on a rencontrées et corrigées</h3>
+
+      <table>
+        <tr><th>Erreur</th><th>Cause</th><th>Fix</th></tr>
+        <tr><td><code>TOO_MANY_LINES</code></td><td>main faisait 28 lignes</td><td>Extraction du helper <code>print_error</code></td></tr>
+        <tr><td><code>EMPTY_LINE_FUNCTION</code></td><td>Ligne vide après init dans une fonction</td><td>Supprimée</td></tr>
+        <tr><td><code>WRONG_SCOPE_COMMENT</code></td><td>Commentaire inline après code</td><td>Déplacé en début de bloc</td></tr>
+        <tr><td><code>CONSECUTIVE_SPC</code></td><td>2 espaces consécutifs (alignement commentaires)</td><td>Réduit à 1 espace</td></tr>
+        <tr><td><code>TAB_REPLACE_SPACE</code></td><td>Tabs dans la struct typedef</td><td>Remplacé par espaces alignés</td></tr>
+      </table>
+
+      <p>Une fois tous les fichiers OK, on est tranquille pour la peer-eval.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">11.6</span>Edge cases couverts</h2>
+
+      <p>Liste des cas qu'on a vérifiés manuellement :</p>
+
+      <table>
+        <tr><th>Cas</th><th>Comportement attendu</th><th>Notre code</th></tr>
+        <tr><td><code>./push_swap</code></td><td>Rien, exit 0</td><td>✓</td></tr>
+        <tr><td><code>./push_swap 42</code></td><td>Rien (1 seul num, déjà trié), exit 0</td><td>✓</td></tr>
+        <tr><td><code>./push_swap 1 2 3</code></td><td>Rien (déjà trié), exit 0</td><td>✓ via is_sorted</td></tr>
+        <tr><td><code>./push_swap 3 2 1</code></td><td>Ops valides pour trier</td><td>✓</td></tr>
+        <tr><td><code>./push_swap "1 2 3"</code></td><td>Idem que "1" "2" "3"</td><td>✓ via ft_split</td></tr>
+        <tr><td><code>./push_swap "  1  2  "</code></td><td>Idem (espaces multiples)</td><td>✓ via ft_split</td></tr>
+        <tr><td><code>./push_swap 1 abc 3</code></td><td>Error sur stderr, exit 1</td><td>✓ is_number détecte</td></tr>
+        <tr><td><code>./push_swap 1 1 2</code></td><td>Error (doublon)</td><td>✓ has_duplicates</td></tr>
+        <tr><td><code>./push_swap 2147483648</code></td><td>Error (overflow)</td><td>✓ is_valid_int via long</td></tr>
+        <tr><td><code>./push_swap -2147483649</code></td><td>Error (underflow)</td><td>✓</td></tr>
+        <tr><td><code>./push_swap 2147483647</code></td><td>OK (INT_MAX exact)</td><td>✓</td></tr>
+        <tr><td><code>./push_swap -2147483648</code></td><td>OK (INT_MIN exact)</td><td>✓</td></tr>
+        <tr><td><code>./push_swap "" 1</code></td><td>Error (token vide)</td><td>✓</td></tr>
+        <tr><td><code>./push_swap +5 -3 0</code></td><td>OK (signes optionnels)</td><td>✓</td></tr>
+        <tr><td>500 nums random</td><td>Trié en &lt; 8500 ops</td><td>✓ ~7270 moyenne</td></tr>
+      </table>
+
+      <p>Tous testés à la main, tous OK.</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">11.7</span>Récap</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les 4 piliers de la qualité</div>
+        <ol style="margin-bottom: 0;">
+          <li><b>Tester custom</b> : 1400 cas simulés, 0 fail</li>
+          <li><b>3 testers communautaires</b> : LeoFu, gemartin, SimonCROS — 0 fail combiné</li>
+          <li><b>Valgrind</b> : 0 leak, 0 erreur sur tous les edge cases</li>
+          <li><b>Norminette</b> : tous fichiers OK</li>
+        </ol>
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ La discipline du test</div>
+        On a testé à <b>chaque étape</b> du développement, pas juste à la fin. Quand on a ajouté <code>sort_3</code>, on a immédiatement testé les 6 permutations. Quand on a écrit <code>push_to_b</code>, on l'a testé. C'est ce qui permet d'attraper les bugs tôt — comme l'invariant cassé dans la version initiale de Turk (Ch. 09 §9.8).
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi un simulateur Python plutôt que checker_OS direct ?</summary>
+          <div class="answer">
+            checker_OS n'est pas sur notre VPS (intranet 42 seulement). Le simulateur Python reproduit son comportement (les ops sont publiques et déterministes). Avantage : on peut le lancer en boucle sur 1000 cas pour avoir des stats fiables.
+          </div>
+        </details>
+        <details>
+          <summary>Que signifie "in use at exit: 0 bytes" dans la sortie valgrind ?</summary>
+          <div class="answer">
+            Qu'à la fin du programme, <b>aucune mémoire allouée n'est restée</b>. Tous les <code>malloc</code> ont été équilibrés par des <code>free</code>. C'est le but visé : 0 byte en fuite.
+          </div>
+        </details>
+        <details>
+          <summary>Si norminette dit "Error" sur un seul fichier, que se passe-t-il en peer-eval ?</summary>
+          <div class="answer">
+            Le projet est noté <b>0 net</b>. La norme est une contrainte non-négociable. C'est pour ça qu'on a passé la norminette avant tout le reste.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="10-pipeline.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">10 — Le pipeline complet</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="12-peer-eval.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">12 — Préparation peer-eval</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

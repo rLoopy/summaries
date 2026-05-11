@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 12 — Préparation peer-eval</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie V <span class="sep">/</span> Chapitre 12</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Le format de la peer-eval</a></li>
+      <li><a href="#s2">Le pitch en 2 minutes</a></li>
+      <li><a href="#s3">Questions classiques</a></li>
+      <li><a href="#s4">Defense de l'usage IA</a></li>
+      <li><a href="#s5">Live coding</a></li>
+      <li><a href="#s6">Cheat sheet finale</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><b>12. Peer-eval</b></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE V · CHAPITRE 12</div>
+      <h1>Préparation peer-eval</h1>
+      <div class="ch-sub">questions, pitch, defense — pour arriver serein</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">12.1</span>Le format de la peer-eval</h2>
+
+      <p>Une peer-eval push_swap dure environ 30-45 min, avec une grille à cocher. Format type :</p>
+
+      <ol>
+        <li><b>Vérifications de base</b> (~5 min) : Makefile compile, norminette OK, structure des fichiers</li>
+        <li><b>Tests fonctionnels</b> (~10 min) : pas d'arg, déjà trié, doublons, non-int, etc.</li>
+        <li><b>Test de tri</b> (~10 min) : 5 nums, 100 nums, 500 nums avec checker_OS</li>
+        <li><b>Discussion algorithmique</b> (~10 min) : explique ton algo, pourquoi tu as choisi ça, complexité</li>
+        <li><b>Memory check</b> (~5 min) : valgrind, recherche de leaks</li>
+        <li><b>Notes</b> : remplir la grille, valider ou non</li>
+      </ol>
+
+      <h3>Les pièges classiques en peer-eval</h3>
+
+      <ul>
+        <li>L'évaluateur t'oblige à changer une valeur d'arg et voir si ça marche → teste plusieurs cas</li>
+        <li>L'évaluateur ouvre ton code et demande "explique cette ligne" au hasard → comprends ton code</li>
+        <li>L'évaluateur demande "que se passe-t-il si je passe X" → réfléchis avant de répondre</li>
+        <li>L'évaluateur a un favori = un algorithme particulier (radix, insertion...) → reste solide sur ton choix</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ La règle de l'IA</div>
+        Le sujet impose : <b>"Only use AI-generated content that you fully understand and can take responsibility for"</b>. Si tu ne peux pas expliquer une ligne de code, tu peux te faire flag pour "AI fail". Le but de ce gitbook est précisément que tu puisses tout expliquer.
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">12.2</span>Le pitch en 2 minutes</h2>
+
+      <p>Quand l'évaluateur arrive, prépare-toi à expliquer ton projet en 2 minutes max. Voilà un script type que tu peux adapter :</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Le pitch (à apprendre par cœur ou presque)</div>
+        <p>"Push_swap est un projet de tri sur 2 piles avec 11 opérations limitées. Mon implémentation a 3 niveaux :</p>
+        <ol>
+          <li><b>Parsing</b> : je valide les arguments (entiers, plage int, doublons) et construis une linked list.</li>
+          <li><b>Tris pour petites piles</b> : sort_3 hardcodé sur 6 cas, sort_5 par délégation à sort_3.</li>
+          <li><b>Algo Turk pour les grosses piles</b> : j'indexe les valeurs en rangs 0 à n-1, je pousse sur B par chunks (groupes de 16 ou 35 selon n), puis je ramène en sélectionnant le max à chaque étape.</li>
+        </ol>
+        <p>Performance : 100 nums en ~735 ops (validation 80%), 500 nums en ~7270 ops. Norminette OK, valgrind clean. Testé sur ~3000 cas aléatoires avec 4 testers différents, 0 fail."</p>
+      </div>
+
+      <p>Si tu as 2 min, dis tout. Si tu as 30 sec, dis juste : "indexation + chunks + max-pull, ~735 ops sur 100 nums, valide 80%".</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">12.3</span>Questions classiques et réponses</h2>
+
+      <h3>Sur les pointeurs et la struct</h3>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu utilises <code>t_stack **</code> au lieu de <code>t_stack *</code> dans <code>stack_add_bottom</code> ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Parce que dans le cas où la pile est vide, je dois <b>modifier la variable head de l'appelant</b>. Si je prenais juste <code>t_stack *</code>, je modifierais une copie locale qui mourrait à la fin de la fonction. Avec <code>**</code>, j'ai l'adresse de la variable head et je peux faire <code>*stack = new</code> pour vraiment changer le head."
+          </div>
+        </details>
+      </div>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu fais <code>(*stack)-&gt;val</code> avec des parenthèses et pas <code>*stack-&gt;val</code> ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "C'est une question de priorité d'opérateurs. <code>-&gt;</code> est plus prioritaire que <code>*</code>, donc <code>*stack-&gt;val</code> serait interprété comme <code>*(stack-&gt;val)</code>. Comme <code>stack</code> est <code>t_stack **</code>, il n'a pas de champ <code>val</code> — ça ne compile pas. Avec les parenthèses, je force l'ordre : d'abord déréférencer <code>stack</code>, puis accéder à <code>val</code>."
+          </div>
+        </details>
+      </div>
+
+      <h3>Sur le parser</h3>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu parses en <code>long</code> via <code>ft_atol</code> au lieu de <code>int</code> ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Pour détecter les valeurs hors plage <code>int</code>. Si je parsais directement en <code>int</code>, une valeur comme 2147483648 (= INT_MAX + 1) provoquerait un overflow et serait silencieusement convertie en INT_MIN. En <code>long</code>, j'ai une plage beaucoup plus large, donc je parse sans overflow puis je compare aux limites INT_MAX/INT_MIN pour valider."
+          </div>
+        </details>
+      </div>
+
+      <div class="check">
+        <div class="q">Q : <code>has_duplicates</code> est en O(n²). Pourquoi tu n'as pas fait un truc plus rapide ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Pour n ≤ 500, O(n²) = 250 000 comparaisons, soit quelques millisecondes. Pas besoin de plus rapide. Un algo plus subtil (genre hash table) aurait nécessité plus de code et plus d'allocs sans gain pratique pour cette taille. Je préfère la simplicité."
+          </div>
+        </details>
+      </div>
+
+      <h3>Sur les 11 ops</h3>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu fais un value swap dans <code>sa</code> au lieu d'un pointer swap ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Parce que c'est plus simple et moins error-prone. <code>sa</code> doit échanger les 2 premiers éléments. Au lieu de recâbler les pointeurs <code>next</code> (4 lignes complexes), j'échange juste les valeurs des 2 nodes avec un tmp (3 lignes). Le résultat visible pour l'utilisateur est identique : top et 2e échangés. Mes nodes restent à leurs adresses originales, seules les valeurs internes bougent."
+          </div>
+        </details>
+      </div>
+
+      <div class="check">
+        <div class="q">Q : Explique-moi <code>rotate</code> étape par étape.</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "5 étapes :
+            <ol>
+              <li><code>first = *stack</code> — je sauvegarde l'adresse du 1er node parce que je vais le déplacer à la fin</li>
+              <li><code>*stack = first-&gt;next</code> — j'avance le head d'un cran (le 2e devient le nouveau head)</li>
+              <li>Je parcours jusqu'au dernier node : <code>last = *stack; while (last-&gt;next) last = last-&gt;next;</code></li>
+              <li><code>last-&gt;next = first</code> — j'attache first derrière le dernier</li>
+              <li><code>first-&gt;next = NULL</code> — first devient le nouveau dernier, je coupe son ancien lien pour éviter la boucle infinie</li>
+            </ol>"
+          </div>
+        </details>
+      </div>
+
+      <h3>Sur l'algo Turk</h3>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu indexes les valeurs au début ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Pour avoir des valeurs dans une plage prévisible <code>[0, n-1]</code>. Sans indexation, je ne saurais pas comment dimensionner mes chunks parce que les valeurs d'entrée peuvent être arbitraires (négatives, énormes, etc.). Avec indexation, je sais que les chunks de 16 vont contenir les rangs 0-15, 16-31, etc. — c'est mécanique."
+          </div>
+        </details>
+      </div>
+
+      <div class="check">
+        <div class="q">Q : Explique la formule <code>chunk_max</code>.</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "<code>chunk_max = (pushed / chunk_size + 1) * chunk_size - 1</code>. Décortiqué :
+            <ul>
+              <li><code>pushed / chunk_size</code> (division entière) = le numéro du chunk en cours</li>
+              <li><code>+ 1</code> donne le numéro du chunk suivant</li>
+              <li><code>* chunk_size</code> donne la première valeur du chunk suivant</li>
+              <li><code>- 1</code> donne donc la dernière valeur du chunk actuel</li>
+            </ul>
+            Par exemple avec chunk_size = 16 : pushed=10 donne chunk_max=15 (chunk 0). Pushed=20 donne chunk_max=31 (chunk 1). Etc."
+          </div>
+        </details>
+      </div>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi tu ramènes le max et pas le min dans push_back_to_a ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Parce que <code>pa</code> ramène au top de A. Si je ramène les max en premier, ils finissent au bottom de A (les autres viennent par-dessus). Le min sera ramené en dernier et finira au top. Ça donne une pile finale triée croissant comme demandé par le sujet."
+          </div>
+        </details>
+      </div>
+
+      <h3>Sur la performance</h3>
+
+      <div class="check">
+        <div class="q">Q : Pourquoi t'es à 80% et pas 100% ?</div>
+        <details>
+          <summary>Réponse</summary>
+          <div class="answer">
+            "Pour aller à 100%, il faudrait sub-700 ops pour 100 nums. Je suis à ~735. Pour gagner les 35 ops manquantes, il y a plusieurs optims possibles : tuner chunk_size plus finement, ajouter un <code>rb</code> conditionnel après chaque <code>pb</code> pour pré-trier B, ou réimplémenter une version qui laisse les 3 plus grands sur A pour faire un sort_3 final. J'ai choisi la version 80% pour avoir du code simple, robuste, et facile à expliquer."
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">12.4</span>Defense de l'usage IA</h2>
+
+      <p>Le sujet (chapitre V) est explicite : tu peux utiliser de l'IA, mais tu dois pouvoir <b>défendre chaque ligne</b> de ton code. Voici comment présenter ton usage si l'évaluateur pose la question.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Position à tenir</div>
+        "J'ai utilisé l'IA comme <b>assistant pédagogique</b> :
+        <ul>
+          <li>Pour expliquer des concepts (pointeurs, algos)</li>
+          <li>Pour générer des squelettes avec <b>TROUs</b> que j'ai remplis moi-même</li>
+          <li>Pour debugger quand je coinçais</li>
+          <li>Pour générer des visualisations HTML qui m'aident à comprendre</li>
+        </ul>
+        Mais <b>chaque ligne de code, je l'ai écrite moi-même ou tapée moi-même, et je peux l'expliquer</b>."
+      </div>
+
+      <h3>Le README mentionne explicitement</h3>
+
+      <p>Section "Resources" du README liste :</p>
+      <ul>
+        <li>Comment l'IA a été utilisée (pédagogie, debug, visualisations)</li>
+        <li>Que je peux justifier chaque ligne</li>
+        <li>Liens vers les fiches HTML que j'ai construites pour comprendre</li>
+      </ul>
+
+      <p>Si l'évaluateur le lit, il voit que tu as une démarche réfléchie.</p>
+
+      <h3>Test ultime : explique-moi cette ligne au hasard</h3>
+
+      <p>L'évaluateur peut pointer du doigt n'importe quelle ligne et te dire "explique". Avec ce gitbook, tu devrais être capable de :</p>
+      <ul>
+        <li>Dire ce que la ligne fait littéralement (lecture syntaxique)</li>
+        <li>Dire pourquoi elle est là (intent)</li>
+        <li>Dire ce qui se passe si on la supprime (conséquence)</li>
+      </ul>
+
+      <p>Si tu sais répondre à ces 3 niveaux pour chaque ligne, l'évaluateur sera convaincu.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">12.5</span>Live coding — modifications demandées</h2>
+
+      <p>L'évaluateur peut te demander de <b>modifier ton code en live</b> (chapitre IX du sujet). Quelques exemples plausibles :</p>
+
+      <h3>Ajouter une op</h3>
+
+      <p>"Ajoute une fonction <code>print_stack(a)</code> qui affiche le contenu de la pile pour debug."</p>
+
+      <p>Réponse type :</p>
+      <pre class="code"><span class="kw">void</span> <span class="fn">print_stack</span>(<span class="type">t_stack</span> *a)
+{
+    <span class="kw">while</span> (a)
+    {
+        <span class="fn">printf</span>(<span class="str">"%d "</span>, a-&gt;val);
+        a = a-&gt;next;
+    }
+    <span class="fn">printf</span>(<span class="str">"\n"</span>);
+}</pre>
+
+      <p>Note : <code>printf</code> est interdit en mandatory, mais pour du debug en live, ça passe (et tu peux mentionner que tu le ferais avec <code>write</code> + conversion en propre).</p>
+
+      <h3>Changer le format de sortie</h3>
+
+      <p>"Au lieu d'écrire 'sa\\n', écris 'SA\\n' (en majuscules)."</p>
+
+      <p>Tu sais où c'est : dans <code>op_swap.c</code>, ligne du <code>write</code>. Tu changes <code>"sa\n"</code> en <code>"SA\n"</code>. Recompile, test. 30 secondes.</p>
+
+      <h3>Tester un cas particulier</h3>
+
+      <p>"Tu passes <code>./push_swap 1 1 1</code> et tu me dis ce qui se passe."</p>
+
+      <p>Réponse : "Le parser détecte les doublons via <code>has_duplicates</code> et retourne NULL. Le main affiche 'Error' sur stderr et exit 1. Aucune ligne sur stdout."</p>
+
+      <p>Si l'évaluateur veut le voir : tu le tapes et tu montres.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">12.6</span>Cheat sheet finale</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les choses à savoir absolument</div>
+        <h4>Architecture</h4>
+        <ul>
+          <li>15 fichiers .c, un par responsabilité</li>
+          <li>Pattern static helper + wrapper public dans op_*.c</li>
+          <li>Norme : max 5 fct/fichier, max 25 lignes/fct</li>
+        </ul>
+
+        <h4>Parser</h4>
+        <ul>
+          <li>tokenize, count_tokens, free_tokens, convert_tokens, parse_args</li>
+          <li>ft_atol parse en long pour détecter overflow</li>
+          <li>has_duplicates en O(n²) — suffisant pour n ≤ 500</li>
+        </ul>
+
+        <h4>Stack</h4>
+        <ul>
+          <li><code>t_stack { int val; struct s_stack *next; }</code></li>
+          <li><code>**</code> en paramètre quand on doit modifier le head</li>
+          <li>stack_free : pattern save-next-then-free, *stack = NULL à la fin</li>
+        </ul>
+
+        <h4>Les 11 ops</h4>
+        <ul>
+          <li>Pattern helper static + wrapper write</li>
+          <li>swap : value swap avec tmp</li>
+          <li>push : 4 étapes (save top, advance src, link dst, set new head)</li>
+          <li>rotate : 5 étapes (save first, advance head, walk to last, attach, first.next=NULL)</li>
+          <li>reverse_rotate : 6 étapes (avant-dernier via cur->next->next)</li>
+        </ul>
+
+        <h4>Algos de tri</h4>
+        <ul>
+          <li>sort_3 : 6 cas hardcodés, 2 ops max</li>
+          <li>sort_5 : push 2 plus petits sur b, sort_3, pa pa</li>
+          <li>sort_big (Turk) : index_stack → push_to_b → push_back_to_a</li>
+          <li>chunk_size = 16 si n ≤ 100, 35 sinon</li>
+        </ul>
+
+        <h4>Performance</h4>
+        <ul>
+          <li>100 nums : max 825, avg 735 → 80%</li>
+          <li>500 nums : max 7500, avg 7270 → 80%</li>
+          <li>Valgrind clean, norminette OK</li>
+        </ul>
+      </div>
+
+      <h3>Avant la peer-eval, dernière checklist</h3>
+
+      <ul>
+        <li>☐ <code>make</code> compile sans warning</li>
+        <li>☐ <code>norminette src/ includes/</code> tout OK</li>
+        <li>☐ <code>./push_swap 3 1 2 | ./checker_OS 3 1 2</code> → "OK"</li>
+        <li>☐ Valgrind sur quelques cas → 0 leak</li>
+        <li>☐ Ce gitbook lu en entier</li>
+        <li>☐ Pitch de 2 min répété 3 fois à voix haute</li>
+        <li>☐ Code committed et pushé sur le repo 42</li>
+      </ul>
+
+      <p>Si tous les ☐ sont cochés, tu peux y aller serein. 🚀</p>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="11-tests.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">11 — Tests &amp; qualité</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="13-meta.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">13 — Méta &amp; patterns</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
