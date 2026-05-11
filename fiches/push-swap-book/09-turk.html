@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 09 — L'algorithme Turk</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
-<script defer src="theme.js?v=4"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -24,6 +23,7 @@
       <li><a href="#s1">Le problème : 100+ nums</a></li>
       <li><a href="#s2">Pourquoi pas un algo classique</a></li>
       <li><a href="#s3">L'idée des chunks</a></li>
+      <li><a href="#s-walkthrough">Walk-through sur 8 nums</a></li>
       <li><a href="#s4">Phase 1 : Indexation</a></li>
       <li><a href="#s5">Phase 2 : push_to_b</a></li>
       <li><a href="#s6">La formule chunk_max</a></li>
@@ -152,6 +152,91 @@
         <div class="lbl">★ Origine du nom "Turk"</div>
         L'algo doit son nom à un étudiant de 42 qui a popularisé cette approche pour push_swap. Il n'a rien à voir avec un algo académique standard — c'est un classique du folklore push_swap.
       </div>
+    </section>
+
+    <section id="s-walkthrough">
+      <h2><span class="num">9.3b</span>Walk-through complet sur 8 nums</h2>
+
+      <p>Avant de plonger dans le code, déroulons Turk sur un exemple concret pour avoir <b>l'intuition</b>. On prend <code>./push_swap 42 7 99 13 5 60 25 88</code> et on suit les 3 phases.</p>
+
+      <h3>Phase 1 — Indexation (val → rang)</h3>
+
+      <p>On remplace chaque valeur par son rang (0 = plus petit, 7 = plus grand).</p>
+
+      <div class="ascii">Avant :  a = [42, 7, 99, 13, 5, 60, 25, 88]    b = []
+              ↑   ↑   ↑   ↑  ↑   ↑   ↑   ↑
+            rang  rang rang
+              3   1   7   2  0   4   2   6     (calculé par compute_rank)
+
+         Mais attention : on a 25 et 13, le 13 est rang 2 (3e plus petit),
+         le 25 est rang 3 (le 42 est rang 4), etc. Recalculons proprement :
+         5 → 0, 7 → 1, 13 → 2, 25 → 3, 42 → 4, 60 → 5, 88 → 6, 99 → 7
+
+Après :  a = [4, 1, 7, 2, 0, 5, 3, 6]    b = []
+</div>
+
+      <p>Maintenant les valeurs sont dans [0, 7]. On peut définir des chunks proprement.</p>
+
+      <h3>Phase 2 — push_to_b avec chunk_size = 3 (pour la démo)</h3>
+
+      <p>On a 8 nums, target = 8 (on pousse tout). chunk_size = 3 (juste pour cette démo ; en vrai c'est 16). Les chunks couvrent : <b>chunk 0</b> = rangs 0-2, <b>chunk 1</b> = 3-5, <b>chunk 2</b> = 6-7.</p>
+
+      <div class="ascii">Itération | Top a | chunk_max | Décision    | a après       | b après     | pushed
+─────────────────────────────────────────────────────────────────────────────
+1         | 4     | 2         | 4&gt;2 → ra    | [1,7,2,0,5,3,6,4] | []          | 0
+2         | 1     | 2         | 1≤2 → pb    | [7,2,0,5,3,6,4]   | [1]         | 1
+3         | 7     | 2         | 7&gt;2 → ra    | [2,0,5,3,6,4,7]   | [1]         | 1
+4         | 2     | 2         | 2≤2 → pb    | [0,5,3,6,4,7]     | [2,1]       | 2
+5         | 0     | 2         | 0≤2 → pb    | [5,3,6,4,7]       | [0,2,1]     | 3
+─ pushed atteint 3 → chunk_max passe à 5 (chunk 1) ─
+6         | 5     | 5         | 5≤5 → pb    | [3,6,4,7]         | [5,0,2,1]   | 4
+7         | 3     | 5         | 3≤5 → pb    | [6,4,7]           | [3,5,0,2,1] | 5
+8         | 6     | 5         | 6&gt;5 → ra    | [4,7,6]           | [3,5,0,2,1] | 5
+9         | 4     | 5         | 4≤5 → pb    | [7,6]             | [4,3,5,0,2,1]| 6
+─ pushed atteint 6 → chunk_max passe à 8 (chunk 2) ─
+10        | 7     | 8         | 7≤8 → pb    | [6]               | [7,4,3,5,0,2,1]| 7
+11        | 6     | 8         | 6≤8 → pb    | []                | [6,7,4,3,5,0,2,1]| 8
+─ pushed atteint target (8), on sort de la boucle ─
+
+État final : a = []    b = [6,7,4,3,5,0,2,1]   (≈ trié décroissant par chunks)
+</div>
+
+      <p>Note la structure de B : les rangs élevés (chunk 2 = 6,7) sont au top, puis chunk 1 (3,4,5), puis chunk 0 (0,1,2) au bottom. <b>"À peu près trié décroissant"</b>.</p>
+
+      <h3>Phase 3 — push_back_to_a (max à chaque tour)</h3>
+
+      <p>On ramène B sur A en prenant le max à chaque itération.</p>
+
+      <div class="ascii">Itération | Max de b | Position | Action      | a après           | b après
+──────────────────────────────────────────────────────────────────────────
+1         | 7        | pos 1    | rb, pa      | [7]               | [4,3,5,0,2,1,6]
+2         | 6        | pos 6    | rrb, pa     | [6,7]             | [6,4,3,5,0,2,1]
+                                              (déjà top après rrb)
+                       Note : reprenons proprement
+1         | 7        | pos 1    | rb, pa      | [7]               | [4,3,5,0,2,1,6]
+2         | 6        | pos 6    | rrb, pa     | [6,7]             | [4,3,5,0,2,1]
+3         | 5        | pos 2    | rb rb, pa   | [5,6,7]           | [0,2,1,4,3]
+4         | 4        | pos 3    | rrb rrb, pa | [4,5,6,7]         | [3,0,2,1]
+5         | 3        | pos 0    | pa direct   | [3,4,5,6,7]       | [0,2,1]
+6         | 2        | pos 1    | rb, pa      | [2,3,4,5,6,7]     | [1,0]
+7         | 1        | pos 0    | pa direct   | [1,2,3,4,5,6,7]   | [0]
+8         | 0        | pos 0    | pa direct   | [0,1,2,3,4,5,6,7] | []
+
+✓ Trié !
+</div>
+
+      <div class="callout key">
+        <div class="lbl">★ Ce qui se passe en gros</div>
+        <ol style="margin-bottom: 0;">
+          <li>Phase 1 transforme tes données arbitraires en rangs 0 à n-1 (facile à raisonner)</li>
+          <li>Phase 2 distribue ces rangs sur b par chunks → structure approximativement décroissante</li>
+          <li>Phase 3 cueille les rangs de b dans l'ordre décroissant et les empile sur a → ordre croissant final</li>
+        </ol>
+      </div>
+
+      <p>Maintenant que tu as l'intuition, on peut détailler chaque phase avec le code.</p>
+
+      <p>👉 Si tu préfères voir ça en animation interactive : <a href="../turk-full-process.html">Turk full process — simulateur</a></p>
     </section>
 
     <section id="s4">

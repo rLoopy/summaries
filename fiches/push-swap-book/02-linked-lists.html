@@ -65,6 +65,17 @@
     <section id="s1">
       <h2><span class="num">2.1</span>Pourquoi pas un tableau ?</h2>
 
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : la notation big-O</div>
+        Tu vas voir <code>O(1)</code>, <code>O(n)</code>, <code>O(n²)</code> dans la suite. Définition rapide :
+        <ul style="margin-bottom: 0;">
+          <li><b><code>O(1)</code></b> = travail <b>constant</b>, peu importe la taille des données. Ex: lire le 1er élément d'une liste.</li>
+          <li><b><code>O(n)</code></b> = travail <b>proportionnel à n</b> (la taille). Ex: parcourir toute la liste.</li>
+          <li><b><code>O(n²)</code></b> = travail = n × n. Ex: comparer chaque paire d'éléments. Ça grandit vite.</li>
+        </ul>
+        Plus c'est bas (O(1) &lt; O(n) &lt; O(n²)), plus l'algo est rapide pour de grandes tailles.
+      </div>
+
       <p>Pour stocker une pile de nombres, deux structures candidates :</p>
 
       <div class="compare">

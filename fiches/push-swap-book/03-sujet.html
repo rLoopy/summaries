@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 03 — Le sujet décortiqué</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
-<script defer src="theme.js?v=4"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -194,6 +193,18 @@ $ ./push_swap <span class="str">"3 1 4 1 5"</span>     <span class="com"># une s
 
       <p>Les deux formes doivent être acceptées. Pour la 2e, il faut <b>tokenizer</b> la chaîne (splitter sur les espaces) — c'est ce que fait <code>ft_split</code> dans notre parser.</p>
 
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : stdout, stderr, fd</div>
+        Quand un programme tourne, il a 3 "canaux" de communication numérotés :
+        <ul>
+          <li><b><code>fd 0</code></b> = <b>stdin</b> (entrée standard, ce que tu tapes au clavier)</li>
+          <li><b><code>fd 1</code></b> = <b>stdout</b> (sortie normale, ce qui s'affiche à l'écran)</li>
+          <li><b><code>fd 2</code></b> = <b>stderr</b> (erreurs, s'affiche aussi à l'écran mais séparément)</li>
+        </ul>
+        "<b>fd</b>" = file descriptor (descripteur de fichier). C'est juste un numéro qui identifie une "destination".<br><br>
+        En C : <code>write(1, "sa\n", 3)</code> écrit "sa" sur stdout. <code>write(2, "Error\n", 6)</code> écrit "Error" sur stderr. C'est pour ça que les erreurs vont sur fd 2 et les ops sur fd 1.
+      </div>
+
       <h3>Sortie standard (stdout)</h3>
 
       <p>Les opérations, <b>une par ligne</b>, terminées par <code>\n</code>. Rien d'autre.</p>
@@ -304,14 +315,20 @@ Error</pre>
 
       <h3>Validation 80 % (minimum pour passer)</h3>
 
-      <p>Trois "paliers" possibles (un seul suffit) :</p>
+      <p>Trois combinaisons possibles (tu n'as besoin que d'<b>UNE</b> seule pour valider). Le sujet te laisse ce choix — selon ton algo, certaines combinaisons sont plus accessibles.</p>
 
       <table>
-        <tr><th>100 nums &lt;</th><th>500 nums &lt;</th></tr>
-        <tr><td>1100 ops</td><td>8500 ops</td></tr>
-        <tr><td>700 ops</td><td>11500 ops</td></tr>
-        <tr><td>1300 ops</td><td>5500 ops</td></tr>
+        <tr><th>Combinaison</th><th>100 nums &lt;</th><th>500 nums &lt;</th></tr>
+        <tr><td><b>Combo 1</b> (la nôtre)</td><td>1100 ops</td><td>8500 ops</td></tr>
+        <tr><td>Combo 2</td><td>700 ops</td><td>11500 ops</td></tr>
+        <tr><td>Combo 3</td><td>1300 ops</td><td>5500 ops</td></tr>
       </table>
+
+      <div class="callout note">
+        <div class="lbl">★ Comment lire la table</div>
+        Tu dois faire <b>simultanément</b> les 2 conditions d'<b>une seule</b> ligne. Exemple combo 1 : il faut que tes 100 nums soient triés &lt; 1100 ops <b>ET</b> tes 500 nums &lt; 8500 ops. Si l'une des 2 dépasse, tu rates ce combo (mais peut-être qu'un autre passe).<br><br>
+        Note : combo 2 dit "100 nums &lt; 700 ops" — c'est <b>déjà la cible 100 %</b> pour 100 nums. La compensation : tu as plus de marge sur 500. C'est pour les algos qui scalent bien sur petite taille mais perdent sur grosse.
+      </div>
 
       <p>Notre implémentation atteint :</p>
 

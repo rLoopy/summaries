@@ -89,6 +89,15 @@
       <div class="callout note">
         <div class="lbl">★ Pourquoi hexadécimal ?</div>
         Parce que la mémoire fonctionne en binaire (puissances de 2), et l'hexadécimal compresse joliment le binaire (4 bits = 1 chiffre hexa). Tu n'as pas à te soucier de ça pour push_swap, c'est juste une convention de notation.
+        <br><br>
+        Mini-conversion pour te repérer :
+        <ul style="margin-bottom: 0;">
+          <li><code>0x10</code> = 16</li>
+          <li><code>0x100</code> = 256</li>
+          <li><code>0xFF</code> = 255</li>
+          <li><code>0x7FA0</code> ≈ 32 672</li>
+        </ul>
+        Pas besoin de mémoriser, juste savoir que <code>0x...</code> = juste un numéro.
       </div>
 
       <h3>Le système choisit où mettre les choses</h3>
@@ -251,9 +260,21 @@
       <p>Un pointeur déclaré sans valeur contient des <b>octets aléatoires</b> (= n'importe quoi). Tu ne dois <b>jamais</b> l'utiliser tant que tu ne lui as pas assigné une vraie adresse.</p>
 
       <pre class="code"><span class="kw">int</span> *p;             <span class="com">// p contient des octets aléatoires : DANGER</span>
-*p = <span class="num">42</span>;            <span class="com">// CRASH ou comportement indéfini !</span>
+*p = <span class="num">42</span>;            <span class="com">// CRASH ou comportement indéfini !</span></pre>
 
-<span class="kw">int</span> x = <span class="num">42</span>;
+      <div class="callout warn">
+        <div class="lbl">⚠ "Comportement indéfini" = c'est quoi ?</div>
+        En C, "comportement indéfini" (<i>undefined behavior</i>, UB) veut dire : le langage <b>ne garantit rien</b> sur ce qui va se passer. Ça peut :
+        <ul style="margin-bottom: 0;">
+          <li>Crasher (segfault, le programme meurt brutalement)</li>
+          <li>Marcher par hasard (et casser plus tard)</li>
+          <li>Donner des résultats absurdes</li>
+          <li>Effacer ton disque dur (techniquement permis 😄)</li>
+        </ul>
+        Bref : <b>imprévisible</b>. Ton job de programmeur, c'est d'éviter tout code qui mène à UB. valgrind est là pour détecter beaucoup d'UB liés à la mémoire.
+      </div>
+
+      <pre class="code" style="margin-top: 16px;"><span class="kw">int</span> x = <span class="num">42</span>;
 <span class="kw">int</span> *p = &amp;x;        <span class="com">// p contient maintenant une adresse valide</span>
 *p = <span class="num">99</span>;            <span class="com">// OK : on écrit 99 à l'adresse de x → x vaut maintenant 99</span></pre>
     </section>

@@ -7,8 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
-<script defer src="theme.js?v=4"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -36,6 +35,12 @@
       <li><a href="12-peer-eval.html">Préparation peer-eval</a></li>
       <li><a href="13-meta.html">Méta &amp; patterns</a></li>
     </ol>
+    <div class="ch-list">
+      <div class="label">RÉFÉRENCE</div>
+      <ol>
+        <li><a href="#glossaire">📖 Glossaire</a></li>
+      </ol>
+    </div>
   </aside>
 
   <main>
@@ -47,14 +52,25 @@
 
     <section>
       <h2><span class="num">§</span>Pourquoi ce gitbook</h2>
-      <p>Tu as codé push_swap. Ça marche. Mais <b>tu veux pouvoir l'expliquer à quelqu'un d'autre</b>, ligne par ligne, sans hésiter. Ce manuel reprend chaque concept depuis le bas (oui, depuis "qu'est-ce qu'une adresse mémoire") et te mène jusqu'à l'algo Turk, en passant par chaque ligne de code de ton projet.</p>
 
-      <p>L'objectif :</p>
+      <div class="callout key">
+        <div class="lbl">★ 2 modes de lecture</div>
+        <b>Avant d'avoir codé push_swap</b> : lis dans l'ordre, du Ch 01 au Ch 13. Le code montré dans les chapitres est <b>la version cible</b> — ce que tu vas construire toi-même. Quand tu lis "on a fait X" ou "notre code", lis-le comme "voici ce que tu vas faire". Les chapitres te guident concept par concept jusqu'à ce que tu sois prêt à écrire ton code.<br><br>
+        <b>Après avoir codé</b> : utilise le manuel comme révision pour la peer-eval. Le Ch 12 est ton allié pour les questions classiques.
+      </div>
+
+      <p>Le manuel reprend chaque concept depuis le bas (oui, depuis "qu'est-ce qu'une adresse mémoire") et te mène jusqu'à l'algo Turk. L'objectif :</p>
+
       <ul>
         <li>Comprendre <b>pourquoi</b> chaque morceau existe</li>
         <li>Savoir <b>défendre</b> chaque choix en peer-eval</li>
         <li>Construire des <b>réflexes</b> réutilisables pour les projets suivants (philosophers, pipex, minishell…)</li>
       </ul>
+
+      <div class="callout note">
+        <div class="lbl">★ Quand consulter les fiches animées</div>
+        Le gitbook référence des <b>fiches HTML animées</b> (rotate step-by-step, Turk simulateur, etc.) — liens en bas de page sous "Annexes". Ouvre-les <b>quand tu sens que ça coince</b> sur un concept précis. Elles complètent le texte mais ne le remplacent pas.
+      </div>
 
       <div class="callout key">
         <div class="lbl">★ Comment lire</div>
@@ -172,14 +188,35 @@
       </ul>
     </section>
 
-    <div class="nav-bottom">
-      <div class="placeholder"></div>
-      <div class="placeholder"></div>
-      <a href="01-memoire.html" class="nav-link next">
-        <span class="dir">Commencer la lecture →</span>
-        <span class="name">01 — Mémoire &amp; pointeurs</span>
-      </a>
-    </div>
+    <section id="glossaire">
+      <h2><span class="num">§</span>Glossaire — les mots techniques à connaître</h2>
+
+      <p>Une référence rapide pour les termes flous qui reviennent dans le gitbook. Si un mot t'arrête dans un chapitre, viens checker ici.</p>
+
+      <table>
+        <tr><th>Mot</th><th>Définition simple</th><th>Vu en Ch.</th></tr>
+        <tr><td><code>adresse mémoire</code></td><td>numéro de casier en RAM où vit une variable</td><td>01</td></tr>
+        <tr><td><code>déréférencer</code></td><td>"suivre un pointeur" pour atteindre la valeur pointée (via <code>*p</code>)</td><td>01</td></tr>
+        <tr><td><code>comportement indéfini</code></td><td>code qui peut crasher, marcher par hasard, ou faire n'importe quoi — résultat <b>imprévisible</b>. À éviter à tout prix.</td><td>01</td></tr>
+        <tr><td><code>stack vs heap</code></td><td>stack = mémoire auto, courte durée ; heap = mémoire <code>malloc</code>, longue durée</td><td>01</td></tr>
+        <tr><td><code>hexadécimal (0x...)</code></td><td>notation pour écrire les adresses : <code>0x10</code> = 16, <code>0xFF</code> = 255, <code>0x100</code> = 256</td><td>01</td></tr>
+        <tr><td><code>big-O (O(n), O(n²))</code></td><td>notation de complexité : O(n) = travail proportionnel à n ; O(n²) = travail = n×n. Utilisé pour dire "ça va vite" ou "ça va lentement"</td><td>02</td></tr>
+        <tr><td><code>sentinelle</code></td><td>valeur spéciale qui marque la fin (ex: <code>NULL</code> en bout de chaîne, <code>\0</code> en fin de string)</td><td>02</td></tr>
+        <tr><td><code>fd (file descriptor)</code></td><td>numéro qui identifie une "destination de sortie". <code>fd=0</code> = clavier (stdin), <code>fd=1</code> = écran (stdout), <code>fd=2</code> = erreurs (stderr). Utilisé dans <code>write(fd, ...)</code></td><td>03</td></tr>
+        <tr><td><code>stdout / stderr</code></td><td>sorties standard : stdout (fd 1) pour les ops, stderr (fd 2) pour les erreurs</td><td>03</td></tr>
+        <tr><td><code>static</code> (devant fonction)</td><td>fonction visible uniquement dans son fichier .c (pas exportée). On dit "linkage interne"</td><td>04</td></tr>
+        <tr><td><code>linkage</code></td><td>règle qui définit qui peut "voir" une fonction. Interne = juste le fichier, externe = tout le projet</td><td>04</td></tr>
+        <tr><td><code>cast</code></td><td>conversion explicite de type, ex: <code>(int)x</code> dit "traite x comme un int". À utiliser avec précaution (perte d'info possible)</td><td>05</td></tr>
+        <tr><td><code>tokeniser</code></td><td>découper une chaîne en morceaux selon un séparateur. <code>ft_split</code> tokenise sur les espaces</td><td>05</td></tr>
+        <tr><td><code>helper static + wrapper</code></td><td>pattern : 1 fonction interne fait le travail, plusieurs fonctions publiques l'appellent avec des spécificités. Permet de respecter "5 fonctions max par fichier"</td><td>04, 07</td></tr>
+        <tr><td><code>pointer juggling</code></td><td>manipulation acrobatique de plusieurs pointeurs avec risque élevé de bug (à éviter quand possible — préférer value swap)</td><td>07</td></tr>
+        <tr><td><code>invariant</code></td><td>condition qui doit rester vraie tout au long de l'algo. Ex: dans sort_5, "valeurs sur b &lt; valeurs sur a"</td><td>08</td></tr>
+        <tr><td><code>radix sort</code></td><td>tri par chiffres successifs. L'algo Turk s'en inspire (groupes par rang)</td><td>09</td></tr>
+        <tr><td><code>checker (checker_OS)</code></td><td>binaire fourni par 42 qui exécute tes ops sur la pile et te dit "OK" ou "KO"</td><td>03, 11</td></tr>
+        <tr><td><code>valgrind</code></td><td>outil qui détecte les memory leaks et les accès mémoire invalides</td><td>11</td></tr>
+        <tr><td><code>norminette</code></td><td>outil officiel 42 qui vérifie le style C. Si erreur → 0 au projet</td><td>03, 11</td></tr>
+      </table>
+    </section>
 
     <footer style="margin-top: 60px; padding-top: 20px; border-top: 2px dashed var(--muted); font-family: 'Caveat', cursive; color: var(--muted); text-align: center;">
       gitbook compagnon de push_swap — projet 42 par <b>rrohrer</b> (loopy)

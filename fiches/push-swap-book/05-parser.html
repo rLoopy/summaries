@@ -118,6 +118,11 @@ argv:
     <section id="s3">
       <h2><span class="num">5.3</span><code>tokenize</code> — split sur les espaces</h2>
 
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : "tokeniser"</div>
+        <b>Tokeniser</b> une chaîne = la <b>découper en morceaux</b> (tokens) selon un séparateur. Exemple : "3 1 4 1 5" tokenisé sur l'espace donne ["3", "1", "4", "1", "5"]. Chaque morceau est un "token". Synonyme : "splitter".
+      </div>
+
       <pre class="code"><span class="kw">char</span> **<span class="fn">tokenize</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
 {
     <span class="kw">char</span>    **tokens;
@@ -494,6 +499,13 @@ i=1 (val=1):
       </ol>
 
       <h3>Le cast <code>(int)ft_atol(...)</code></h3>
+
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : qu'est-ce qu'un "cast" ?</div>
+        Un <b>cast</b> (ou "conversion explicite de type") permet de dire au compilateur "traite cette valeur comme un autre type". Syntaxe : <code>(NouveauType) valeur</code>.<br><br>
+        Exemple : <code>long x = 42L; int y = (int)x;</code> — on convertit explicitement le <code>long</code> en <code>int</code>.<br><br>
+        Risque : si la valeur ne tient pas dans le nouveau type, tu perds des données ("loss of precision"). Le cast dit "je sais ce que je fais, ne me préviens pas". À utiliser <b>après avoir validé</b> que la perte n'arrivera pas.
+      </div>
 
       <p>On a parsé en <code>long</code> et on stocke en <code>int</code>. Sans le cast explicite, le compilateur warn ("possible loss of precision"). Avec le cast, on dit "je sais ce que je fais, je veux tronquer".</p>
 

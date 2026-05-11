@@ -171,6 +171,14 @@
 
       <p>Avec 3 éléments distincts (rappel : pas de doublons grâce au parser), il y a <b>3! = 6 permutations possibles</b>. Pour chacune, on connaît la stratégie optimale.</p>
 
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi exactement 6 permutations ?</div>
+        Avec 3 valeurs distinctes (par ex. 1, 2, 3), tu peux les arranger dans 3! = 3 × 2 × 1 = <b>6 ordres différents</b> :
+        <pre style="margin-top: 8px; font-family: monospace; background: var(--paper-dark); padding: 8px; border-radius: 4px;">[1,2,3]   [1,3,2]   [2,1,3]
+[2,3,1]   [3,1,2]   [3,2,1]</pre>
+        Une seule de ces 6 permutations est déjà triée ([1,2,3]). Les 5 autres ont chacune une <b>séquence d'ops optimale</b> qu'on hardcode dans le if/else if.
+      </div>
+
       <p>On utilise les variables <code>top</code>, <code>mid</code>, <code>bot</code> pour représenter les 3 valeurs lues depuis la pile, et on teste leurs relations.</p>
 
       <h3>Le tableau des 6 cas</h3>
@@ -427,6 +435,12 @@ Option A gagne (2 &lt; 3).
       <h2><span class="num">8.8</span>Stratégie sort_5 — pourquoi ça marche</h2>
 
       <h3>L'invariant</h3>
+
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : "invariant"</div>
+        Un <b>invariant</b> est une condition qui doit rester vraie <b>tout au long de l'algorithme</b>. Tu la garantis au démarrage et tu fais attention de ne pas la casser à chaque étape. Si l'invariant casse, l'algo ne marche plus correctement.<br><br>
+        Pour sort_5 (et plus tard Turk), l'invariant clé est : <b>"toutes les valeurs sur b doivent rester &lt; toutes les valeurs restant sur a"</b>. Tant que c'est vrai, on peut ramener b → a sans casser l'ordre.
+      </div>
 
       <p>À l'étape "push 2 plus petits sur b", on s'assure que <b>les valeurs de b sont toutes &lt; les valeurs de a</b>. Pourquoi ? Parce qu'on pousse spécifiquement les 2 plus petits.</p>
 

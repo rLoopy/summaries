@@ -85,6 +85,18 @@
 
       <p>Pour respecter "max 5 fonctions par fichier" tout en exposant un nombre arbitraire de fonctions publiques, on utilise le pattern <b>static helper + wrapper</b>.</p>
 
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : qu'est-ce que <code>static</code> ?</div>
+        En C, <code>static</code> devant une fonction signifie : "<b>cette fonction n'est visible que dans ce fichier .c</b>". Aucun autre fichier ne peut l'appeler. On dit qu'elle a un <b>linkage interne</b> (par opposition à externe = visible partout).<br><br>
+        Avantages :
+        <ul style="margin-bottom: 0;">
+          <li>Pas besoin de la déclarer dans le header (cachée des autres fichiers)</li>
+          <li>Le compilateur peut l'optimiser plus agressivement</li>
+          <li>Évite les conflits de nom entre fichiers</li>
+        </ul>
+        <b>Note</b> : <code>static</code> a un autre sens devant une variable locale ("garde sa valeur entre les appels"), mais pour nous ici c'est toujours le premier sens (devant des helpers de fichier).
+      </div>
+
       <h3>Exemple : <code>op_rotate.c</code></h3>
 
       <p>On veut exposer 3 fonctions publiques : <code>ra</code>, <code>rb</code>, <code>rr</code>. Elles font quasiment la même chose (rotate une pile), à part qu'elles écrivent un nom différent sur stdout.</p>
