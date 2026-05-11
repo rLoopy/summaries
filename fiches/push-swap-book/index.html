@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — le gitbook complet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">de A à Z</div>
+</div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📖 Sommaire</h3>
+    <ol>
+      <li><a href="01-memoire.html">Mémoire &amp; pointeurs</a></li>
+      <li><a href="02-linked-lists.html">Linked lists</a></li>
+      <li><a href="03-sujet.html">Le sujet décortiqué</a></li>
+      <li><a href="04-architecture.html">Architecture du projet</a></li>
+      <li><a href="05-parser.html">Parser &amp; validator</a></li>
+      <li><a href="06-stack.html">stack.c</a></li>
+      <li><a href="07-ops.html">Les 11 opérations</a></li>
+      <li><a href="08-petits-tris.html">Tris petites piles</a></li>
+      <li><a href="09-turk.html">L'algo Turk</a></li>
+      <li><a href="10-pipeline.html">Pipeline complet</a></li>
+      <li><a href="11-tests.html">Tests &amp; qualité</a></li>
+      <li><a href="12-peer-eval.html">Préparation peer-eval</a></li>
+      <li><a href="13-meta.html">Méta &amp; patterns</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PUSH_SWAP · GITBOOK</div>
+      <h1>Comprendre push_swap de A à Z</h1>
+      <div class="ch-sub">le manuel qui te rend imbattable en peer-eval</div>
+    </header>
+
+    <section>
+      <h2><span class="num">§</span>Pourquoi ce gitbook</h2>
+      <p>Tu as codé push_swap. Ça marche. Mais <b>tu veux pouvoir l'expliquer à quelqu'un d'autre</b>, ligne par ligne, sans hésiter. Ce manuel reprend chaque concept depuis le bas (oui, depuis "qu'est-ce qu'une adresse mémoire") et te mène jusqu'à l'algo Turk, en passant par chaque ligne de code de ton projet.</p>
+
+      <p>L'objectif :</p>
+      <ul>
+        <li>Comprendre <b>pourquoi</b> chaque morceau existe</li>
+        <li>Savoir <b>défendre</b> chaque choix en peer-eval</li>
+        <li>Construire des <b>réflexes</b> réutilisables pour les projets suivants (philosophers, pipex, minishell…)</li>
+      </ul>
+
+      <div class="callout key">
+        <div class="lbl">★ Comment lire</div>
+        Lis dans l'ordre la première fois (les chapitres se construisent les uns sur les autres). Pour les revisions, utilise le sommaire à gauche pour sauter sur ce qui te bloque. Chaque chapitre se termine par un récap et une auto-évaluation.
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§</span>Plan en 5 parties</h2>
+
+      <div class="part-divider">PARTIE I — FONDATIONS</div>
+
+      <a href="01-memoire.html" class="chapter-card">
+        <div class="ch-tag">CH. 01</div>
+        <div class="ch-title">La mémoire et les pointeurs</div>
+        <div class="ch-desc">Depuis "c'est quoi un octet" jusqu'à <code>t_stack **</code>. Le chapitre qui débloque tout.</div>
+      </a>
+
+      <a href="02-linked-lists.html" class="chapter-card">
+        <div class="ch-tag">CH. 02</div>
+        <div class="ch-title">Linked lists &amp; <code>t_stack</code></div>
+        <div class="ch-desc">Pourquoi pas un tableau, comment chaîner des nodes, comment marcher dans une chaîne sans tout perdre.</div>
+      </a>
+
+      <div class="part-divider">PARTIE II — LE SUJET</div>
+
+      <a href="03-sujet.html" class="chapter-card">
+        <div class="ch-tag">CH. 03</div>
+        <div class="ch-title">Le sujet décortiqué</div>
+        <div class="ch-desc">Les 11 opérations, les contraintes (norm, leaks, perf), les benchmarks à atteindre.</div>
+      </a>
+
+      <a href="04-architecture.html" class="chapter-card">
+        <div class="ch-tag">CH. 04</div>
+        <div class="ch-title">Architecture du projet</div>
+        <div class="ch-desc">Comment on découpe en fichiers, pourquoi static helper + wrapper, le pipeline <code>main</code>.</div>
+      </a>
+
+      <div class="part-divider">PARTIE III — LES BRIQUES</div>
+
+      <a href="05-parser.html" class="chapter-card">
+        <div class="ch-tag">CH. 05</div>
+        <div class="ch-title">Parser &amp; validator</div>
+        <div class="ch-desc">De <code>argv</code> à un tableau d'<code>int</code> validé. <code>ft_atol</code>, <code>has_duplicates</code>, tokenize.</div>
+      </a>
+
+      <a href="06-stack.html" class="chapter-card">
+        <div class="ch-tag">CH. 06</div>
+        <div class="ch-title"><code>stack.c</code> — la pile chaînée</div>
+        <div class="ch-desc">Les 5 fonctions de base + pourquoi tout ce <code>**</code> et comment l'utiliser.</div>
+      </a>
+
+      <a href="07-ops.html" class="chapter-card">
+        <div class="ch-tag">CH. 07</div>
+        <div class="ch-title">Les 11 opérations</div>
+        <div class="ch-desc"><code>sa</code>, <code>pb</code>, <code>ra</code>, <code>rra</code>… recâblage de pointeurs étape par étape.</div>
+      </a>
+
+      <div class="part-divider">PARTIE IV — LES ALGORITHMES</div>
+
+      <a href="08-petits-tris.html" class="chapter-card">
+        <div class="ch-tag">CH. 08</div>
+        <div class="ch-title">Tris pour petites piles</div>
+        <div class="ch-desc"><code>sort_3</code> (6 cas hardcodés), <code>sort_5</code> (déléguer à <code>sort_3</code>), <code>is_sorted</code>.</div>
+      </a>
+
+      <a href="09-turk.html" class="chapter-card">
+        <div class="ch-tag">CH. 09</div>
+        <div class="ch-title">L'algorithme Turk</div>
+        <div class="ch-desc">Indexation, chunks, <code>push_to_b</code>, <code>push_back_to_a</code> — le cœur du projet.</div>
+      </a>
+
+      <a href="10-pipeline.html" class="chapter-card">
+        <div class="ch-tag">CH. 10</div>
+        <div class="ch-title">Le pipeline complet</div>
+        <div class="ch-desc"><code>main</code> ligne par ligne, gestion d'erreurs, cleanup, lifecycle.</div>
+      </a>
+
+      <div class="part-divider">PARTIE V — QUALITÉ &amp; DÉFENSE</div>
+
+      <a href="11-tests.html" class="chapter-card">
+        <div class="ch-tag">CH. 11</div>
+        <div class="ch-title">Tests &amp; qualité</div>
+        <div class="ch-desc">Testers communautaires, valgrind, norminette, edge cases qu'on a couverts.</div>
+      </a>
+
+      <a href="12-peer-eval.html" class="chapter-card">
+        <div class="ch-tag">CH. 12</div>
+        <div class="ch-title">Préparation peer-eval</div>
+        <div class="ch-desc">Questions classiques, comment expliquer Turk en 2 min, justifier l'usage de l'IA.</div>
+      </a>
+
+      <a href="13-meta.html" class="chapter-card">
+        <div class="ch-tag">CH. 13</div>
+        <div class="ch-title">Méta &amp; patterns réutilisables</div>
+        <div class="ch-desc">Ce que push_swap t'apprend pour la suite : pointeurs, parcours, helper static + wrapper, etc.</div>
+      </a>
+    </section>
+
+    <section>
+      <h2><span class="num">§</span>Annexes &amp; liens utiles</h2>
+      <p>Tu peux compléter ce manuel avec les fiches animées déjà déployées :</p>
+      <ul>
+        <li><a href="../pointeurs-stack-A-Z.html">Fiche complète pointeurs &amp; linked lists</a> — pour les bases</li>
+        <li><a href="../linked-list-video.html">Linked list — vidéo</a></li>
+        <li><a href="../rotate-step-by-step.html"><code>rotate</code> step-by-step</a></li>
+        <li><a href="../reverse-rotate-step-by-step.html"><code>reverse_rotate</code> step-by-step</a></li>
+        <li><a href="../push-operation-video.html"><code>pa</code> / <code>pb</code> visualisé</a></li>
+        <li><a href="../sort5-step-by-step.html"><code>sort_5</code> step-by-step</a></li>
+        <li><a href="../chunk-max-explained.html"><code>chunk_max</code> en détail</a></li>
+        <li><a href="../push-to-b-iteration.html"><code>push_to_b</code> — itération</a></li>
+        <li><a href="../turk-full-process.html">Turk — simulateur interactif complet</a></li>
+        <li><a href="../last-vs-firstnext.html"><code>last</code> vs <code>first-&gt;next</code></a></li>
+        <li><a href="../src-equals-head.html">Pourquoi <code>*src = head</code> ?</a></li>
+      </ul>
+    </section>
+
+    <footer style="margin-top: 60px; padding-top: 20px; border-top: 2px dashed var(--muted); font-family: 'Caveat', cursive; color: var(--muted); text-align: center;">
+      gitbook compagnon de push_swap — projet 42 par <b>rrohrer</b> (loopy)
+    </footer>
+  </main>
+
+</div>
+
+</body>
+</html>

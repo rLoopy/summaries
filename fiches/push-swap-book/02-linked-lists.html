@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 02 — Linked lists &amp; t_stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie I <span class="sep">/</span> Chapitre 02</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Pourquoi pas un tableau ?</a></li>
+      <li><a href="#s2">Le concept de "node"</a></li>
+      <li><a href="#s3">Chaîner les nodes</a></li>
+      <li><a href="#s4">NULL = fin de chaîne</a></li>
+      <li><a href="#s5">Le head</a></li>
+      <li><a href="#s6">La struct <code>t_stack</code></a></li>
+      <li><a href="#s7"><code>.</code> vs <code>-&gt;</code></a></li>
+      <li><a href="#s8">Parcourir une chaîne</a></li>
+      <li><a href="#s9">Modifier vs lire</a></li>
+      <li><a href="#s10">Le pattern 2 pointeurs</a></li>
+      <li><a href="#s11">Memory leaks &amp; dangling pointers</a></li>
+      <li><a href="#s12">Récap &amp; auto-éval</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><b>2. Linked lists</b></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE I · CHAPITRE 02</div>
+      <h1>Linked lists &amp; <code>t_stack</code></h1>
+      <div class="ch-sub">la structure de données de push_swap : pourquoi, comment, et les pièges</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">2.1</span>Pourquoi pas un tableau ?</h2>
+
+      <p>Pour stocker une pile de nombres, deux structures candidates :</p>
+
+      <div class="compare">
+        <div class="col good">
+          <h4>Tableau (int *arr)</h4>
+          <ul>
+            <li>Accès direct à n'importe quel index : <code>arr[5]</code> instantané</li>
+            <li>Mémoire contigüe = cache-friendly</li>
+            <li>Taille <b>fixée</b> au malloc initial</li>
+            <li><b>Insérer au début</b> = décaler tout le reste → O(n)</li>
+            <li><b>Push/pop au top</b> = décaler tout → O(n)</li>
+          </ul>
+        </div>
+        <div class="col good">
+          <h4>Linked list (t_stack *)</h4>
+          <ul>
+            <li>Pas d'accès direct : pour aller au 5e, on doit parcourir</li>
+            <li>Mémoire dispersée</li>
+            <li>Taille <b>dynamique</b> : on alloue chaque node à la demande</li>
+            <li><b>Insérer/retirer au début</b> = O(1) — juste reconnecter</li>
+            <li><b>Push/pop au top</b> = O(1) ✓</li>
+          </ul>
+        </div>
+      </div>
+
+      <p>Pour push_swap, les opérations critiques sont <code>pa</code>, <code>pb</code>, <code>sa</code>, <code>sb</code> qui touchent au <b>top de la pile</b>. La linked list excelle là-dessus (O(1) pour push/pop). C'est pour ça qu'on choisit cette structure.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Bonus pédagogique</div>
+        Le tableau pourrait aussi marcher, mais alors :
+        <ul>
+          <li>tu devrais pré-allouer pour la taille max</li>
+          <li>chaque <code>pa</code>/<code>pb</code> coûte O(n) (décalage des éléments) → algo Turk consomme plus d'ops
+          </li>
+        </ul>
+        Beaucoup d'étudiants utilisent un tableau quand même (souvent avec un index "top" qui flotte). C'est valide, mais moins élégant.
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">2.2</span>Le concept de "node"</h2>
+
+      <p>Un <b>node</b> (ou nœud) est une <b>petite boîte</b> en mémoire qui contient deux choses :</p>
+
+      <ol>
+        <li>Une <b>donnée</b> (pour nous : un <code>int</code>)</li>
+        <li>Un <b>pointeur vers le node suivant</b> dans la chaîne</li>
+      </ol>
+
+      <div class="ascii">  ┌─────────────────┐
+  │  val   : 42     │  ← la donnée
+  │  next  : 0x7FB0 │  ← l'adresse du node suivant
+  └─────────────────┘
+</div>
+
+      <p>Le node ne sait pas qui est avant lui (chaîne simple), il sait juste qui est après. C'est ce qu'on appelle une <b>singly linked list</b>.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Doubly linked list ?</div>
+        Il existe aussi des <b>doubly linked lists</b> où chaque node a <code>prev</code> et <code>next</code>. Plus pratique pour parcourir dans les 2 sens, mais plus de mémoire et plus de code. Pour push_swap, <b>une simple chaîne suffit</b> — la spec n'oblige pas, et tu ne fais que des opérations qui n'ont pas besoin de remonter.
+      </div>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">2.3</span>Chaîner les nodes</h2>
+
+      <p>Plusieurs nodes ensemble forment une <b>chaîne</b>. Chacun pointe sur le suivant via son champ <code>next</code> :</p>
+
+      <div class="memory">
+        <div class="title">chaîne de 4 nodes (valeurs 3, 1, 4, 2)</div>
+        <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3<br>next=0x7FB0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1<br>next=0x7FC0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FC0</span><span class="val">val=4<br>next=0x7FD0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FD0</span><span class="val">val=2<br>next=?</span></div>
+      </div>
+
+      <p>Observations importantes :</p>
+
+      <ul>
+        <li>Les adresses (<code>0x7FA0</code>, <code>0x7FB0</code>...) ne sont <b>pas forcément consécutives</b>. J'ai aligné pour la lisibilité, mais en vrai elles peuvent être dispersées partout en RAM. Chaque <code>malloc</code> donne où il peut.</li>
+        <li>Ce qui relie les nodes, c'est <b>uniquement le champ <code>next</code></b>. Si tu perds un <code>next</code>, tu perds tout ce qui suit.</li>
+        <li>Le dernier node a son <code>next</code> à <code>?</code> pour l'instant — on va voir tout de suite ce qu'on met dedans.</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">2.4</span><code>NULL</code> = fin de chaîne</h2>
+
+      <p>Convention universelle des linked lists : le dernier node a son champ <code>next = NULL</code>. C'est le <b>marqueur de fin</b>.</p>
+
+      <div class="memory">
+        <div class="title">chaîne complète avec marqueur de fin</div>
+        <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3<br>next=0x7FB0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1<br>next=0x7FC0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FC0</span><span class="val">val=4<br>next=0x7FD0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FD0</span><span class="val">val=2<br>next=<b>NULL</b></span></div>
+      </div>
+
+      <p>Quand ton code parcourt la chaîne et arrive sur un node avec <code>next == NULL</code>, il sait que la chaîne est finie.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Pourquoi NULL ?</div>
+        <code>NULL</code> est par convention l'adresse <code>0x0</code> (ou un équivalent). Aucun objet utilisateur ne vit jamais à cette adresse. Le système la réserve comme "adresse invalide". C'est parfait comme sentinelle parce qu'on est sûr qu'aucune adresse réelle ne sera confondue avec.
+        <br><br>
+        Le test <code>if (!ptr)</code> est équivalent à <code>if (ptr == NULL)</code>.
+      </div>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">2.5</span>Le head — l'entrée de la chaîne</h2>
+
+      <p>Pour pouvoir accéder à la chaîne <b>depuis l'extérieur</b>, tu as besoin d'une <b>variable qui pointe sur le premier node</b>. C'est le <b>head</b>.</p>
+
+      <div class="memory">
+        <div class="title">le head pointe sur la 1ère boîte</div>
+        <div class="cell highlight">
+          <span class="addr">0x100</span>
+          <span class="val">0x7FA0</span>
+        </div>
+        <span style="font-family: 'Caveat', cursive; font-size: 16px;">← variable head (sur la stack)</span>
+        <br><br>
+        <span class="arrow-h">↓ pointe vers</span>
+        <br><br>
+        <div class="cell heap"><span class="addr">0x7FA0</span><span class="val">val=3<br>next=0x7FB0</span></div>
+        <span class="arrow-h">→</span>
+        <div class="cell heap"><span class="addr">0x7FB0</span><span class="val">val=1<br>next=NULL</span></div>
+      </div>
+
+      <p>Quelques précisions importantes :</p>
+
+      <ul>
+        <li>Le head est une variable <b>séparée</b> de la chaîne. Souvent une variable locale sur la stack, qui contient l'adresse du premier node sur le heap.</li>
+        <li>Si <code>head == NULL</code>, c'est que la pile est <b>vide</b>.</li>
+        <li>Dans push_swap, on a 2 piles → 2 variables head : <code>stack_a</code> et <code>stack_b</code>.</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Perdre le head = catastrophe</div>
+        Si tu écrases la variable head sans avoir sauvegardé son ancienne valeur, tu perds <b>tous</b> les nodes en aval. Ils sont toujours en RAM, mais tu n'as plus aucun moyen d'y accéder.<br>
+        → <b>Memory leak permanent</b>. valgrind te le signalera : "X bytes lost in N blocks".
+      </div>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">2.6</span>La struct <code>t_stack</code></h2>
+
+      <p>Maintenant en C, voilà comment on définit cette structure de node :</p>
+
+      <pre class="code"><span class="kw">typedef struct</span> <span class="type">s_stack</span>
+{
+    <span class="kw">int</span>              val;
+    <span class="kw">struct</span> <span class="type">s_stack</span>  *next;
+}   <span class="type">t_stack</span>;</pre>
+
+      <p>Décortiquons :</p>
+
+      <ul>
+        <li><code>typedef struct s_stack {...} t_stack;</code> = "définis un type <code>t_stack</code> qui est un alias pour <code>struct s_stack</code>". Sans ce <code>typedef</code>, tu devrais écrire <code>struct s_stack *node;</code> partout, ce qui est lourd.</li>
+        <li>Champ <code>int val</code> : la valeur stockée (4 octets).</li>
+        <li>Champ <code>struct s_stack *next</code> : un pointeur vers un autre node du même type. <b>Note le <code>struct s_stack</code></b> dans la définition de <code>next</code> — c'est obligatoire parce que à ce moment-là, <code>t_stack</code> n'existe pas encore (le <code>typedef</code> n'est pas terminé).</li>
+      </ul>
+
+      <h3>Taille en mémoire</h3>
+
+      <div class="ascii">  4 octets   : int val
+  8 octets   : pointeur next (sur 64-bit Linux)
+  4 octets   : padding (alignement mémoire)
+  ─────────
+ 16 octets total
+</div>
+
+      <div class="callout note">
+        <div class="lbl">★ Padding ?</div>
+        Le compilateur ajoute des octets de "remplissage" pour aligner les champs sur des frontières de mots-mémoire (multiples de 8 sur 64-bit). C'est invisible pour toi mais ça explique pourquoi <code>sizeof(t_stack) = 16</code> et pas 12.
+      </div>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">2.7</span><code>.</code> vs <code>-&gt;</code></h2>
+
+      <p>Pour accéder à un champ d'une struct, deux syntaxes selon que tu as la struct elle-même ou un pointeur :</p>
+
+      <table>
+        <tr><th>Tu as...</th><th>Pour lire <code>val</code></th><th>Pour modifier <code>next</code></th></tr>
+        <tr><td><code>t_stack box;</code> (la struct directe)</td><td><code>box.val</code></td><td><code>box.next = ...</code></td></tr>
+        <tr><td><code>t_stack *node;</code> (un pointeur vers struct)</td><td><code>node-&gt;val</code></td><td><code>node-&gt;next = ...</code></td></tr>
+      </table>
+
+      <pre class="code"><span class="type">t_stack</span> box;             <span class="com">// struct directe sur la stack</span>
+box.val = <span class="num">42</span>;             <span class="com">// point pour la struct directe</span>
+
+<span class="type">t_stack</span> *p = &amp;box;        <span class="com">// p est un pointeur vers box</span>
+p-&gt;val = <span class="num">42</span>;              <span class="com">// flèche pour le pointeur</span>
+
+<span class="com">// les deux sont équivalents :</span>
+p-&gt;val
+(*p).val             <span class="com">// déréf + point — personne n'écrit comme ça</span></pre>
+
+      <div class="callout key">
+        <div class="lbl">★ Mnémo</div>
+        La flèche <code>-&gt;</code> fait <b>deux choses d'un coup</b> :
+        <ol>
+          <li>déréférence le pointeur (suit l'adresse jusqu'à la struct)</li>
+          <li>accède au champ</li>
+        </ol>
+        En push_swap, comme on travaille presque uniquement avec des <code>t_stack *</code>, tu vas toujours utiliser <code>-&gt;</code>.
+      </div>
+
+      <h3>Chaîner les <code>-&gt;</code></h3>
+
+      <p>Tu peux enchaîner les flèches :</p>
+
+      <pre class="code">node-&gt;next            <span class="com">// le node suivant</span>
+node-&gt;next-&gt;val       <span class="com">// la valeur du 2e node</span>
+node-&gt;next-&gt;next      <span class="com">// le 3e node</span>
+node-&gt;next-&gt;next-&gt;val <span class="com">// la valeur du 3e node</span></pre>
+
+      <p>Chaque <code>-&gt;</code> avance d'un cran dans la chaîne <b>et</b> récupère un champ.</p>
+
+      <h3>Le piège du <code>t_stack **</code></h3>
+
+      <p>Quand tu as <code>t_stack **stack</code>, tu dois d'abord déréférencer pour atteindre le node, <b>puis</b> utiliser <code>-&gt;</code>. Avec les bonnes parenthèses :</p>
+
+      <pre class="code">(*stack)-&gt;val      <span class="com">// ✓ déréf stack, puis ->val</span>
+*stack-&gt;val        <span class="com">// ✗ interprété comme *(stack->val), erreur</span></pre>
+
+      <p>La priorité du C : <code>-&gt;</code> est plus prioritaire que <code>*</code>. Donc <code>*stack-&gt;val</code> = <code>*(stack-&gt;val)</code> = tentative d'accéder à <code>val</code> sur un <code>t_stack **</code>, qui n'a pas de champ <code>val</code>. <b>Erreur de compilation.</b></p>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Règle</div>
+        Dès que tu as un <code>**</code>, mets <b>toujours</b> des parenthèses pour le déréférencement avant <code>-&gt;</code> :
+        <ul style="margin-bottom: 0;">
+          <li><code>(*stack)-&gt;val</code> ✓</li>
+          <li><code>(*stack)-&gt;next</code> ✓</li>
+          <li><code>(*stack)-&gt;next-&gt;val</code> ✓ (les autres flèches n'ont pas besoin de parenthèses)</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">2.8</span>Parcourir une chaîne avec un curseur</h2>
+
+      <p>Pour visiter chaque node d'une linked list, le pattern universel utilise un <b>curseur</b> : une variable qui pointe sur le node courant, qu'on fait avancer de node en node.</p>
+
+      <pre class="code"><span class="type">t_stack</span> *cur = head;        <span class="com">// le curseur part du head</span>
+<span class="kw">while</span> (cur)                  <span class="com">// tant qu'on n'est pas tombé sur NULL</span>
+{
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, cur-&gt;val);    <span class="com">// fais un truc avec le node courant</span>
+    cur = cur-&gt;next;          <span class="com">// avance d'un cran</span>
+}</pre>
+
+      <p>Déroulement sur <code>[3, 1, 4]</code> :</p>
+
+      <div class="ascii">étape 0 : cur = head pointe sur [3]
+   on traite 3
+   cur = cur->next  → cur pointe sur [1]
+
+étape 1 : cur pointe sur [1]
+   on traite 1
+   cur = cur->next  → cur pointe sur [4]
+
+étape 2 : cur pointe sur [4]
+   on traite 4
+   cur = cur->next  → cur = NULL
+
+étape 3 : cur = NULL → la condition while(cur) devient fausse → on sort
+</div>
+
+      <h3>Variante : s'arrêter <b>sur</b> le dernier</h3>
+
+      <p>Parfois tu veux t'arrêter sur le <b>dernier</b> node, pas après. Par exemple si tu veux y attacher un nouveau node à la fin. Dans ce cas, la condition de boucle change :</p>
+
+      <pre class="code"><span class="type">t_stack</span> *cur = head;
+<span class="kw">while</span> (cur-&gt;next)       <span class="com">// tant que le SUIVANT existe</span>
+    cur = cur-&gt;next;     <span class="com">// avance</span>
+<span class="com">// ici : cur est sur le dernier node (cur->next == NULL)</span></pre>
+
+      <div class="callout key">
+        <div class="lbl">★ Différence cruciale</div>
+        <ul style="margin-bottom: 0;">
+          <li><code>while (cur)</code> → s'arrête quand <b>cur</b> est NULL (tu es passé après la fin).</li>
+          <li><code>while (cur-&gt;next)</code> → s'arrête quand <b>le suivant</b> est NULL (tu es pile sur le dernier).</li>
+        </ul>
+        Le choix dépend de <b>ce que tu veux faire à la fin de la boucle</b> :
+        <ul style="margin-bottom: 0;">
+          <li>Compter / afficher → <code>while (cur)</code></li>
+          <li>Attacher à la fin → <code>while (cur-&gt;next)</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">2.9</span>Modifier vs lire — le piège des champs</h2>
+
+      <p>Une subtilité critique : <b>variables locales</b> vs <b>champs de struct</b>. Ils peuvent contenir la même adresse à un moment, mais ils <b>évoluent indépendamment</b>.</p>
+
+      <pre class="code"><span class="type">t_stack</span> *cur = head;       <span class="com">// cur et head pointent sur le même node initialement</span>
+cur = cur-&gt;next;            <span class="com">// modifier cur ne touche PAS head</span></pre>
+
+      <h3>Exemple concret du piège</h3>
+
+      <p>Disons qu'on a <code>head → [3] → [1] → [4] → NULL</code> et on fait :</p>
+
+      <pre class="code"><span class="type">t_stack</span> *first = head;     <span class="com">// first pointe sur [3]</span>
+<span class="type">t_stack</span> *cur   = head;     <span class="com">// cur aussi pointe sur [3]</span>
+cur = cur-&gt;next;            <span class="com">// cur pointe maintenant sur [1]</span>
+<span class="com">// first → [3], cur → [1]   ─ ils ont divergé !</span></pre>
+
+      <p>Maintenant attention : <code>first-&gt;next</code> est-il égal à <code>cur</code> ?</p>
+
+      <p><b>Oui à cet instant</b> : <code>first-&gt;next</code> = adresse de [1] = ce que vaut <code>cur</code>. Mais c'est une coïncidence, pas une équivalence permanente.</p>
+
+      <p>Si on continue :</p>
+
+      <pre class="code">cur = cur-&gt;next;     <span class="com">// cur pointe sur [4]</span>
+<span class="com">// first->next pointe TOUJOURS sur [1] — on ne l'a pas modifié</span>
+<span class="com">// cur pointe sur [4] — la variable cur a bougé, mais le champ next de [3] n'a pas changé</span></pre>
+
+      <div class="callout key">
+        <div class="lbl">★ La distinction fondamentale</div>
+        <ul>
+          <li><b>Variable locale</b> (comme <code>cur</code>, <code>first</code>) : une boîte sur la stack qui contient une adresse. Tu peux la modifier sans affecter le monde extérieur.</li>
+          <li><b>Champ de struct</b> (comme <code>node-&gt;next</code>) : un emplacement <b>à l'intérieur d'un node</b> sur le heap. Le modifier change la chaîne pour tous ceux qui accèdent à ce node.</li>
+        </ul>
+      </div>
+
+      <p>👉 Pour visualiser ce concept en détail : <a href="../last-vs-firstnext.html">la fiche animée last vs first-&gt;next</a></p>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">2.10</span>Le pattern 2 pointeurs (fixe + curseur)</h2>
+
+      <p>Beaucoup d'algorithmes sur linked lists utilisent <b>2 pointeurs simultanément</b> : un qui reste fixe quelque part, et un autre qui marche.</p>
+
+      <h3>Pourquoi on en a besoin ?</h3>
+
+      <p>Imagine que tu veux <b>rotate</b> la pile : déplacer le 1er node à la fin. Tu dois :</p>
+
+      <ol>
+        <li>Te souvenir du 1er node (pour pouvoir le déplacer après)</li>
+        <li>Marcher jusqu'au dernier (pour pouvoir attacher le 1er derrière lui)</li>
+      </ol>
+
+      <p>Avec un seul curseur, c'est impossible : dès que tu avances, tu perds la référence au 1er.</p>
+
+      <p>Solution : <b>2 pointeurs</b> :</p>
+
+      <pre class="code"><span class="type">t_stack</span> *first = *stack;          <span class="com">// pointeur FIXE sur le 1er node</span>
+<span class="type">t_stack</span> *last  = *stack;          <span class="com">// pointeur CURSEUR qui va marcher</span>
+
+<span class="com">// On fait avancer last (pas first) jusqu'au dernier node</span>
+<span class="kw">while</span> (last-&gt;next)
+    last = last-&gt;next;
+
+<span class="com">// Maintenant : first → [3] (le 1er), last → [2] (le dernier)</span>
+<span class="com">// On peut faire les manipulations qui les utilisent tous les deux</span></pre>
+
+      <p>C'est le pattern qu'on utilise dans <code>rotate</code> et <code>reverse_rotate</code>. On y revient en détail au Ch. 07.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Quand 1 seul pointeur suffit</div>
+        Pour les algos qui <b>ne reviennent jamais en arrière</b> (compter, afficher, free), un seul curseur suffit. Le 2e pointeur n'est nécessaire que si tu dois manipuler 2 endroits de la chaîne simultanément.
+      </div>
+    </section>
+
+    <section id="s11">
+      <h2><span class="num">2.11</span>Memory leaks &amp; dangling pointers</h2>
+
+      <h3>Memory leak</h3>
+
+      <p>Une <b>fuite mémoire</b> se produit quand tu perds l'accès à de la mémoire mallocée sans la free. Elle reste allouée jusqu'à la fin du programme.</p>
+
+      <pre class="code"><span class="type">t_stack</span> *a = <span class="fn">stack_new</span>(<span class="num">42</span>);   <span class="com">// alloue sur le heap, adresse = 0x7FA0</span>
+a = <span class="num">NULL</span>;                       <span class="com">// on perd l'adresse !</span>
+<span class="com">// La zone 0x7FA0 est toujours allouée mais inaccessible : leak</span></pre>
+
+      <p>Dans une linked list, perdre le head = perdre TOUS les nodes :</p>
+
+      <pre class="code"><span class="type">t_stack</span> *a = <span class="fn">build_stack</span>(values, <span class="num">100</span>);   <span class="com">// 100 nodes alloués</span>
+a = <span class="num">NULL</span>;                                <span class="com">// 100 nodes lost</span></pre>
+
+      <h3>Dangling pointer</h3>
+
+      <p>Un <b>pointeur fantôme</b> pointe sur de la mémoire <b>déjà libérée</b>. Lire/écrire dessus = comportement indéfini (crash, corruption, données aléatoires).</p>
+
+      <pre class="code"><span class="type">t_stack</span> *node = <span class="fn">stack_new</span>(<span class="num">42</span>);
+<span class="fn">free</span>(node);                    <span class="com">// node pointe maintenant sur de la mémoire libérée</span>
+<span class="kw">int</span> v = node-&gt;val;             <span class="com">// DANGER : comportement indéfini</span></pre>
+
+      <p>La bonne pratique : <b>après chaque free, mettre le pointeur à NULL</b> :</p>
+
+      <pre class="code"><span class="fn">free</span>(node);
+node = <span class="num">NULL</span>;                <span class="com">// maintenant tout test `if (node)` sait que c'est invalide</span></pre>
+
+      <p>C'est exactement ce qu'on fait dans <code>stack_free</code> à la fin avec <code>*stack = NULL</code> — pour que la variable de l'appelant pointe sur du vide propre.</p>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Double-free</div>
+        Conséquence d'un dangling pointer : si tu appelles <code>free</code> deux fois sur le même pointeur, c'est un <b>double-free</b>. Crash quasi-immédiat. Mettre à NULL après free protège contre ça : <code>free(NULL)</code> est légal et ne fait rien.
+      </div>
+    </section>
+
+    <section id="s12">
+      <h2><span class="num">2.12</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les 10 concepts à retenir</div>
+        <ol style="margin-bottom: 0;">
+          <li>Linked list = chaîne de nodes reliés par leur champ <code>next</code>.</li>
+          <li>Le dernier node a <code>next = NULL</code> (marqueur de fin).</li>
+          <li>Le <b>head</b> = pointeur sur le 1er node (ou NULL si pile vide).</li>
+          <li><code>typedef struct s_stack { int val; struct s_stack *next; } t_stack;</code></li>
+          <li>Accès aux champs : <code>node-&gt;val</code> via pointeur, <code>(*stack)-&gt;val</code> via double pointeur.</li>
+          <li>Parcours classique : <code>cur = head; while (cur) cur = cur-&gt;next;</code></li>
+          <li>Variante "arrêt sur dernier" : <code>while (cur-&gt;next)</code>.</li>
+          <li>Pour les algos qui manipulent 2 endroits de la chaîne, utiliser <b>2 pointeurs</b> (un fixe, un curseur).</li>
+          <li><b>Memory leak</b> : on perd l'accès à du heap sans free. <b>Dangling pointer</b> : on accède à du heap déjà freed.</li>
+          <li>Après <code>free</code>, mettre le pointeur à NULL pour éviter double-free et accès invalides.</li>
+        </ol>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval du chapitre</div>
+        <details>
+          <summary>Quelle est la différence entre <code>cur = cur-&gt;next</code> et <code>cur-&gt;next = ...</code> ?</summary>
+          <div class="answer">
+            <code>cur = cur-&gt;next</code> modifie la <b>variable locale</b> <code>cur</code> pour qu'elle pointe ailleurs (avance d'un cran).<br>
+            <code>cur-&gt;next = ...</code> modifie le <b>champ next du node pointé</b> par <code>cur</code> (change la chaîne).<br>
+            Le premier modifie où on regarde, le second modifie ce qu'on regarde.
+          </div>
+        </details>
+        <details>
+          <summary>Si tu veux parcourir et compter les nodes, tu utilises <code>while (cur)</code> ou <code>while (cur-&gt;next)</code> ?</summary>
+          <div class="answer">
+            <code>while (cur)</code>. Tu veux <b>traiter chaque node</b>, y compris le dernier. <code>while (cur-&gt;next)</code> s'arrêterait sur le dernier sans le compter.
+          </div>
+        </details>
+        <details>
+          <summary>Tu free un node mais tu oublies de mettre son ancien pointeur à NULL. Que peut-il se passer ?</summary>
+          <div class="answer">
+            Si plus tard tu lis <code>node-&gt;val</code> : comportement indéfini (souvent crash, parfois lecture de mémoire corrompue).<br>
+            Si tu fais <code>free(node)</code> à nouveau : double-free, crash quasi-immédiat.<br>
+            La protection : <code>free(node); node = NULL;</code>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="01-memoire.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">01 — Mémoire &amp; pointeurs</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="03-sujet.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">03 — Le sujet décortiqué</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

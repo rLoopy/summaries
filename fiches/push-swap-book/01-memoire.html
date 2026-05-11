@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 01 — Mémoire &amp; pointeurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie I <span class="sep">/</span> Chapitre 01</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">La RAM, c'est quoi ?</a></li>
+      <li><a href="#s2">Une variable, ça vit où ?</a></li>
+      <li><a href="#s3">Adresse vs valeur</a></li>
+      <li><a href="#s4">Les types et leur taille</a></li>
+      <li><a href="#s5">Les pointeurs — le concept</a></li>
+      <li><a href="#s6">Déclarer un pointeur</a></li>
+      <li><a href="#s7">Les 2 jobs du <code>*</code></a></li>
+      <li><a href="#s8">L'opérateur <code>&amp;</code></a></li>
+      <li><a href="#s9">Déréférencer (<code>*p</code>)</a></li>
+      <li><a href="#s10">Pointeurs vers pointeurs</a></li>
+      <li><a href="#s11">Stack vs Heap</a></li>
+      <li><a href="#s12"><code>malloc</code> et <code>free</code></a></li>
+      <li><a href="#s13">Pass by value vs pointer</a></li>
+      <li><a href="#s14">Le pattern <code>**</code></a></li>
+      <li><a href="#s15">Récap &amp; auto-éval</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><b>1. Mémoire</b></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE I · CHAPITRE 01</div>
+      <h1>La mémoire et les pointeurs</h1>
+      <div class="ch-sub">le chapitre qui débloque tout — on part vraiment de zéro</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">1.1</span>La RAM, c'est quoi ?</h2>
+
+      <p>Quand ton programme tourne, il a besoin d'un endroit pour <b>stocker des trucs temporairement</b> : la valeur d'une variable, l'adresse d'un node, le résultat d'un calcul. Cet endroit, c'est la <b>RAM</b> (mémoire vive).</p>
+
+      <p>Imagine la RAM comme une <b>immense rangée de casiers numérotés</b>. Chaque casier peut contenir <b>un octet</b> (8 bits, c'est-à-dire un petit nombre entre 0 et 255).</p>
+
+      <div class="memory">
+        <div class="title">RAM (vue simplifiée — chaque case = 1 octet)</div>
+        <div class="cell"><span class="addr">0x0000</span><span class="val">?</span></div>
+        <div class="cell"><span class="addr">0x0001</span><span class="val">?</span></div>
+        <div class="cell"><span class="addr">0x0002</span><span class="val">?</span></div>
+        <div class="cell"><span class="addr">0x0003</span><span class="val">?</span></div>
+        <span class="arrow-h">…</span>
+        <div class="cell"><span class="addr">0x7FA0</span><span class="val">?</span></div>
+        <span class="arrow-h">…</span>
+        <div class="cell"><span class="addr">0xFFFF</span><span class="val">?</span></div>
+      </div>
+
+      <p>Chaque casier a une <b>adresse unique</b>, écrite en hexadécimal (notation <code>0x</code> suivie de chiffres et lettres). Par exemple : <code>0x7FA0</code> est juste un numéro de casier, comme la maison n°7FA0 dans une rue très longue.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi hexadécimal ?</div>
+        Parce que la mémoire fonctionne en binaire (puissances de 2), et l'hexadécimal compresse joliment le binaire (4 bits = 1 chiffre hexa). Tu n'as pas à te soucier de ça pour push_swap, c'est juste une convention de notation.
+      </div>
+
+      <h3>Le système choisit où mettre les choses</h3>
+
+      <p>Quand tu écris <code>int x = 42;</code>, tu <b>n'as aucun contrôle</b> sur l'endroit où le système va stocker <code>x</code>. Il choisit un casier libre, met <code>42</code> dedans, et associe le nom <code>x</code> à cette adresse pour la durée de vie de la variable.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ À retenir</div>
+        <ul style="margin-bottom: 0;">
+          <li><b>Adresse</b> = le numéro du casier (où c'est)</li>
+          <li><b>Valeur</b> = ce qu'il y a dans le casier (quoi)</li>
+        </ul>
+        Deux concepts <b>complètement différents</b> qu'on va confondre toute la suite si on ne fait pas attention.
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">1.2</span>Une variable, ça vit où ?</h2>
+
+      <p>Quand tu déclares <code>int x = 42;</code>, voilà ce qui se passe concrètement :</p>
+
+      <ol>
+        <li>Le compilateur dit au système : "réserve-moi <b>4 octets</b> consécutifs quelque part en RAM"</li>
+        <li>Le système choisit, disons, les casiers <code>0x100</code> à <code>0x103</code></li>
+        <li>Le compilateur écrit <code>42</code> dans ces 4 octets (en binaire, ça tient sur 32 bits)</li>
+        <li>Il <b>associe le nom <code>x</code></b> à l'adresse <code>0x100</code></li>
+      </ol>
+
+      <div class="memory">
+        <div class="title">après <code>int x = 42;</code></div>
+        <div class="cell highlight">
+          <span class="addr">0x100</span>
+          <span class="val">42</span>
+        </div>
+        <span style="font-family: 'Caveat', cursive; font-size: 17px; color: var(--muted); margin-left: 10px;">← c'est la variable <b>x</b></span>
+      </div>
+
+      <p>À partir de maintenant, chaque fois que tu écris <code>x</code> dans ton code, le compilateur sait que ça veut dire "va chercher la valeur au casier <code>0x100</code>".</p>
+
+      <div class="callout hint">
+        <div class="lbl">💡 Détail visuel</div>
+        Un <code>int</code> prend en réalité <b>4 octets</b> (32 bits), donc <code>x</code> occupe <code>0x100</code>, <code>0x101</code>, <code>0x102</code>, et <code>0x103</code>. On a juste écrit "0x100" pour simplifier — c'est l'<b>adresse de départ</b>.
+      </div>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">1.3</span>Adresse vs valeur</h2>
+
+      <p>Avec une variable, tu peux faire deux choses bien distinctes :</p>
+
+      <table>
+        <tr><th>Opération</th><th>Notation C</th><th>Ce que ça donne</th></tr>
+        <tr><td>Lire la valeur</td><td><code>x</code></td><td><code>42</code> (la valeur stockée)</td></tr>
+        <tr><td>Récupérer son adresse</td><td><code>&amp;x</code></td><td><code>0x100</code> (où c'est)</td></tr>
+      </table>
+
+      <p>L'opérateur <code>&amp;</code> veut dire <b>"adresse-de"</b>. Tu le connais déjà même sans le savoir, depuis <code>scanf("%d", &amp;x);</code> en débutant.</p>
+
+      <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;
+<span class="fn">printf</span>(<span class="str">"valeur de x : %d\n"</span>, x);    <span class="com">// 42</span>
+<span class="fn">printf</span>(<span class="str">"adresse de x : %p\n"</span>, &amp;x);  <span class="com">// 0x100 (par exemple)</span></pre>
+
+      <div class="check">
+        <div class="q">Auto-éval : si <code>int y = 7;</code> est stockée à <code>0x200</code>...</div>
+        <details>
+          <summary>...que valent <code>y</code> et <code>&amp;y</code> ?</summary>
+          <div class="answer">
+            <code>y</code> vaut <b>7</b> (la valeur stockée).<br>
+            <code>&amp;y</code> vaut <b>0x200</b> (l'adresse où vit la variable).
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">1.4</span>Les types et leur taille</h2>
+
+      <p>Toutes les variables ne prennent pas la même place. Le <b>type</b> détermine combien d'octets sont réservés et comment interpréter les bits dedans.</p>
+
+      <table>
+        <tr><th>Type</th><th>Taille typique</th><th>Plage</th></tr>
+        <tr><td><code>char</code></td><td>1 octet (8 bits)</td><td>-128 à 127 (ou 0 à 255 en <code>unsigned</code>)</td></tr>
+        <tr><td><code>short</code></td><td>2 octets</td><td>-32 768 à 32 767</td></tr>
+        <tr><td><code>int</code></td><td>4 octets</td><td><b>-2 147 483 648 à 2 147 483 647</b> (INT_MIN à INT_MAX)</td></tr>
+        <tr><td><code>long</code></td><td>8 octets (sur Linux 64-bit)</td><td>environ ±9.2 × 10<sup>18</sup></td></tr>
+        <tr><td><code>int *</code> (pointeur)</td><td><b>8 octets</b> sur 64-bit, 4 sur 32-bit</td><td>une adresse mémoire</td></tr>
+      </table>
+
+      <div class="callout key">
+        <div class="lbl">★ Important pour push_swap</div>
+        Les arguments arrivent en <code>char *</code> et on doit les convertir en <code>int</code>. Mais pour détecter si quelqu'un passe un nombre <b>plus grand que INT_MAX</b>, on convertit d'abord en <code>long</code> (qui a 8 octets, donc beaucoup plus de plage), puis on compare aux limites. C'est pour ça qu'on a <code>ft_atol</code> (a-to-long) et pas <code>ft_atoi</code> dans le projet.
+      </div>
+
+      <p>L'opérateur <code>sizeof</code> te donne la taille d'un type en octets :</p>
+
+      <pre class="code"><span class="kw">sizeof</span>(<span class="kw">int</span>)       <span class="com">// 4</span>
+<span class="kw">sizeof</span>(<span class="kw">char</span>)      <span class="com">// 1</span>
+<span class="kw">sizeof</span>(<span class="type">t_stack</span>)   <span class="com">// 16 (4 pour val + 8 pour next + 4 padding)</span></pre>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">1.5</span>Les pointeurs — le concept</h2>
+
+      <p>Un <b>pointeur</b>, c'est une variable comme une autre, sauf que <b>la valeur qu'elle stocke est une adresse</b>, pas un "vrai" nombre.</p>
+
+      <p>Si <code>int x = 42;</code> stocke 42, alors :</p>
+
+      <pre class="code"><span class="kw">int</span> *p = &amp;x;  <span class="com">// p stocke L'ADRESSE de x</span></pre>
+
+      <p>État mémoire après ces deux lignes :</p>
+
+      <div class="memory">
+        <div class="title">après <code>int x = 42; int *p = &amp;x;</code></div>
+        <div class="cell highlight">
+          <span class="addr">0x100</span>
+          <span class="val">42</span>
+        </div>
+        <span style="font-family: 'Caveat', cursive; font-size: 16px;">← x</span>
+        <br><br>
+        <div class="cell highlight">
+          <span class="addr">0x500</span>
+          <span class="val">0x100</span>
+        </div>
+        <span style="font-family: 'Caveat', cursive; font-size: 16px;">← p (contient l'adresse de x)</span>
+      </div>
+
+      <p><code>p</code> vit à sa propre adresse (<code>0x500</code> ici), et son contenu est <code>0x100</code> (= l'adresse de <code>x</code>). On dit que <code>p</code> "pointe sur" <code>x</code>.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Analogie</div>
+        Un pointeur, c'est comme un <b>papier sur lequel tu as noté l'adresse d'une maison</b>. Le papier lui-même est quelque part (sur ton bureau), mais ce qui est <b>écrit dessus</b>, c'est l'adresse d'une autre maison.
+      </div>
+
+      <h3>Pourquoi on a besoin de pointeurs ?</h3>
+      <ul>
+        <li>Pour pouvoir <b>modifier une variable depuis une autre fonction</b> (voir §1.13)</li>
+        <li>Pour construire des <b>structures dynamiques</b> comme les linked lists (chaque node a un pointeur vers le suivant)</li>
+        <li>Pour gérer de la <b>mémoire à durée variable</b> via <code>malloc</code> (§1.12)</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">1.6</span>Déclarer un pointeur : la syntaxe</h2>
+
+      <p>Pour déclarer un pointeur, on écrit le <b>type pointé</b>, suivi d'une <b>étoile</b>, suivi du nom :</p>
+
+      <pre class="code"><span class="kw">int</span>  *p;       <span class="com">// p est un pointeur vers int</span>
+<span class="kw">char</span> *s;       <span class="com">// s est un pointeur vers char (= une chaîne)</span>
+<span class="type">t_stack</span> *node;  <span class="com">// node est un pointeur vers t_stack</span>
+<span class="kw">int</span>  **pp;      <span class="com">// pp est un pointeur vers pointeur vers int</span></pre>
+
+      <div class="callout hint">
+        <div class="lbl">💡 Lecture de droite à gauche</div>
+        Lis <code>int **pp</code> de droite à gauche : "<code>pp</code>, c'est un pointeur (<code>*</code>), vers un pointeur (<code>*</code>), vers un int". C'est mécanique : compte les étoiles, c'est le nombre de niveaux d'indirection.
+      </div>
+
+      <h3>Initialiser un pointeur</h3>
+
+      <p>Un pointeur déclaré sans valeur contient des <b>octets aléatoires</b> (= n'importe quoi). Tu ne dois <b>jamais</b> l'utiliser tant que tu ne lui as pas assigné une vraie adresse.</p>
+
+      <pre class="code"><span class="kw">int</span> *p;             <span class="com">// p contient des octets aléatoires : DANGER</span>
+*p = <span class="num">42</span>;            <span class="com">// CRASH ou comportement indéfini !</span>
+
+<span class="kw">int</span> x = <span class="num">42</span>;
+<span class="kw">int</span> *p = &amp;x;        <span class="com">// p contient maintenant une adresse valide</span>
+*p = <span class="num">99</span>;            <span class="com">// OK : on écrit 99 à l'adresse de x → x vaut maintenant 99</span></pre>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">1.7</span>Les 2 jobs du <code>*</code></h2>
+
+      <p>C'est <b>LE</b> piège du C qui fait tomber tout le monde. Le symbole <code>*</code> a <b>deux significations complètement différentes</b> selon où il apparaît.</p>
+
+      <div class="compare">
+        <div class="col good">
+          <h4>JOB 1 — Dans un type</h4>
+          <p>Le <code>*</code> dit "<b>pointeur vers</b>". C'est une description passive du type.</p>
+          <pre class="code"><span class="kw">int</span> *p;</pre>
+          <p>→ "<code>p</code> est de type pointeur vers <code>int</code>".</p>
+          <p>Tu peux te repérer : il y a un <b>type juste avant</b> (<code>int</code>, <code>char</code>, <code>t_stack</code>...).</p>
+        </div>
+        <div class="col good">
+          <h4>JOB 2 — Dans une expression</h4>
+          <p>Le <code>*</code> dit "<b>va voir ce qu'il y a à cette adresse</b>". C'est une action.</p>
+          <pre class="code">*p = <span class="num">99</span>;</pre>
+          <p>→ "va à l'adresse stockée dans <code>p</code>, écris 99".</p>
+          <p>Tu peux te repérer : il n'y a <b>pas</b> de type juste avant.</p>
+        </div>
+      </div>
+
+      <h3>Test mental</h3>
+
+      <pre class="code"><span class="kw">int</span> *p;       <span class="com">// "int" devant → c'est un type → "p est un pointeur vers int"</span>
+*p = <span class="num">42</span>;     <span class="com">// pas de type devant → c'est une action → "écris 42 à l'adresse dans p"</span>
+
+<span class="type">t_stack</span> **stack;  <span class="com">// type → "stack est pointeur vers pointeur vers t_stack"</span>
+*stack = new;     <span class="com">// expression → "écris new à l'adresse dans stack"</span></pre>
+
+      <div class="callout key">
+        <div class="lbl">★ La règle magique</div>
+        Chaque <code>*</code> dans une <b>expression</b> <b>enlève une étoile</b> au type :
+        <ul>
+          <li><code>stack</code> est de type <code>t_stack **</code></li>
+          <li><code>*stack</code> est de type <code>t_stack *</code> (une étoile en moins)</li>
+          <li><code>**stack</code> est de type <code>t_stack</code> (deux étoiles en moins)</li>
+        </ul>
+        C'est l'inverse de la déclaration où chaque <code>*</code> en ajoute un.
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Dans <code>char **argv</code>, combien de niveaux d'indirection ?</summary>
+          <div class="answer">
+            <b>2</b>. <code>argv</code> est de type <code>char **</code>. Donc <code>*argv</code> est un <code>char *</code> (= une chaîne, le premier argument), et <code>**argv</code> est un <code>char</code> (le premier caractère du premier argument).
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">1.8</span>L'opérateur <code>&amp;</code> (adresse-de)</h2>
+
+      <p>On a vu <code>&amp;x</code> dans la §1.3, formalisons. L'opérateur <code>&amp;</code> appliqué à une variable retourne <b>son adresse en mémoire</b>.</p>
+
+      <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;          <span class="com">// x à l'adresse 0x100</span>
+<span class="kw">int</span> *p;
+p = &amp;x;             <span class="com">// p reçoit 0x100, donc p pointe sur x</span></pre>
+
+      <p>Quelques cas concrets dans push_swap :</p>
+
+      <pre class="code">parse_args(argc, argv, &amp;n);       <span class="com">// on passe l'adresse de n pour que parse_args puisse modifier n</span>
+stack_free(&amp;a);                    <span class="com">// on passe l'adresse de a pour que stack_free puisse mettre a à NULL</span>
+sort(&amp;a, &amp;b);                       <span class="com">// même logique pour les piles a et b</span></pre>
+
+      <div class="callout hint">
+        <div class="lbl">💡 Mnémo</div>
+        Le <code>&amp;</code> <b>ajoute</b> un niveau d'indirection (transforme un <code>X</code> en <code>X *</code>).<br>
+        Le <code>*</code> dans une expression <b>enlève</b> un niveau (transforme un <code>X *</code> en <code>X</code>).<br>
+        Ils sont l'inverse l'un de l'autre.
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">1.9</span>Déréférencer (<code>*p</code>)</h2>
+
+      <p>"Déréférencer", c'est suivre le pointeur jusqu'à la cible pour lire ou écrire ce qu'il y a là-bas.</p>
+
+      <h3>Lire à travers un pointeur</h3>
+
+      <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;
+<span class="kw">int</span> *p = &amp;x;
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, *p);   <span class="com">// "va à l'adresse dans p et lis la valeur" → 42</span></pre>
+
+      <h3>Écrire à travers un pointeur</h3>
+
+      <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;
+<span class="kw">int</span> *p = &amp;x;
+
+*p = <span class="num">99</span>;              <span class="com">// "va à l'adresse dans p et écris 99 là-bas"</span>
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, x);    <span class="com">// 99 — on a bien modifié x via le pointeur p</span></pre>
+
+      <p>État mémoire :</p>
+
+      <div class="ascii">avant :
+   0x100: 42    (x)
+   0x500: 0x100 (p)
+
+après *p = 99 :
+   0x100: 99    (x — modifié !)
+   0x500: 0x100 (p — inchangé)
+</div>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Le piège du pointeur NULL</div>
+        Si <code>p</code> vaut <code>NULL</code> (ou contient une adresse invalide), <code>*p</code> provoque un <b>segfault</b> immédiat. Toujours tester un pointeur avant de le déréférencer si tu n'es pas sûr :
+        <pre class="code"><span class="kw">if</span> (p != <span class="num">NULL</span>)
+    *p = <span class="num">99</span>;</pre>
+      </div>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">1.10</span>Pointeurs vers pointeurs (<code>**</code>)</h2>
+
+      <p>Un pointeur peut pointer sur n'importe quoi, y compris sur <b>un autre pointeur</b>.</p>
+
+      <pre class="code"><span class="kw">int</span> x = <span class="num">42</span>;       <span class="com">// x à 0x100</span>
+<span class="kw">int</span> *p = &amp;x;     <span class="com">// p à 0x500, contient 0x100</span>
+<span class="kw">int</span> **pp = &amp;p;   <span class="com">// pp à 0x900, contient 0x500</span></pre>
+
+      <p>Trois niveaux d'indirection :</p>
+
+      <div class="ascii">  pp ──► 0x500 ──► 0x100 ──► 42
+  (adresse de p)  (adresse de x)  (valeur de x)
+
+  pp           = 0x500     (adresse de p)
+  *pp          = 0x100     (= valeur de p = adresse de x)
+  **pp         = 42        (= valeur de x)
+</div>
+
+      <table>
+        <tr><th>Expression</th><th>Type</th><th>Valeur</th></tr>
+        <tr><td><code>pp</code></td><td><code>int **</code></td><td><code>0x500</code> (adresse de <code>p</code>)</td></tr>
+        <tr><td><code>*pp</code></td><td><code>int *</code></td><td><code>0x100</code> (valeur de <code>p</code>, = adresse de <code>x</code>)</td></tr>
+        <tr><td><code>**pp</code></td><td><code>int</code></td><td><code>42</code> (valeur de <code>x</code>)</td></tr>
+      </table>
+
+      <div class="callout key">
+        <div class="lbl">★ Pourquoi t'aurais besoin de <code>**</code> ?</div>
+        Une raison principale : <b>pouvoir modifier la valeur d'un pointeur depuis une autre fonction</b>. En push_swap, c'est exactement ce qu'on fait avec <code>t_stack **stack</code> dans <code>stack_add_bottom</code>, <code>stack_free</code>, etc. On y revient en §1.14.
+      </div>
+    </section>
+
+    <section id="s11">
+      <h2><span class="num">1.11</span>Stack vs Heap (deux zones de mémoire)</h2>
+
+      <p>Toute la mémoire de ton programme n'est <b>pas pareille</b>. Il y a deux grandes zones, avec des règles différentes :</p>
+
+      <div class="compare">
+        <div class="col good">
+          <h4>Stack (la pile d'appels)</h4>
+          <ul>
+            <li>C'est là que vivent les <b>variables locales</b></li>
+            <li>Créée et détruite <b>automatiquement</b> à chaque entrée/sortie de fonction</li>
+            <li>Très <b>rapide</b> d'accès</li>
+            <li><b>Taille limitée</b> (quelques Mo par défaut)</li>
+            <li>Tu n'as <b>aucun contrôle</b> dessus, c'est le compilateur qui décide</li>
+          </ul>
+        </div>
+        <div class="col good">
+          <h4>Heap (le tas)</h4>
+          <ul>
+            <li>C'est là que vivent les choses créées via <code>malloc</code></li>
+            <li>Tu dois <b>libérer</b> manuellement avec <code>free</code></li>
+            <li>Plus lent</li>
+            <li><b>Beaucoup plus grand</b> (peut consommer toute la RAM disponible)</li>
+            <li>Survit à la fin de la fonction qui l'a créé</li>
+          </ul>
+        </div>
+      </div>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">demo</span>(<span class="kw">void</span>)
+{
+    <span class="kw">int</span>  x = <span class="num">42</span>;                       <span class="com">// x vit sur la STACK</span>
+    <span class="kw">int</span> *p = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>));      <span class="com">// *p vit sur le HEAP</span>
+    *p = <span class="num">99</span>;
+
+    <span class="com">// À la fin de la fonction :</span>
+    <span class="com">//   x disparaît automatiquement (stack unwind)</span>
+    <span class="com">//   *p existe TOUJOURS — c'est sur le heap, le système ne le libère pas tout seul</span>
+    <span class="com">//   → fuite mémoire si on ne fait pas free(p) !</span>
+}</pre>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Erreur classique : retourner l'adresse d'une variable locale</div>
+        <pre class="code"><span class="kw">int</span> *<span class="fn">fonction_pourrie</span>(<span class="kw">void</span>)
+{
+    <span class="kw">int</span> x = <span class="num">42</span>;
+    <span class="kw">return</span> (&amp;x);   <span class="com">// x meurt ici, on retourne un pointeur vers du vide</span>
+}</pre>
+        Le pointeur retourné pointe sur de la mémoire qui ne t'appartient plus. C'est un <b>dangling pointer</b>. Comportement indéfini (souvent crash, parfois pire : corruption silencieuse).
+        <br><br>
+        Pour qu'une variable survive à la fonction, elle doit être <b>sur le heap</b> (via <code>malloc</code>).
+      </div>
+    </section>
+
+    <section id="s12">
+      <h2><span class="num">1.12</span><code>malloc</code> et <code>free</code></h2>
+
+      <p><code>malloc(n)</code> demande <b>n octets</b> sur le heap et te retourne <b>l'adresse</b> du début de cette zone. Si la RAM est saturée, il retourne <code>NULL</code>.</p>
+
+      <pre class="code"><span class="kw">int</span> *p = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>));   <span class="com">// demande 4 octets pour stocker un int</span>
+<span class="kw">if</span> (!p)                          <span class="com">// si malloc a échoué (RAM pleine)</span>
+    <span class="kw">return</span> ;                      <span class="com">// on sort, sinon segfault à la ligne suivante</span>
+*p = <span class="num">42</span>;                        <span class="com">// écris 42 dans la zone allouée</span>
+
+<span class="com">// ... plus tard, quand on a fini avec p ...</span>
+<span class="fn">free</span>(p);                          <span class="com">// libère les 4 octets — sinon memory leak</span></pre>
+
+      <h3>L'astuce <code>sizeof(*p)</code></h3>
+
+      <p>Dans <code>stack_new</code>, tu vois <code>malloc(sizeof(*node))</code> au lieu de <code>malloc(sizeof(t_stack))</code>. Les deux fonctionnent, mais le premier est <b>plus robuste</b> :</p>
+
+      <pre class="code">node = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(*node));      <span class="com">// taille de ce que pointe node, peu importe le type</span>
+node = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">t_stack</span>));    <span class="com">// taille de t_stack — si tu changes le type, faut éditer ici</span></pre>
+
+      <p>Le premier <b>s'adapte tout seul</b> si tu changes le type de <code>node</code> plus tard. C'est une convention défensive.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Règle d'or</div>
+        Chaque <code>malloc</code> doit avoir son <code>free</code> correspondant. Sinon : <b>memory leak</b>. Le programme grossit jusqu'à manquer de RAM. valgrind est ton ami pour les détecter.
+      </div>
+    </section>
+
+    <section id="s13">
+      <h2><span class="num">1.13</span>Pass by value vs pass by pointer</h2>
+
+      <p>En C, quand tu passes un argument à une fonction, la fonction reçoit <b>une copie</b> de la valeur. Si elle modifie la copie, ça <b>ne change pas l'original</b>.</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">essayer_de_modifier</span>(<span class="kw">int</span> x)
+{
+    x = <span class="num">99</span>;          <span class="com">// modifie la COPIE locale</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>(<span class="kw">void</span>)
+{
+    <span class="kw">int</span> a = <span class="num">10</span>;
+    <span class="fn">essayer_de_modifier</span>(a);
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, a);     <span class="com">// affiche 10, pas 99 !</span>
+}</pre>
+
+      <p>Pour <b>vraiment</b> modifier <code>a</code> depuis une autre fonction, on passe <b>son adresse</b> :</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">modifier_pour_de_vrai</span>(<span class="kw">int</span> *x)
+{
+    *x = <span class="num">99</span>;          <span class="com">// "va à l'adresse reçue et écris 99"</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>(<span class="kw">void</span>)
+{
+    <span class="kw">int</span> a = <span class="num">10</span>;
+    <span class="fn">modifier_pour_de_vrai</span>(&amp;a);   <span class="com">// on passe l'adresse de a</span>
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, a);          <span class="com">// affiche 99 ✓</span>
+}</pre>
+
+      <h3>État mémoire de l'appel</h3>
+
+      <div class="ascii">main :
+   a = 10  (à l'adresse 0x100)
+
+main appelle modifier_pour_de_vrai(&a) → passe 0x100
+
+modifier_pour_de_vrai :
+   x = 0x100  (adresse de a copiée dans le paramètre x)
+   *x = 99    → va à 0x100, écrit 99 → modifie le a de main
+</div>
+
+      <div class="callout key">
+        <div class="lbl">★ La règle</div>
+        Pour modifier une variable <code>v</code> depuis une fonction, il faut :
+        <ol>
+          <li>Passer <code>&amp;v</code> à la fonction</li>
+          <li>Le paramètre est de type <code>type *</code> (un cran d'indirection de plus que <code>v</code>)</li>
+          <li>Dans la fonction, on modifie via <code>*param = ...</code></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="s14">
+      <h2><span class="num">1.14</span>Le pattern <code>**</code> — modifier un pointeur</h2>
+
+      <p>On a vu que pour modifier un <code>int</code>, on prend <code>int *</code>. Par extension :</p>
+
+      <table>
+        <tr><th>Pour modifier...</th><th>Le paramètre est de type...</th></tr>
+        <tr><td><code>int x</code></td><td><code>int *</code></td></tr>
+        <tr><td><code>char *s</code></td><td><code>char **</code></td></tr>
+        <tr><td><code>t_stack *stack</code> (un pointeur vers un node)</td><td><code>t_stack **</code></td></tr>
+      </table>
+
+      <h3>Exemple concret : <code>stack_add_bottom</code></h3>
+
+      <p>On veut une fonction qui ajoute un node à la pile <code>a</code>. La pile <code>a</code> est représentée par un pointeur vers le premier node (le head). Quand la pile est <b>vide</b>, on doit changer ce pointeur (le head est maintenant le nouveau node). Sinon on ne touche pas au head, on attache à la fin.</p>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">stack_add_bottom</span>(<span class="type">t_stack</span> **stack, <span class="kw">int</span> val)
+{
+    <span class="com">// ...</span>
+    <span class="kw">if</span> (!*stack)            <span class="com">// si pile vide (le head est NULL)</span>
+        *stack = new;        <span class="com">// modifier le head depuis la fonction</span>
+    <span class="com">// ...</span>
+}</pre>
+
+      <p>Appel :</p>
+
+      <pre class="code"><span class="type">t_stack</span> *a = <span class="num">NULL</span>;
+<span class="fn">stack_add_bottom</span>(&amp;a, <span class="num">42</span>);     <span class="com">// on passe &amp;a (adresse de a), pas a</span></pre>
+
+      <h3>Lecture des expressions dans <code>stack_add_bottom</code></h3>
+
+      <table>
+        <tr><th>Expression</th><th>Type</th><th>Ce que c'est</th></tr>
+        <tr><td><code>stack</code></td><td><code>t_stack **</code></td><td>L'adresse de la variable <code>a</code> de l'appelant</td></tr>
+        <tr><td><code>*stack</code></td><td><code>t_stack *</code></td><td>La variable <code>a</code> elle-même (le head de la pile)</td></tr>
+        <tr><td><code>**stack</code></td><td><code>t_stack</code></td><td>Le node head en entier (crash si <code>*stack == NULL</code>)</td></tr>
+        <tr><td><code>(*stack)-&gt;val</code></td><td><code>int</code></td><td>La valeur du node head</td></tr>
+      </table>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Parenthèses obligatoires</div>
+        L'opérateur <code>-&gt;</code> est plus prioritaire que <code>*</code>. Donc <code>*stack-&gt;val</code> est interprété comme <code>*(stack-&gt;val)</code>, ce qui n'a pas de sens (<code>stack</code> n'a pas de champ <code>val</code>, c'est un <code>**</code>). Il faut écrire <b><code>(*stack)-&gt;val</code></b> avec les parenthèses pour forcer le bon ordre.
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval finale du chapitre</div>
+        <details>
+          <summary>Si <code>stack_add_bottom(t_stack **stack, ...)</code> et qu'on veut modifier le head, on écrit <code>stack = ...</code> ou <code>*stack = ...</code> ?</summary>
+          <div class="answer">
+            <code>*stack = ...</code>. <code>stack</code> tout court ne modifierait que la copie locale du paramètre (qui meurt à la fin de la fonction). <code>*stack</code> déréférence pour atteindre la <b>vraie</b> variable de l'appelant.
+          </div>
+        </details>
+        <details>
+          <summary>Pour le test "pile vide", on écrit <code>!stack</code> ou <code>!*stack</code> ?</summary>
+          <div class="answer">
+            <code>!*stack</code>. La pile est vide si le <b>head</b> est NULL, et le head c'est <code>*stack</code>. <code>!stack</code> testerait si l'adresse même est NULL, ce qui n'arriverait que si quelqu'un appelait <code>stack_add_bottom(NULL, 42)</code> — un cas absurde.
+          </div>
+        </details>
+        <details>
+          <summary>Pour passer une variable <code>t_stack *a</code> en argument et permettre à la fonction de modifier <code>a</code>, on écrit l'appel comment ?</summary>
+          <div class="answer">
+            <code>stack_add_bottom(&amp;a, val);</code> — avec l'opérateur <code>&amp;</code> pour récupérer l'adresse de <code>a</code>.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="s15">
+      <h2><span class="num">1.15</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les 10 concepts à retenir</div>
+        <ol style="margin-bottom: 0;">
+          <li>La RAM = une rangée de casiers numérotés (octets).</li>
+          <li>Chaque variable a une <b>adresse</b> (où) et une <b>valeur</b> (quoi).</li>
+          <li>L'opérateur <code>&amp;</code> donne l'adresse d'une variable.</li>
+          <li>Un <b>pointeur</b> est une variable qui contient une adresse.</li>
+          <li>Le <code>*</code> a 2 jobs : dans un type (description) vs dans une expression (action de déréférencement).</li>
+          <li>Chaque <code>*</code> en expression enlève une étoile au type.</li>
+          <li>Stack = mémoire auto, courte durée. Heap = mémoire <code>malloc</code>, longue durée.</li>
+          <li>Pour modifier une variable depuis une fonction, passer <code>&amp;var</code> et le paramètre est <code>type *</code>.</li>
+          <li>Pour modifier un pointeur depuis une fonction, paramètre est <code>type **</code>.</li>
+          <li>Parenthèses obligatoires : <code>(*stack)-&gt;val</code>, pas <code>*stack-&gt;val</code>.</li>
+        </ol>
+      </div>
+
+      <p>Si un de ces points est encore flou, retourne le relire avant d'attaquer le chapitre suivant. Tout ce qui va suivre repose dessus.</p>
+    </section>
+
+    <div class="nav-bottom">
+      <div class="placeholder"></div>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="02-linked-lists.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">02 — Linked lists &amp; t_stack</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
