@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 03 — Le sujet décortiqué</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie II <span class="sep">/</span> Chapitre 03</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">L'énoncé en une phrase</a></li>
+      <li><a href="#s2">Les 2 piles a et b</a></li>
+      <li><a href="#s3">Les 11 opérations détaillées</a></li>
+      <li><a href="#s4">Format d'entrée &amp; sortie</a></li>
+      <li><a href="#s5">Erreurs à gérer</a></li>
+      <li><a href="#s6">Contraintes techniques (norme)</a></li>
+      <li><a href="#s7">Benchmarks de validation</a></li>
+      <li><a href="#s8">Le checker_OS</a></li>
+      <li><a href="#s9">Le bonus (checker)</a></li>
+      <li><a href="#s10">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><b>3. Le sujet</b></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE II · CHAPITRE 03</div>
+      <h1>Le sujet décortiqué</h1>
+      <div class="ch-sub">11 opérations, 2 piles, et un objectif : trier avec le minimum d'instructions</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">3.1</span>L'énoncé en une phrase</h2>
+
+      <p>Le sujet officiel push_swap (v10.1) tient en une phrase :</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Le sujet</div>
+        Écrire un programme C nommé <code>push_swap</code> qui prend en argument une liste d'entiers, et qui <b>affiche la séquence d'instructions la plus courte possible</b> pour trier cette liste en ordre croissant, en utilisant 2 piles et 11 opérations spécifiques.
+      </div>
+
+      <p>Décortiqué :</p>
+
+      <ul>
+        <li>Tu ne tries <b>pas vraiment</b> dans le sens "tu n'affiches pas la liste triée".</li>
+        <li>Tu calcules <b>la liste des coups à jouer</b> pour qu'un robot suiveur, en exécutant ces coups, arrive à une pile triée.</li>
+        <li>Le scoring se fait sur le <b>nombre d'instructions</b> : moins tu en imprimes, mieux c'est noté.</li>
+      </ul>
+
+      <h3>Exemple complet</h3>
+
+      <pre class="code">$ ./push_swap 2 1 3 6 5 8
+sa
+pb
+pb
+pb
+sa
+pa
+pa
+pa</pre>
+
+      <p>Tu affiches 8 lignes (= 8 opérations). Un programme externe (le <b>checker</b>) prendra ces 8 ops et les exécutera sur la pile <code>[2, 1, 3, 6, 5, 8]</code>. À la fin, si la pile est <code>[1, 2, 3, 5, 6, 8]</code>, c'est bon.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">3.2</span>Les 2 piles a et b</h2>
+
+      <p>Tu disposes de <b>2 piles</b>, nommées <code>a</code> et <code>b</code>. État initial :</p>
+
+      <ul>
+        <li><code>a</code> contient les <b>entiers passés en argument</b>, dans l'ordre des arguments. <b>Le premier argument = top de la pile</b>.</li>
+        <li><code>b</code> est <b>vide</b>.</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Ordre top/bottom — piège classique</div>
+        Le sujet précise : "<i>The first argument should be at the top of the stack (be careful about the order).</i>" Donc pour <code>./push_swap 3 1 4 1 5</code>, la pile <code>a</code> a <b>3 en top</b> et <b>5 en bottom</b>. Beaucoup d'étudiants inversent au début et leur code semble marcher sur des cas symétriques mais fail sur les vrais tests.
+      </div>
+
+      <h3>Représentation textuelle vs visuelle</h3>
+
+      <div class="compare">
+        <div class="col good">
+          <h4>Notation linéaire (utilisée dans ce manuel)</h4>
+          <pre class="code">a = [3, 1, 4, 1, 5]
+       ↑          ↑
+      top      bottom</pre>
+        </div>
+        <div class="col good">
+          <h4>Notation verticale (utilisée dans le sujet)</h4>
+          <pre class="code">    3    ← top
+    1
+    4
+    1
+    5    ← bottom</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">3.3</span>Les 11 opérations détaillées</h2>
+
+      <p>Tu ne peux utiliser <b>que</b> ces 11 instructions. C'est la contrainte centrale du projet.</p>
+
+      <h3>Swap (échange top et 2e)</h3>
+
+      <table>
+        <tr><th>Op</th><th>Action</th><th>Cas où l'op ne fait rien</th></tr>
+        <tr><td><code>sa</code></td><td>Swap les 2 premiers de <code>a</code></td><td>si <code>a</code> a moins de 2 éléments</td></tr>
+        <tr><td><code>sb</code></td><td>Swap les 2 premiers de <code>b</code></td><td>si <code>b</code> a moins de 2 éléments</td></tr>
+        <tr><td><code>ss</code></td><td><code>sa</code> + <code>sb</code> en même temps</td><td>chacune indépendamment</td></tr>
+      </table>
+
+      <h3>Push (déplacement entre piles)</h3>
+
+      <table>
+        <tr><th>Op</th><th>Action</th><th>Cas où l'op ne fait rien</th></tr>
+        <tr><td><code>pa</code></td><td>Take le top de <code>b</code> et le mettre au top de <code>a</code></td><td>si <code>b</code> est vide</td></tr>
+        <tr><td><code>pb</code></td><td>Take le top de <code>a</code> et le mettre au top de <code>b</code></td><td>si <code>a</code> est vide</td></tr>
+      </table>
+
+      <h3>Rotate (1er → dernier)</h3>
+
+      <table>
+        <tr><th>Op</th><th>Action</th><th>Cas où l'op ne fait rien</th></tr>
+        <tr><td><code>ra</code></td><td>Rotate <code>a</code> : top → bottom (tous les autres remontent d'un cran)</td><td>si <code>a</code> a 0 ou 1 élément</td></tr>
+        <tr><td><code>rb</code></td><td>Rotate <code>b</code></td><td>idem</td></tr>
+        <tr><td><code>rr</code></td><td><code>ra</code> + <code>rb</code> en même temps</td><td>chacune indépendamment</td></tr>
+      </table>
+
+      <h3>Reverse rotate (dernier → 1er)</h3>
+
+      <table>
+        <tr><th>Op</th><th>Action</th><th>Cas où l'op ne fait rien</th></tr>
+        <tr><td><code>rra</code></td><td>Reverse rotate <code>a</code> : bottom → top</td><td>si <code>a</code> a 0 ou 1 élément</td></tr>
+        <tr><td><code>rrb</code></td><td>Reverse rotate <code>b</code></td><td>idem</td></tr>
+        <tr><td><code>rrr</code></td><td><code>rra</code> + <code>rrb</code> en même temps</td><td>chacune indépendamment</td></tr>
+      </table>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi les versions combinées (ss/rr/rrr) ?</div>
+        Économie d'instructions. Si tu allais faire <code>ra</code> puis <code>rb</code> coup sur coup, tu peux les fusionner en un seul <code>rr</code> qui compte pour 1 instruction au lieu de 2. C'est utilisable dans l'algo de tri pour les piles avancées (sort_500+). Pour notre algo Turk, on ne les utilise pas vraiment, mais on les implémente quand même (norme oblige + utile si on veut optimiser plus tard).
+      </div>
+
+      <h3>Visualisation des rotations</h3>
+
+      <div class="ascii">avant ra :   [A, B, C, D]    (A=top)
+après ra :   [B, C, D, A]    (A passe au bottom)
+
+avant rra :  [A, B, C, D]
+après rra :  [D, A, B, C]    (D remonte au top)
+</div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">3.4</span>Format d'entrée et de sortie</h2>
+
+      <h3>Entrée</h3>
+
+      <p>Les arguments peuvent arriver de 2 façons :</p>
+
+      <pre class="code">$ ./push_swap 3 1 4 1 5         <span class="com"># arguments séparés</span>
+$ ./push_swap <span class="str">"3 1 4 1 5"</span>     <span class="com"># une seule chaîne avec espaces</span></pre>
+
+      <p>Les deux formes doivent être acceptées. Pour la 2e, il faut <b>tokenizer</b> la chaîne (splitter sur les espaces) — c'est ce que fait <code>ft_split</code> dans notre parser.</p>
+
+      <h3>Sortie standard (stdout)</h3>
+
+      <p>Les opérations, <b>une par ligne</b>, terminées par <code>\n</code>. Rien d'autre.</p>
+
+      <pre class="code">sa
+pb
+ra
+pa</pre>
+
+      <h3>Sortie d'erreur (stderr)</h3>
+
+      <p>Le mot <code>Error</code> suivi de <code>\n</code>, et c'est tout :</p>
+
+      <pre class="code">$ ./push_swap 1 abc 3
+Error</pre>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Détail critique</div>
+        <code>Error</code> doit aller sur <b>stderr</b> (fd 2), pas stdout (fd 1). En C : <code>write(2, "Error\n", 6)</code>. Beaucoup d'étudiants l'envoient sur stdout au début et se font flag.
+      </div>
+
+      <h3>Cas spéciaux</h3>
+
+      <ul>
+        <li><b>Aucun argument</b> : le programme ne doit rien afficher et retourner immédiatement (exit 0).</li>
+        <li><b>Pile déjà triée</b> : aucune op à afficher (exit 0 silencieux).</li>
+        <li><b>1 seul argument numérique</b> : déjà trié → rien à afficher.</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">3.5</span>Erreurs à gérer</h2>
+
+      <p>Le sujet liste les cas d'erreur. <b>Notre devoir : les détecter et répondre par <code>Error\n</code> sur stderr + exit non-zéro.</b></p>
+
+      <table>
+        <tr><th>Cas</th><th>Exemple</th><th>Comment on détecte</th></tr>
+        <tr><td>Argument non numérique</td><td><code>./push_swap 1 abc 3</code></td><td><code>is_number()</code> : vérifier que chaque char est <code>[0-9]</code> (avec <code>+</code>/<code>-</code> facultatif en tête)</td></tr>
+        <tr><td>Nombre &gt; INT_MAX ou &lt; INT_MIN</td><td><code>./push_swap 2147483648</code></td><td><code>is_valid_int()</code> : parse en <code>long</code>, compare aux limites <code>int</code></td></tr>
+        <tr><td>Doublons</td><td><code>./push_swap 3 1 3</code></td><td><code>has_duplicates()</code> : compare tous les éléments 2 par 2 (O(n²) suffit pour 500 nums)</td></tr>
+        <tr><td>Argument vide</td><td><code>./push_swap "" 1</code></td><td>la tokenization renvoie tableau vide ou échec</td></tr>
+        <tr><td>Seulement des espaces</td><td><code>./push_swap " "</code></td><td>idem, aucun token</td></tr>
+        <tr><td>Format invalide</td><td><code>./push_swap "1 2 abc"</code></td><td>idem que non numérique</td></tr>
+      </table>
+
+      <div class="callout key">
+        <div class="lbl">★ Règle d'or</div>
+        Toute erreur de validation doit être détectée <b>avant</b> de lancer le tri. Mieux : avant même de construire la pile, idéalement après le parsing. Si on construit la pile puis on détecte une erreur, il faut bien free ce qu'on a déjà alloué — gestion plus complexe.
+      </div>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">3.6</span>Contraintes techniques (la norme et le reste)</h2>
+
+      <h3>Norminette</h3>
+
+      <ul>
+        <li>Max <b>25 lignes par fonction</b> (entre les accolades)</li>
+        <li>Max <b>5 fonctions par fichier</b></li>
+        <li>Max <b>5 déclarations par fonction</b></li>
+        <li>Max <b>4 paramètres par fonction</b></li>
+        <li>Lignes de max <b>80 colonnes</b></li>
+        <li>Header 42 obligatoire en haut de chaque fichier</li>
+        <li>Pas de commentaires inline après code (uniquement avant fonction ou en début de bloc)</li>
+        <li>Pas de ligne vide à l'intérieur d'une fonction (sauf après les déclarations en début)</li>
+        <li>Pas de <code>//</code>, uniquement <code>/* */</code></li>
+      </ul>
+
+      <h3>Compilation</h3>
+
+      <ul>
+        <li>Makefile obligatoire avec règles <code>$(NAME)</code>, <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code></li>
+        <li>Flags : <code>-Wall -Wextra -Werror</code></li>
+        <li>Pas de relink inutile (objets .o pour incrémentalité)</li>
+        <li>Si libft : copier dans un dossier <code>libft/</code> et la compiler depuis le Makefile principal</li>
+      </ul>
+
+      <h3>Fonctions externes autorisées</h3>
+
+      <ul>
+        <li><code>read</code>, <code>write</code>, <code>malloc</code>, <code>free</code>, <code>exit</code></li>
+        <li>libft (si autorisée — oui pour push_swap)</li>
+        <li><code>ft_printf</code> ou un équivalent que <b>tu as codé</b></li>
+      </ul>
+
+      <p><b>Interdit</b> : <code>printf</code>, <code>atoi</code>, <code>strtol</code> et autres natives. C'est pour ça qu'on code <code>ft_atol</code> nous-même.</p>
+
+      <h3>Pas de variables globales</h3>
+
+      <p>Toute variable doit vivre dans la stack ou le heap. <b>Aucune <code>static int counter;</code> au niveau fichier.</b> Sanction immédiate si trouvé.</p>
+
+      <h3>Pas de fuite mémoire</h3>
+
+      <p>Toute mémoire mallocée doit être freed avant exit. Vérifié au peer-eval avec valgrind. Une seule fuite = 0.</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">3.7</span>Benchmarks de validation</h2>
+
+      <p>Tu es noté à 2 niveaux selon le nombre d'opérations que ton programme produit sur des piles aléatoires.</p>
+
+      <h3>Validation 100 % (bonus éligible)</h3>
+
+      <ul>
+        <li><b>100 nombres aléatoires</b> : moins de <b>700 ops</b></li>
+        <li><b>500 nombres aléatoires</b> : moins de <b>5500 ops</b></li>
+      </ul>
+
+      <h3>Validation 80 % (minimum pour passer)</h3>
+
+      <p>Trois "paliers" possibles (un seul suffit) :</p>
+
+      <table>
+        <tr><th>100 nums &lt;</th><th>500 nums &lt;</th></tr>
+        <tr><td>1100 ops</td><td>8500 ops</td></tr>
+        <tr><td>700 ops</td><td>11500 ops</td></tr>
+        <tr><td>1300 ops</td><td>5500 ops</td></tr>
+      </table>
+
+      <p>Notre implémentation atteint :</p>
+
+      <ul>
+        <li><b>100 nums</b> : max ~825, moyenne ~735 ops → <b>80 %</b> (palier 1)</li>
+        <li><b>500 nums</b> : max ~7500, moyenne ~7270 ops → <b>80 %</b> (palier 1)</li>
+      </ul>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi on s'est arrêté à 80 % ?</div>
+        Vu le deadline serré (24h) et la complexité d'optimiser au-delà (il faut tuner les chunk sizes et ajouter du <code>rb</code> au pb pour pré-trier B), on a choisi un point "ça marche tranquille". Pour 100 %, il faut typiquement :
+        <ul style="margin-bottom: 0;">
+          <li>Tuner chunk_size en fonction de N de façon plus fine (peut-être 11, 14, 18 selon les ranges)</li>
+          <li>Ajouter un <code>rb</code> conditionnel après chaque <code>pb</code> dans <code>push_to_b</code></li>
+          <li>Optimiser le choix du min/max dans <code>push_back_to_a</code> (parfois <code>rrb</code> est mieux)</li>
+        </ul>
+        On peut y revenir plus tard si tu veux le bonus.
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">3.8</span>Le <code>checker_OS</code></h2>
+
+      <p>Le sujet mentionne un binaire <code>checker_OS</code> disponible dans les ressources du projet sur l'intranet 42. C'est l'outil officiel utilisé pour valider ton output :</p>
+
+      <pre class="code">$ ARG=<span class="str">"3 1 4 1 5"</span>
+$ ./push_swap $ARG | ./checker_OS $ARG
+OK</pre>
+
+      <p>Le pipe <code>|</code> envoie la sortie de <code>push_swap</code> à <code>checker_OS</code>, qui exécute les ops sur la pile <code>ARG</code> et te dit "OK" si la pile finit triée, "KO" sinon.</p>
+
+      <p>C'est exactement la chaîne qu'on a simulée dans notre <code>tester.py</code> custom.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Test manuel rapide</div>
+        Compte les ops avec <code>wc -l</code> :
+        <pre class="code">$ ARG=<span class="str">"4 67 3 87 23"</span>
+$ ./push_swap $ARG | wc -l
+6
+$ ./push_swap $ARG | ./checker_OS $ARG
+OK</pre>
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">3.9</span>Le bonus — <code>checker</code></h2>
+
+      <p>En option, tu peux coder ton propre <code>checker</code> (le miroir de <code>push_swap</code>) :</p>
+
+      <ul>
+        <li>Prend les mêmes arguments que <code>push_swap</code> (liste d'entiers)</li>
+        <li>Lit les <b>opérations sur stdin</b>, une par ligne</li>
+        <li>Les exécute sur la pile <code>a</code></li>
+        <li>Affiche <code>OK\n</code> si à la fin, <code>a</code> est triée croissant <b>et</b> <code>b</code> est vide</li>
+        <li>Affiche <code>KO\n</code> sinon</li>
+        <li><code>Error\n</code> en cas d'arguments invalides ou d'op inconnue</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Conditions du bonus</div>
+        Le bonus n'est évalué <b>que si</b> ton mandatory est <b>parfait</b> (100% des benchmarks validés). Comme on est à 80%, on ne peut pas y prétendre. À voir si on veut optimiser pour 100% + faire le bonus dans un second temps.
+      </div>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">3.10</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ L'essentiel du sujet</div>
+        <ol style="margin-bottom: 0;">
+          <li>Programme C, 2 piles <code>a</code> et <code>b</code>, 11 opérations spécifiques.</li>
+          <li>Input = entiers en arguments (peuvent être 1 seule chaîne quotée).</li>
+          <li>1er argument = top de la pile <code>a</code>.</li>
+          <li>Output = séquence d'opérations sur stdout, une par ligne.</li>
+          <li>Erreurs → <code>Error\n</code> sur stderr (fd 2), exit non-zéro.</li>
+          <li>Cas erreur : non-int, dépassement INT, doublons, args vides.</li>
+          <li>Sans arguments → rien, exit 0. Déjà trié → rien, exit 0.</li>
+          <li>Norme stricte : 25 lignes/fct, 5 fct/fichier, pas de globales, no leak.</li>
+          <li>Compilation <code>-Wall -Wextra -Werror</code>.</li>
+          <li>Benchmark cible : 100 nums &lt; 700 (100%) ou &lt; 1100 (80%).</li>
+        </ol>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pour <code>./push_swap "4 67 3 87 23"</code>, qu'est-ce qui est en top de <code>a</code> au départ ?</summary>
+          <div class="answer">
+            <b>4</b>. Le premier nombre de la chaîne = top de la pile.
+          </div>
+        </details>
+        <details>
+          <summary>Si l'user passe <code>2147483648</code> (INT_MAX + 1), comment on détecte ?</summary>
+          <div class="answer">
+            On parse en <code>long</code> (via <code>ft_atol</code>), puis on compare aux limites <code>INT_MIN/INT_MAX</code>. Si dehors, on retourne erreur. C'est ce que fait <code>is_valid_int()</code>.
+          </div>
+        </details>
+        <details>
+          <summary>Le programme reçoit 0 argument. Que doit-il faire ?</summary>
+          <div class="answer">
+            Rien afficher et retourner immédiatement (exit 0). Vérifié dans <code>main</code> par <code>if (argc &lt; 2) return (0);</code>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="02-linked-lists.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">02 — Linked lists</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="04-architecture.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">04 — Architecture du projet</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

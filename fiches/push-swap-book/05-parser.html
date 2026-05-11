@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 05 — Parser &amp; validator</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie III <span class="sep">/</span> Chapitre 05</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Le problème : argv → int[]</a></li>
+      <li><a href="#s2">argv, c'est quoi exactement</a></li>
+      <li><a href="#s3"><code>tokenize</code></a></li>
+      <li><a href="#s4"><code>count_tokens</code></a></li>
+      <li><a href="#s5"><code>free_tokens</code></a></li>
+      <li><a href="#s6"><code>is_number</code> / <code>is_valid_int</code></a></li>
+      <li><a href="#s7"><code>ft_atol</code></a></li>
+      <li><a href="#s8"><code>has_duplicates</code></a></li>
+      <li><a href="#s9"><code>convert_tokens</code></a></li>
+      <li><a href="#s10"><code>parse_args</code></a></li>
+      <li><a href="#s11">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><b>5. Parser</b></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE III · CHAPITRE 05</div>
+      <h1>Parser &amp; validator</h1>
+      <div class="ch-sub">de <code>argv</code> à un tableau d'<code>int</code> validé, en gérant tous les cas</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">5.1</span>Le problème : <code>argv</code> → <code>int[]</code></h2>
+
+      <p>Quand tu lances <code>./push_swap 3 1 4 1 5</code>, le système te donne en entrée :</p>
+
+      <pre class="code">argc = <span class="num">6</span>
+argv = {<span class="str">"./push_swap"</span>, <span class="str">"3"</span>, <span class="str">"1"</span>, <span class="str">"4"</span>, <span class="str">"1"</span>, <span class="str">"5"</span>, <span class="num">NULL</span>}</pre>
+
+      <p>Mais pour construire ta pile, tu as besoin de :</p>
+
+      <pre class="code">values = {<span class="num">3</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">5</span>}   <span class="com">// tableau d'int, taille n=5</span></pre>
+
+      <p>Le job du <b>parser</b>, c'est cette transformation, en validant au passage que tout est correct (vrais entiers, dans la plage, pas de doublons).</p>
+
+      <h3>Le problème supplémentaire : la chaîne unique</h3>
+
+      <p>Le sujet impose que <code>./push_swap "3 1 4 1 5"</code> marche aussi (un seul argument qui contient plusieurs nombres séparés par des espaces). On doit donc gérer 2 formats d'entrée différents.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">5.2</span><code>argv</code>, c'est quoi exactement</h2>
+
+      <p><code>argv</code> est un <b>tableau de chaînes</b> (donc <code>char **</code>). Chaque entrée est un <code>char *</code> qui pointe sur une chaîne C (terminée par <code>\0</code>).</p>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">main</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)</pre>
+
+      <ul>
+        <li><b><code>argc</code></b> = nombre d'arguments, <b>y compris</b> le nom du programme</li>
+        <li><b><code>argv[0]</code></b> = le nom du programme (<code>"./push_swap"</code>)</li>
+        <li><b><code>argv[1]</code></b> = le 1er vrai argument</li>
+        <li><b><code>argv[argc]</code></b> = <code>NULL</code> (sentinelle de fin)</li>
+      </ul>
+
+      <p>Pour <code>./push_swap 3 1 4</code> :</p>
+
+      <div class="ascii">argc = 4
+argv:
+  [0] = "./push_swap"
+  [1] = "3"
+  [2] = "1"
+  [3] = "4"
+  [4] = NULL    ← sentinelle
+</div>
+
+      <p>Pour <code>./push_swap "3 1 4"</code> :</p>
+
+      <div class="ascii">argc = 2
+argv:
+  [0] = "./push_swap"
+  [1] = "3 1 4"       ← une seule chaîne avec espaces
+  [2] = NULL
+</div>
+
+      <p>D'où la nécessité de notre <code>tokenize</code> qui distingue les 2 cas.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">5.3</span><code>tokenize</code> — split sur les espaces</h2>
+
+      <pre class="code"><span class="kw">char</span> **<span class="fn">tokenize</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    <span class="kw">char</span>    **tokens;
+    <span class="kw">int</span>     i;
+
+    <span class="kw">if</span> (argc == <span class="num">2</span>)
+        <span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">' '</span>));
+    tokens = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">char</span> *) * argc);
+    <span class="kw">if</span> (!tokens)
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; argc - <span class="num">1</span>)
+    {
+        tokens[i] = <span class="fn">ft_strdup</span>(argv[i + <span class="num">1</span>]);
+        i++;
+    }
+    tokens[argc - <span class="num">1</span>] = <span class="num">NULL</span>;
+    <span class="kw">return</span> (tokens);
+}</pre>
+
+      <h3>Décortiquage</h3>
+
+      <p><b>Cas 1 : <code>argc == 2</code></b> (l'user a passé une seule chaîne).</p>
+      <pre class="code"><span class="kw">if</span> (argc == <span class="num">2</span>)
+    <span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">' '</span>));</pre>
+      <p>On délègue à <code>ft_split</code> de la libft, qui découpe la chaîne en morceaux selon le séparateur (<code>' '</code>). Le résultat est un <code>char **</code> alloué, terminé par <code>NULL</code>. Parfait, c'est exactement ce qu'on veut.</p>
+
+      <p><b>Cas 2 : <code>argc &gt; 2</code></b> (plusieurs args séparés).</p>
+      <p>On construit nous-même un <code>char **</code> en copiant chaque <code>argv[i]</code> avec <code>ft_strdup</code> (qui malloc + copie chaque chaîne). Pourquoi copier au lieu d'utiliser argv directement ? <b>Pour avoir une structure homogène</b> — peu importe le cas d'entrée, on a un <code>char **</code> qu'on peut free uniformément ensuite avec <code>free_tokens</code>.</p>
+
+      <h3>Schéma de résultat</h3>
+
+      <p>Pour <code>./push_swap 3 1 4</code> :</p>
+
+      <pre class="code">tokens = {<span class="str">"3"</span>, <span class="str">"1"</span>, <span class="str">"4"</span>, <span class="num">NULL</span>}
+         ↑    ↑    ↑    ↑
+        nouvelles chaînes mallocées + NULL final</pre>
+
+      <div class="callout key">
+        <div class="lbl">★ Pourquoi <code>NULL</code> à la fin ?</div>
+        Le <code>NULL</code> sert de sentinelle : ça permet de boucler sans connaître la longueur (juste tester si <code>tokens[i] != NULL</code>). C'est le même pattern que les chaînes C qui finissent par <code>\0</code>, ou les tableaux argv qui finissent par NULL.
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">5.4</span><code>count_tokens</code> — compter les éléments</h2>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">count_tokens</span>(<span class="kw">char</span> **tokens)
+{
+    <span class="kw">int</span>     i;
+
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (tokens[i] != <span class="num">NULL</span>)
+        i++;
+    <span class="kw">return</span> (i);
+}</pre>
+
+      <p>Parcours basique avec compteur, exactement comme <code>strlen</code> mais pour un tableau de chaînes. On s'arrête sur le NULL final.</p>
+
+      <p>Cette fonction est utile parce qu'après <code>ft_split</code>, on ne connaît pas <i>a priori</i> combien de tokens ont été produits (l'user a pu passer 3, 5, ou 100 nombres dans sa chaîne). On compte pour savoir.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">5.5</span><code>free_tokens</code> — libérer le tableau</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">free_tokens</span>(<span class="kw">char</span> **tokens)
+{
+    <span class="kw">int</span>     i;
+
+    <span class="kw">if</span> (!tokens)
+        <span class="kw">return</span> ;
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (tokens[i])
+    {
+        <span class="fn">free</span>(tokens[i]);
+        i++;
+    }
+    <span class="fn">free</span>(tokens);
+}</pre>
+
+      <h3>Pourquoi 2 niveaux de <code>free</code> ?</h3>
+
+      <p><code>tokens</code> est un <code>char **</code> = un tableau de pointeurs. Chaque case du tableau pointe sur une chaîne mallocée séparément. Il faut donc :</p>
+
+      <ol>
+        <li>D'abord <code>free</code> chaque chaîne individuelle (<code>tokens[i]</code>)</li>
+        <li>Puis <code>free</code> le tableau de pointeurs lui-même (<code>tokens</code>)</li>
+      </ol>
+
+      <p>Si tu oublies la première étape, tu as un <b>memory leak</b> (les chaînes restent mallocées). Si tu inverses l'ordre, tu accèdes à <code>tokens[i]</code> après avoir libéré <code>tokens</code> → <b>use-after-free</b>.</p>
+
+      <div class="ascii">          tokens (char **)
+              │
+              ▼
+      ┌──────┬──────┬──────┬──────┐
+      │ [0]  │ [1]  │ [2]  │ NULL │   ← tableau mallocé
+      └──┬───┴──┬───┴──┬───┴──────┘
+         │      │      │
+         ▼      ▼      ▼
+       "3\0"  "1\0"  "4\0"            ← chaînes mallocées séparément
+
+free(tokens[0])  ← libère "3\0"
+free(tokens[1])  ← libère "1\0"
+free(tokens[2])  ← libère "4\0"
+free(tokens)     ← libère le tableau
+</div>
+
+      <p>La protection <code>if (!tokens) return ;</code> au début est défensive : si jamais quelqu'un appelle <code>free_tokens(NULL)</code>, on ne crash pas.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">5.6</span><code>is_number</code> et <code>is_valid_int</code></h2>
+
+      <h3><code>is_valid_int</code> — vérifier le format</h3>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">is_valid_int</span>(<span class="kw">char</span> *s)
+{
+    <span class="kw">int</span>     i;
+
+    <span class="kw">if</span> (!s || !s[<span class="num">0</span>])
+        <span class="kw">return</span> (<span class="num">0</span>);
+    i = <span class="num">0</span>;
+    <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">'+'</span> || s[<span class="num">0</span>] == <span class="str">'-'</span>)
+        i = <span class="num">1</span>;
+    <span class="kw">if</span> (!s[i])
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="kw">while</span> (s[i])
+    {
+        <span class="kw">if</span> (!<span class="fn">ft_isdigit</span>(s[i]))
+            <span class="kw">return</span> (<span class="num">0</span>);
+        i++;
+    }
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+
+      <p>Cette fonction vérifie qu'une chaîne représente un nombre <b>au sens syntaxique</b> :</p>
+
+      <ol>
+        <li>Si chaîne NULL ou vide → invalide</li>
+        <li>Si premier char est <code>+</code> ou <code>-</code>, on le skip (signe optionnel)</li>
+        <li>Si après le signe il n'y a plus rien (<code>"+"</code> ou <code>"-"</code> tout seul) → invalide</li>
+        <li>Tous les chars restants doivent être des chiffres (<code>isdigit</code>)</li>
+      </ol>
+
+      <h3>Exemples</h3>
+
+      <table>
+        <tr><th>Entrée</th><th>Résultat</th><th>Pourquoi</th></tr>
+        <tr><td><code>"42"</code></td><td>1 (valide)</td><td>que des chiffres</td></tr>
+        <tr><td><code>"-42"</code></td><td>1</td><td>signe + chiffres</td></tr>
+        <tr><td><code>"+42"</code></td><td>1</td><td>signe + chiffres</td></tr>
+        <tr><td><code>""</code></td><td>0</td><td>chaîne vide</td></tr>
+        <tr><td><code>"-"</code></td><td>0</td><td>signe sans chiffre</td></tr>
+        <tr><td><code>"42a"</code></td><td>0</td><td>caractère non-numérique</td></tr>
+        <tr><td><code>"4 2"</code></td><td>0</td><td>espace au milieu</td></tr>
+        <tr><td><code>"2147483648"</code></td><td>1 (format OK)</td><td>mais hors plage int — détecté par <code>is_number</code></td></tr>
+      </table>
+
+      <h3><code>is_number</code> — vérifier le format ET la plage int</h3>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">is_number</span>(<span class="kw">char</span> *s)
+{
+    <span class="kw">long</span>    n;
+
+    <span class="kw">if</span> (!<span class="fn">is_valid_int</span>(s))
+        <span class="kw">return</span> (<span class="num">0</span>);
+    n = <span class="fn">ft_atol</span>(s);
+    <span class="kw">if</span> (n &gt; INT_MAX || n &lt; INT_MIN)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+
+      <p>Deux étapes : d'abord on vérifie que le format est valide (signe + chiffres), puis on convertit en <code>long</code> et on compare aux limites de <code>int</code>.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Pourquoi <code>long</code> ?</div>
+        Si on parsait directement en <code>int</code>, on aurait un <b>overflow</b> pour des valeurs hors plage. Exemple : <code>"2147483648"</code> (= INT_MAX + 1) parsé en <code>int</code> donnerait <code>INT_MIN</code> (rollover binaire), ce qu'on prendrait pour une valeur valide.<br><br>
+        En <code>long</code> (8 octets, plage ~±9.2 × 10<sup>18</sup>), on a largement la marge pour parser sans overflow, et ensuite on compare aux limites INT_MAX/INT_MIN.
+      </div>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">5.7</span><code>ft_atol</code> — chaîne vers long</h2>
+
+      <pre class="code"><span class="kw">long</span> <span class="fn">ft_atol</span>(<span class="kw">char</span> *s)
+{
+    <span class="kw">long</span>    res;
+    <span class="kw">int</span>     i;
+    <span class="kw">int</span>     sign;
+
+    sign = <span class="num">1</span>;
+    i = <span class="num">0</span>;
+    <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">'+'</span> || s[<span class="num">0</span>] == <span class="str">'-'</span>)
+    {
+        <span class="kw">if</span> (s[<span class="num">0</span>] == <span class="str">'-'</span>)
+            sign = -<span class="num">1</span>;
+        i = <span class="num">1</span>;
+    }
+    res = <span class="num">0</span>;
+    <span class="kw">while</span> (s[i] &gt;= <span class="str">'0'</span> &amp;&amp; s[i] &lt;= <span class="str">'9'</span>)
+    {
+        res = res * <span class="num">10</span> + (s[i] - <span class="str">'0'</span>);
+        i++;
+    }
+    <span class="kw">return</span> (res * sign);
+}</pre>
+
+      <h3>L'algorithme</h3>
+
+      <ol>
+        <li>On gère le signe optionnel</li>
+        <li>On part de <code>res = 0</code></li>
+        <li>Pour chaque chiffre :
+          <ul>
+            <li>multiplier le résultat actuel par 10 (= décalage à gauche)</li>
+            <li>ajouter la valeur numérique du chiffre courant</li>
+          </ul>
+        </li>
+        <li>Appliquer le signe à la fin</li>
+      </ol>
+
+      <h3>Déroulé concret : <code>"42"</code></h3>
+
+      <div class="ascii">i=0, s[0]='4'  : res = 0*10 + 4  = 4
+i=1, s[1]='2'  : res = 4*10 + 2  = 42
+i=2, s[2]='\0' : sortie de boucle
+return 42 * 1 = 42
+</div>
+
+      <h3>Déroulé : <code>"-1234"</code></h3>
+
+      <div class="ascii">s[0]='-' : sign=-1, i=1
+i=1, '1' : res = 0*10 + 1   = 1
+i=2, '2' : res = 1*10 + 2   = 12
+i=3, '3' : res = 12*10 + 3  = 123
+i=4, '4' : res = 123*10 + 4 = 1234
+i=5, '\0' : stop
+return 1234 * -1 = -1234
+</div>
+
+      <div class="callout note">
+        <div class="lbl">★ Le truc du <code>s[i] - '0'</code></div>
+        En ASCII, le caractère <code>'0'</code> a la valeur 48, <code>'1'</code> = 49, ..., <code>'9'</code> = 57. Donc <code>'5' - '0'</code> = 57 - 48 = 5 (la valeur numérique). C'est l'astuce pour convertir un char en int sans table de lookup.
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">5.8</span><code>has_duplicates</code> — détecter les doublons</h2>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">has_duplicates</span>(<span class="kw">int</span> *values, <span class="kw">int</span> n)
+{
+    <span class="kw">int</span>     i;
+    <span class="kw">int</span>     j;
+
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; n)
+    {
+        j = i + <span class="num">1</span>;
+        <span class="kw">while</span> (j &lt; n)
+        {
+            <span class="kw">if</span> (values[i] == values[j])
+                <span class="kw">return</span> (<span class="num">1</span>);
+            j++;
+        }
+        i++;
+    }
+    <span class="kw">return</span> (<span class="num">0</span>);
+}</pre>
+
+      <h3>L'approche : O(n²) brute force</h3>
+
+      <p>Pour chaque paire <code>(i, j)</code> avec <code>i &lt; j</code>, on compare <code>values[i]</code> et <code>values[j]</code>. Si on trouve deux valeurs égales, on retourne 1 (= il y a un doublon).</p>
+
+      <h3>Pourquoi pas un algo plus rapide (O(n log n)) ?</h3>
+
+      <p>On pourrait trier le tableau et vérifier les voisins (mais on aurait modifié l'ordre des valeurs, problématique). Ou utiliser une table de hash. Mais :</p>
+
+      <ul>
+        <li>Pour <code>n ≤ 500</code>, O(n²) = 250 000 comparaisons → <b>quelques microsecondes</b>. Largement assez rapide.</li>
+        <li>L'algo brute force tient en 11 lignes, sans alloc, sans dépendance.</li>
+        <li>Avantage : pas d'optim prématurée. Code clair.</li>
+      </ul>
+
+      <h3>Déroulé sur <code>[3, 1, 4, 1, 5]</code></h3>
+
+      <div class="ascii">i=0 (val=3):
+   j=1 (val=1): 3==1? non
+   j=2 (val=4): 3==4? non
+   j=3 (val=1): 3==1? non
+   j=4 (val=5): 3==5? non
+i=1 (val=1):
+   j=2 (val=4): 1==4? non
+   j=3 (val=1): 1==1? OUI → return 1
+</div>
+
+      <div class="callout note">
+        <div class="lbl">★ Note : on s'arrête au premier doublon</div>
+        Pas besoin de continuer une fois qu'on a trouvé un doublon. <code>return 1</code> court-circuite tout. C'est une optim micro mais "free" — pas plus de code, juste un return placé au bon endroit.
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">5.9</span><code>convert_tokens</code> — chaînes vers entiers</h2>
+
+      <pre class="code"><span class="kw">int</span> *<span class="fn">convert_tokens</span>(<span class="kw">char</span> **tokens, <span class="kw">int</span> n)
+{
+    <span class="kw">int</span>     *values;
+    <span class="kw">int</span>     i;
+
+    values = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>) * n);
+    <span class="kw">if</span> (!values)
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; n)
+    {
+        <span class="kw">if</span> (!<span class="fn">is_number</span>(tokens[i]))
+        {
+            <span class="fn">free</span>(values);
+            <span class="kw">return</span> (<span class="num">NULL</span>);
+        }
+        values[i] = (<span class="kw">int</span>)<span class="fn">ft_atol</span>(tokens[i]);
+        i++;
+    }
+    <span class="kw">return</span> (values);
+}</pre>
+
+      <h3>L'algorithme</h3>
+
+      <ol>
+        <li>Allouer un tableau d'<code>int</code> de taille <code>n</code></li>
+        <li>Pour chaque token :
+          <ul>
+            <li>vérifier que c'est un vrai nombre dans la plage int via <code>is_number</code></li>
+            <li>si non, libérer ce qu'on a déjà alloué et retourner NULL (= erreur)</li>
+            <li>sinon, parser en long puis cast en int → stocker dans <code>values[i]</code></li>
+          </ul>
+        </li>
+        <li>Retourner le tableau complet</li>
+      </ol>
+
+      <h3>Le cast <code>(int)ft_atol(...)</code></h3>
+
+      <p>On a parsé en <code>long</code> et on stocke en <code>int</code>. Sans le cast explicite, le compilateur warn ("possible loss of precision"). Avec le cast, on dit "je sais ce que je fais, je veux tronquer".</p>
+
+      <p>Mais c'est <b>safe</b> ici parce qu'on a déjà validé via <code>is_number</code> que la valeur tient dans la plage <code>int</code>. Le cast ne perd donc aucune information.</p>
+
+      <h3>Gestion d'erreur propre</h3>
+
+      <p>Si un token est invalide en milieu de parcours, on libère <code>values</code> et on return NULL. <b>Pas de leak</b>, même en cas d'erreur partielle.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Pattern important : alloc + cleanup en cas d'erreur</div>
+        <pre class="code">tab = <span class="fn">malloc</span>(...);
+<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i++)
+{
+    <span class="kw">if</span> (problème)
+    {
+        <span class="fn">free</span>(tab);       <span class="com">// libérer avant de quitter</span>
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    }
+    tab[i] = ...;
+}
+<span class="kw">return</span> (tab);</pre>
+        À chaque <code>malloc</code> doit correspondre un <code>free</code> sur tous les chemins, y compris les chemins d'erreur. C'est ce qui fait la différence entre du code "qui marche" et du code "sans leak".
+      </div>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">5.10</span><code>parse_args</code> — l'orchestrateur</h2>
+
+      <pre class="code"><span class="kw">int</span> *<span class="fn">parse_args</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv, <span class="kw">int</span> *n)
+{
+    <span class="kw">char</span>    **tokens;
+    <span class="kw">int</span>     *values;
+
+    tokens = <span class="fn">tokenize</span>(argc, argv);
+    <span class="kw">if</span> (!tokens)
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    *n = <span class="fn">count_tokens</span>(tokens);
+    <span class="kw">if</span> (*n == <span class="num">0</span>)
+    {
+        <span class="fn">free_tokens</span>(tokens);
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    }
+    values = <span class="fn">convert_tokens</span>(tokens, *n);
+    <span class="fn">free_tokens</span>(tokens);
+    <span class="kw">if</span> (!values)
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    <span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, *n))
+    {
+        <span class="fn">free</span>(values);
+        <span class="kw">return</span> (<span class="num">NULL</span>);
+    }
+    <span class="kw">return</span> (values);
+}</pre>
+
+      <h3>Le flow</h3>
+
+      <div class="flow">
+        <div class="step"><b>1. tokenize</b><br>argc + argv → char ** uniforme</div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>2. count_tokens</b><br>combien de nums on a ? Écrit dans <code>*n</code></div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>3. Check <code>*n == 0</code></b><br>cas argument vide ("" ou que des espaces)</div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>4. convert_tokens</b><br>tokens → int[] avec validation</div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>5. free_tokens</b><br>on n'a plus besoin des chaînes</div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>6. has_duplicates</b><br>check final, retourne NULL si doublon</div>
+        <div class="arrow">↓</div>
+        <div class="step"><b>7. return values</b><br>tableau prêt pour <code>build_stack</code></div>
+      </div>
+
+      <h3>Le paramètre <code>int *n</code> en output</h3>
+
+      <p><code>parse_args</code> a besoin de retourner <b>deux choses</b> : le tableau de valeurs ET sa taille. Mais on ne peut retourner qu'une seule chose en C. Solution : on retourne le tableau, et on écrit la taille dans <code>*n</code> via un pointeur reçu en paramètre.</p>
+
+      <pre class="code"><span class="com">/* Appel depuis main */</span>
+<span class="kw">int</span> n;
+<span class="kw">int</span> *values = <span class="fn">parse_args</span>(argc, argv, &amp;n);   <span class="com">// on passe &amp;n pour que parse_args puisse y écrire</span>
+<span class="com">// values = tableau, n = taille (modifié par parse_args)</span></pre>
+
+      <p>C'est exactement le pattern qu'on a vu dans le Ch. 01 §1.13 (pass by pointer).</p>
+
+      <h3>Cleanup à chaque étape</h3>
+
+      <p>Note l'attention portée au cleanup :</p>
+
+      <ul>
+        <li>Si <code>tokenize</code> rate → return NULL direct (rien à libérer)</li>
+        <li>Si <code>count_tokens</code> donne 0 → free tokens avant de return</li>
+        <li>Après <code>convert_tokens</code> → free tokens dans tous les cas (on n'en a plus besoin)</li>
+        <li>Si <code>convert_tokens</code> rate → return NULL (déjà libéré dedans)</li>
+        <li>Si doublons → free values avant de return</li>
+      </ul>
+
+      <p>Chaque chemin d'exécution se termine avec <b>0 byte fuité</b>. valgrind est content.</p>
+    </section>
+
+    <section id="s11">
+      <h2><span class="num">5.11</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Pipeline du parser</div>
+        <code>argv</code> → <code>tokenize</code> → <code>char **tokens</code> uniforme<br>
+        <code>tokens</code> → <code>count_tokens</code> → <code>n</code> (taille)<br>
+        <code>tokens</code> → <code>convert_tokens</code> (avec <code>is_number</code> + <code>ft_atol</code>) → <code>int *values</code><br>
+        <code>values</code> + <code>n</code> → <code>has_duplicates</code> → validation finale<br>
+        Retour : <code>int *values</code> validé, <code>n</code> écrit via pointeur output
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Les 8 fonctions et leur rôle</div>
+        <ul style="margin-bottom: 0;">
+          <li><code>tokenize</code> : argv → char ** uniforme (split si chaîne unique)</li>
+          <li><code>count_tokens</code> : compte les éléments du char **</li>
+          <li><code>free_tokens</code> : free le char ** (2 niveaux)</li>
+          <li><code>convert_tokens</code> : char ** → int *, validation</li>
+          <li><code>parse_args</code> : orchestrateur de tout ça</li>
+          <li><code>is_number</code> : check format + plage int</li>
+          <li><code>is_valid_int</code> : check format seulement (signe + chiffres)</li>
+          <li><code>ft_atol</code> : conversion chaîne → long</li>
+          <li><code>has_duplicates</code> : O(n²) check doublons</li>
+        </ul>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi on parse en <code>long</code> au lieu de <code>int</code> ?</summary>
+          <div class="answer">
+            Pour détecter les valeurs hors plage <code>int</code>. Si on parsait directement en <code>int</code>, <code>"2147483648"</code> (= INT_MAX + 1) ferait un overflow et on récupérerait silencieusement <code>INT_MIN</code>. En <code>long</code>, la plage est beaucoup plus large, donc on parse sans overflow puis on compare aux limites <code>int</code> pour valider.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi <code>free_tokens</code> a 2 niveaux de free ?</summary>
+          <div class="answer">
+            Parce que <code>tokens</code> est un <code>char **</code> : un tableau de pointeurs vers des chaînes. Chaque chaîne est mallocée séparément. Il faut donc d'abord free chaque chaîne (<code>tokens[i]</code>), puis le tableau lui-même (<code>tokens</code>). Sinon : memory leak (chaînes oubliées).
+          </div>
+        </details>
+        <details>
+          <summary>Que retourne <code>parse_args</code> en cas d'erreur ?</summary>
+          <div class="answer">
+            <code>NULL</code>. <code>main</code> teste si <code>!values</code> et affiche <code>Error</code> + exit 1 dans ce cas.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi le paramètre <code>int *n</code> et pas <code>int n</code> ?</summary>
+          <div class="answer">
+            Parce qu'on veut <b>retourner</b> à <code>main</code> à la fois le tableau et sa taille. Comme C ne permet qu'une valeur de retour, on utilise un pointeur en paramètre output : <code>parse_args</code> écrit la taille via <code>*n = ...</code>, et <code>main</code> récupère via la variable qu'il a passée par <code>&amp;n</code>.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="04-architecture.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">04 — Architecture</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="06-stack.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">06 — stack.c</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
