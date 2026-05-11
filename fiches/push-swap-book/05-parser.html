@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 05 — Parser &amp; validator</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
-<script defer src="theme.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=6">
+<script defer src="theme.js?v=6"></script>
 </head>
 <body>
 
@@ -184,10 +184,10 @@ argv:
       <p><b>Cas 1 : <code>argc == 2</code></b> (l'user a passé une seule chaîne).</p>
       <pre class="code"><span class="kw">if</span> (argc == <span class="num">2</span>)
     <span class="kw">return</span> (<span class="fn">ft_split</span>(argv[<span class="num">1</span>], <span class="str">' '</span>));</pre>
-      <p>On délègue à <code>ft_split</code>. Le résultat est un <code>char **</code> alloué, terminé par <code>NULL</code>. Parfait.</p>
+      <p>Le code délègue à <code>ft_split</code>. Le résultat est un <code>char **</code> alloué, terminé par <code>NULL</code>. Parfait.</p>
 
       <p><b>Cas 2 : <code>argc &gt; 2</code></b> (plusieurs args séparés).</p>
-      <p>On construit nous-même un <code>char **</code> en copiant chaque <code>argv[i]</code> avec <code>ft_strdup</code> (qui malloc + copie chaque chaîne). Pourquoi copier au lieu d'utiliser argv directement ? <b>Pour avoir une structure homogène</b> — peu importe le cas d'entrée, on a un <code>char **</code> qu'on peut free uniformément ensuite avec <code>free_tokens</code>.</p>
+      <p>Le code construit lui-même un <code>char **</code> en copiant chaque <code>argv[i]</code> avec <code>ft_strdup</code> (qui malloc + copie chaque chaîne). Pourquoi copier au lieu d'utiliser argv directement ? <b>Pour avoir une structure homogène</b> — peu importe le cas d'entrée, on a un <code>char **</code> qu'on peut free uniformément ensuite avec <code>free_tokens</code>.</p>
 
       <h3>Schéma de résultat</h3>
 

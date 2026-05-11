@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 11 — Tests &amp; qualité</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
-<script defer src="theme.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=6">
+<script defer src="theme.js?v=6"></script>
 </head>
 <body>
 
@@ -83,7 +83,7 @@
     <section id="s2">
       <h2><span class="num">11.2</span>Le tester custom Python</h2>
 
-      <p>On a écrit <code>tester.py</code> sur le VPS qui :</p>
+      <p>Le projet inclut un script <code>tester.py</code> sur le VPS qui :</p>
       <ol>
         <li>Génère N entiers aléatoires</li>
         <li>Lance <code>./push_swap</code> avec ces entiers</li>
@@ -143,7 +143,7 @@
     <section id="s3">
       <h2><span class="num">11.3</span>Testers communautaires</h2>
 
-      <p>Pour redoubler de confiance, on a confronté notre push_swap à 3 testers populaires de la communauté 42 :</p>
+      <p>Pour redoubler de confiance, on a confronté ton push_swap à 3 testers populaires de la communauté 42 :</p>
 
       <h3>1. LeoFu9487/push_swap_tester</h3>
 
@@ -219,7 +219,7 @@ pb
 
       <h3>Edge cases testés</h3>
 
-      <p>On a passé valgrind sur :</p>
+      <p>Lance valgrind sur :</p>
       <ul>
         <li>Pas d'arg : OK, 0 alloc</li>
         <li>Pile triée [1,2,3] : OK, 0 leak</li>
@@ -319,7 +319,7 @@ src/stack.c: OK!
 
       <div class="callout note">
         <div class="lbl">★ La discipline du test</div>
-        On a testé à <b>chaque étape</b> du développement, pas juste à la fin. Quand on a ajouté <code>sort_3</code>, on a immédiatement testé les 6 permutations. Quand on a écrit <code>push_to_b</code>, on l'a testé. C'est ce qui permet d'attraper les bugs tôt — comme l'invariant cassé dans la version initiale de Turk (Ch. 09 §9.8).
+        Teste à <b>chaque étape</b> du développement, pas juste à la fin. Quand on a ajouté <code>sort_3</code>, on a immédiatement testé les 6 permutations. Quand on a écrit <code>push_to_b</code>, on l'a testé. C'est ce qui permet d'attraper les bugs tôt — comme l'invariant cassé dans la version initiale de Turk (Ch. 09 §9.8).
       </div>
 
       <div class="check">

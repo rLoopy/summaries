@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
-<script defer src="theme.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=6">
+<script defer src="theme.js?v=6"></script>
 </head>
 <body>
 
@@ -197,7 +197,13 @@
 
       <pre class="code"><span class="kw">sizeof</span>(<span class="kw">int</span>)       <span class="com">// 4</span>
 <span class="kw">sizeof</span>(<span class="kw">char</span>)      <span class="com">// 1</span>
-<span class="kw">sizeof</span>(<span class="type">t_stack</span>)   <span class="com">// 16 (4 pour val + 8 pour next + 4 padding)</span></pre>
+<span class="kw">sizeof</span>(<span class="type">t_stack</span>)   <span class="com">// 16 (4 pour val + 4 padding + 8 pour next)</span></pre>
+
+      <div class="callout note">
+        <div class="lbl">★ Mini-glossaire : "padding"</div>
+        Le <b>padding</b> = des octets de "remplissage" que le compilateur ajoute automatiquement dans une struct pour <b>aligner</b> les champs en mémoire. Sur un système 64-bit, un pointeur (8 octets) doit être placé à une adresse multiple de 8 — contrainte hardware.<br><br>
+        Conséquence : <code>sizeof(t_stack)</code> n'est pas toujours la somme exacte des tailles de ses champs. On verra le détail au Ch 02 §2.6. Pour l'instant, retiens juste que "padding existe et c'est pour l'alignement".
+      </div>
     </section>
 
     <section id="s5">
