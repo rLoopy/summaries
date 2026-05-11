@@ -598,3 +598,159 @@ table code { font-size: 13px; }
 .muted { color: var(--muted); }
 .small { font-size: 14px; }
 .spacer { height: 20px; }
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+body.dark {
+  --paper: #15131f;
+  --paper-dark: #1f1c2a;
+  --paper-soft: #1a1825;
+  --ink: #f0e9d8;
+  --ink-soft: #c4bdb3;
+  --muted: #8a8499;
+  --yellow-soft: #4a3f1a;
+  --card-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+body.dark .topbar {
+  background: #0f0e1a;
+  border-bottom-color: var(--accent);
+}
+
+body.dark .sidebar {
+  background: #1f1c2a;
+  border-color: #3a3849;
+  color: var(--ink);
+}
+
+body.dark .sidebar a {
+  color: var(--ink);
+}
+
+body.dark .cell {
+  background: #2a2833;
+  color: var(--ink);
+  border-color: #4a485a;
+}
+body.dark .cell .val { color: var(--ink); }
+body.dark .cell.null { background: #1a1825; }
+body.dark .cell.null .val { color: var(--muted); }
+body.dark .cell.highlight {
+  background: var(--yellow);
+  color: #1a1825;
+  border-color: var(--yellow);
+}
+body.dark .cell.highlight .val { color: #1a1825; }
+body.dark .cell.heap { border-color: var(--green); }
+body.dark .cell.stack-frame {
+  background: rgba(121, 184, 216, 0.15);
+  border-color: var(--blue);
+}
+
+body.dark table {
+  background: #211e2d;
+  color: var(--ink);
+}
+body.dark table td {
+  border-bottom-color: #3a3849;
+}
+body.dark table code {
+  background: #1a1825;
+  color: var(--accent-soft);
+}
+
+body.dark .check {
+  background: #1f1c2a;
+  border-color: var(--accent);
+}
+
+body.dark .chapter-card {
+  background: #211e2d;
+  border-color: #3a3849;
+  color: var(--ink);
+}
+body.dark .chapter-card:hover {
+  background: #2d2842;
+}
+body.dark .chapter-card .ch-desc { color: var(--ink-soft); }
+
+body.dark .ascii {
+  background: #1a1825;
+  color: var(--ink);
+  border-color: #3a3849;
+}
+
+body.dark .memory {
+  background: #1f1c2a;
+  border-color: #3a3849;
+}
+
+body.dark code, body.dark .inline {
+  background: #2a2833;
+  color: var(--accent-soft);
+  border-color: #3a3849;
+}
+
+body.dark .hl {
+  background: var(--yellow);
+  color: #1a1825;
+}
+
+body.dark .nav-bottom .nav-link {
+  background: #1f1c2a;
+  color: var(--ink);
+  border-color: #3a3849;
+}
+body.dark .nav-bottom .nav-link:hover {
+  background: var(--yellow);
+  color: #1a1825;
+}
+
+body.dark .compare .col.bad {
+  background: rgba(217, 72, 72, 0.1);
+}
+body.dark .compare .col.good {
+  background: rgba(111, 176, 126, 0.1);
+}
+
+body.dark .flow .step {
+  background: #211e2d;
+  border-color: #3a3849;
+  color: var(--ink);
+}
+
+body.dark .callout {
+  background: rgba(121, 184, 216, 0.08);
+}
+body.dark .callout.warn { background: rgba(217, 72, 72, 0.1); }
+body.dark .callout.hint { background: rgba(111, 176, 126, 0.1); }
+body.dark .callout.key { background: rgba(255, 107, 74, 0.1); }
+body.dark .callout.note { background: rgba(192, 179, 224, 0.1); }
+
+/* Toggle button */
+.theme-toggle {
+  background: transparent;
+  border: 2px solid var(--paper);
+  color: var(--paper);
+  font-size: 16px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 12px;
+  font-family: 'Patrick Hand', cursive;
+  transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+body.dark .theme-toggle {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+body.dark .theme-toggle:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
