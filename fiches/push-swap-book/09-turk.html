@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 09 — L'algorithme Turk</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie IV <span class="sep">/</span> Chapitre 09</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Le problème : 100+ nums</a></li>
+      <li><a href="#s2">Pourquoi pas un algo classique</a></li>
+      <li><a href="#s3">L'idée des chunks</a></li>
+      <li><a href="#s4">Phase 1 : Indexation</a></li>
+      <li><a href="#s5">Phase 2 : push_to_b</a></li>
+      <li><a href="#s6">La formule chunk_max</a></li>
+      <li><a href="#s7">Phase 3 : push_back_to_a</a></li>
+      <li><a href="#s8">Le bug initial qu'on a corrigé</a></li>
+      <li><a href="#s9">L'orchestrateur sort_big</a></li>
+      <li><a href="#s10">Performances atteintes</a></li>
+      <li><a href="#s11">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><b>9. Turk</b></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE IV · CHAPITRE 09</div>
+      <h1>L'algorithme Turk</h1>
+      <div class="ch-sub">indexation + chunks + max-pull = tri en moins de 700 ops pour 100 nums</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">9.1</span>Le problème : trier 100+ nums en moins de 700 ops</h2>
+
+      <p>Pour les piles &gt; 5, on ne peut plus hardcoder. Il nous faut un <b>algorithme</b> qui tienne compte des contraintes du sujet :</p>
+
+      <ul>
+        <li>Seulement 11 opérations possibles</li>
+        <li>Pas d'accès aléatoire (pas de <code>arr[i]</code>)</li>
+        <li>Budget serré : 100 nums en moins de 700 ops pour la validation 100 %</li>
+      </ul>
+
+      <h3>Un sorting algo "normal" (insertion sort) coûterait combien ?</h3>
+
+      <p>Pour 100 nums avec insertion sort sur 2 piles, l'analyse donne ~5000 ops en moyenne. <b>Très loin du budget de 700</b>. Il faut une approche plus maline.</p>
+
+      <h3>Le défi spécifique</h3>
+
+      <p>Tu ne peux pas comparer 2 éléments arbitraires. Tu ne peux comparer que :</p>
+      <ul>
+        <li>Le top de <code>a</code> avec le 2e de <code>a</code> (via <code>sa</code> conditionnelle)</li>
+        <li>Le top de <code>a</code> avec le top de <code>b</code> (via <code>pa</code>/<code>pb</code>)</li>
+        <li>Aucune comparaison directe entre 2 éléments quelconques</li>
+      </ul>
+
+      <p>Donc tu fais du tri "à l'aveugle" pour la plupart des éléments. Cette contrainte est ce qui rend push_swap difficile.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">9.2</span>Pourquoi pas un algo classique</h2>
+
+      <h3>Insertion sort sur 2 piles</h3>
+
+      <ol>
+        <li>Pour chaque élément de <code>a</code> :
+          <ul>
+            <li>Trouver sa place dans <code>b</code> (qui contient les éléments déjà triés)</li>
+            <li>Faire les rotations nécessaires sur <code>b</code> pour aligner</li>
+            <li>Push depuis <code>a</code> vers <code>b</code></li>
+          </ul>
+        </li>
+      </ol>
+
+      <p>Complexité estimée : <b>O(n²)</b> ops pour <code>n</code> éléments → ~10 000 ops pour 100 nums. Loin du budget.</p>
+
+      <h3>Quicksort sur linked list</h3>
+
+      <p>Difficile à implémenter sur linked list car pas d'accès indexé. Demande beaucoup de manipulations. Pas adapté au modèle 11-ops.</p>
+
+      <h3>Radix sort</h3>
+
+      <p>Radix sort fonctionne par "chiffres" successifs et est efficace pour les entiers. Coût : <b>~n × log₂(max_val)</b>. Mais nécessite des passes successives et de la mémoire auxiliaire.</p>
+
+      <p>L'algo Turk est <b>inspiré du radix</b> mais adapté à 2 piles, et utilise une <b>indexation</b> qui rend la complexité prédictible.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">9.3</span>L'idée des chunks</h2>
+
+      <h3>L'intuition</h3>
+
+      <p>Au lieu de pousser <b>1 élément à la fois</b> (insertion sort) ou de tout pousser puis revenir (naïf), on pousse les éléments <b>par paquets</b> (chunks) selon leur valeur.</p>
+
+      <p>Exemple sur 100 nums :</p>
+      <ul>
+        <li>Chunk 0 : les 16 plus petits valeurs (rangs 0-15)</li>
+        <li>Chunk 1 : les 16 suivants (rangs 16-31)</li>
+        <li>Chunk 2 : 32-47</li>
+        <li>... etc.</li>
+      </ul>
+
+      <p>On parcourt <code>a</code> et :</p>
+      <ul>
+        <li>Si l'élément actuel appartient au <b>chunk en cours</b> → <code>pb</code> (push sur b)</li>
+        <li>Sinon → <code>ra</code> (skip, on s'en occupera plus tard)</li>
+      </ul>
+
+      <p>À la fin de chaque chunk, on passe au suivant. Quand tout est sur <code>b</code>, on ramène en sélectionnant les <b>plus grands d'abord</b> pour que la pile finale soit triée.</p>
+
+      <h3>Pourquoi cette stratégie est efficace</h3>
+
+      <ul>
+        <li>Chaque élément est <b>pushé une fois</b> et <b>repushé une fois</b> → ~2n ops de push minimum</li>
+        <li>Plus quelques rotations pour les positionner → ~3-5n au total</li>
+        <li>Pour 100 nums : ~500-700 ops, dans le budget</li>
+      </ul>
+
+      <p>La <b>taille du chunk</b> est un paramètre crucial. Trop petit = beaucoup de rotations. Trop grand = pas assez de structure sur b. On verra le choix optimal.</p>
+
+      <div class="callout note">
+        <div class="lbl">★ Origine du nom "Turk"</div>
+        L'algo doit son nom à un étudiant de 42 qui a popularisé cette approche pour push_swap. Il n'a rien à voir avec un algo académique standard — c'est un classique du folklore push_swap.
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">9.4</span>Phase 1 : <code>index_stack</code> — val → rang</h2>
+
+      <h3>Pourquoi indexer ?</h3>
+
+      <p>Les valeurs initiales sont arbitraires : <code>[42, -3, 1500, 7, ...]</code>. On ne sait pas à priori dans quel "chunk" elles appartiennent (chunk 0 = les 16 plus petites de QUOI exactement ?).</p>
+
+      <p>Solution : on remplace chaque valeur par son <b>rang</b> dans la pile triée.</p>
+
+      <pre class="code"><span class="com">// Avant</span>
+a = [<span class="num">42</span>, -<span class="num">3</span>, <span class="num">1500</span>, <span class="num">7</span>]
+
+<span class="com">// Après index_stack</span>
+a = [<span class="num">2</span>, <span class="num">0</span>, <span class="num">3</span>, <span class="num">1</span>]
+
+<span class="com">// Le 42 est le 3e plus petit (rang 2), -3 est le plus petit (rang 0), etc.</span></pre>
+
+      <p>Maintenant on sait que les rangs vont de <code>0</code> à <code>n-1</code>. Chunks bien définis :</p>
+      <ul>
+        <li>Chunk 0 : rangs 0 à 15 (les 16 plus petits)</li>
+        <li>Chunk 1 : rangs 16 à 31</li>
+        <li>... etc.</li>
+      </ul>
+
+      <h3>Le code <code>index_stack</code></h3>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">index_stack</span>(<span class="type">t_stack</span> *a)
+{
+    <span class="kw">int</span>     n;
+    <span class="kw">int</span>     *vals;
+    <span class="type">t_stack</span> *cur;
+
+    n = <span class="fn">stack_size</span>(a);
+    vals = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>) * n);
+    <span class="kw">if</span> (!vals)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="fn">copy_vals</span>(a, vals);
+    cur = a;
+    <span class="kw">while</span> (cur)
+    {
+        cur-&gt;val = <span class="fn">compute_rank</span>(cur-&gt;val, vals, n);
+        cur = cur-&gt;next;
+    }
+    <span class="fn">free</span>(vals);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+
+      <h3>Pourquoi un tableau auxiliaire <code>vals</code> ?</h3>
+
+      <p>Si on parcourait <code>a</code> et qu'on remplaçait directement les valeurs, on perdrait la valeur originale au fur et à mesure. Le <code>compute_rank</code> compte combien de nodes ont une valeur strictement inférieure → il a besoin des valeurs originales <b>de tous les nodes</b>, pas juste celle du courant.</p>
+
+      <p>Solution : on copie d'abord toutes les valeurs originales dans un tableau, puis on calcule les rangs en utilisant ce tableau comme référence figée.</p>
+
+      <h3>Les helpers <code>copy_vals</code> et <code>compute_rank</code></h3>
+
+      <pre class="code"><span class="kw">static void</span> <span class="fn">copy_vals</span>(<span class="type">t_stack</span> *a, <span class="kw">int</span> *vals)
+{
+    <span class="kw">int</span>     i;
+
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (a)
+    {
+        vals[i++] = a-&gt;val;
+        a = a-&gt;next;
+    }
+}
+
+<span class="kw">static int</span> <span class="fn">compute_rank</span>(<span class="kw">int</span> target, <span class="kw">int</span> *vals, <span class="kw">int</span> n)
+{
+    <span class="kw">int</span>     rank;
+    <span class="kw">int</span>     i;
+
+    rank = <span class="num">0</span>;
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; n)
+    {
+        <span class="kw">if</span> (vals[i] &lt; target)
+            rank++;
+        i++;
+    }
+    <span class="kw">return</span> (rank);
+}</pre>
+
+      <p><b><code>copy_vals</code></b> : parcours simple, copie chaque val dans le tableau.</p>
+
+      <p><b><code>compute_rank</code></b> : compte combien de valeurs sont strictement inférieures à <code>target</code>. Si target est le plus petit, aucune n'est inférieure → rank = 0. Si target est le 2e plus petit, 1 valeur est inférieure → rank = 1. Etc.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Complexité O(n²) — pourquoi c'est OK</div>
+        Pour chaque node (n), on parcourt le tableau entier (n) → O(n²). Pour 500 nums = 250 000 comparaisons. Quelques millisecondes. Largement assez rapide. On n'a pas besoin d'un algo de rank plus subtil (genre tri auxiliaire) pour cette taille.
+      </div>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">9.5</span>Phase 2 : <code>push_to_b</code> — pousser par chunks</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">push_to_b</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="kw">int</span>     chunk_size;
+    <span class="kw">int</span>     target;
+    <span class="kw">int</span>     pushed;
+    <span class="kw">int</span>     chunk_max;
+
+    <span class="kw">if</span> (<span class="fn">stack_size</span>(*a) &lt;= <span class="num">100</span>)
+        chunk_size = <span class="num">16</span>;
+    <span class="kw">else</span>
+        chunk_size = <span class="num">35</span>;
+    target = <span class="fn">stack_size</span>(*a);
+    pushed = <span class="num">0</span>;
+    <span class="kw">while</span> (pushed != target)
+    {
+        chunk_max = (pushed / chunk_size + <span class="num">1</span>) * chunk_size - <span class="num">1</span>;
+        <span class="kw">if</span> ((*a)-&gt;val &lt;= chunk_max)
+        {
+            <span class="fn">pb</span>(a, b);
+            pushed++;
+        }
+        <span class="kw">else</span>
+            <span class="fn">ra</span>(a);
+    }
+}</pre>
+
+      <h3>Le choix de <code>chunk_size</code></h3>
+
+      <ul>
+        <li>Si pile ≤ 100 → chunks de 16 (≈ 6-7 chunks pour 100)</li>
+        <li>Sinon → chunks de 35 (≈ 14-15 chunks pour 500)</li>
+      </ul>
+
+      <p>Pourquoi ces valeurs ? Empiriquement, ce sont des points d'équilibre entre "trop de chunks" (beaucoup de transitions, plus d'ops) et "pas assez" (B mal structurée, plus de coûts à phase 3). On a testé et tuned. Pour 100 %, on irait plus fin (genre <code>sqrt(n) * constante</code>).</p>
+
+      <h3>La boucle principale</h3>
+
+      <p>On boucle tant qu'il reste des éléments dans <code>a</code> (<code>pushed != target</code>, avec <code>target = stack_size(*a)</code> initial).</p>
+
+      <p>À chaque itération :</p>
+      <ol>
+        <li>Calculer <code>chunk_max</code> = le rang maximum accepté pour le chunk en cours</li>
+        <li>Si <code>(*a)-&gt;val &lt;= chunk_max</code> → l'élément appartient au chunk → <code>pb</code> + incrémenter <code>pushed</code></li>
+        <li>Sinon → <code>ra</code>, on saute, on s'en occupera dans un chunk plus tard</li>
+      </ol>
+
+      <p>L'astuce : <code>chunk_max</code> est <b>recalculé à chaque itération</b> selon la valeur de <code>pushed</code>. Ça veut dire qu'au fur et à mesure qu'on pousse, on passe automatiquement aux chunks suivants. On verra la formule au §9.6.</p>
+
+      <div class="callout warn">
+        <div class="lbl">⚠ Note : target = stack_size, pas stack_size - 3</div>
+        Dans la version finale, on pousse <b>tout</b> sur b (target = n). On ne laisse PAS 3 éléments sur a pour sort_3. Pourquoi ? Voir §9.8 — le bug initial qu'on a corrigé.
+      </div>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">9.6</span>La formule <code>chunk_max</code> décortiquée</h2>
+
+      <pre class="code">chunk_max = (pushed / chunk_size + <span class="num">1</span>) * chunk_size - <span class="num">1</span>;</pre>
+
+      <p>C'est la formule clé. Décortiquons.</p>
+
+      <h3>Étape par étape</h3>
+
+      <p>Cas <code>chunk_size = 16</code>. Voyons ce que ça donne pour différentes valeurs de <code>pushed</code> :</p>
+
+      <table>
+        <tr><th>pushed</th><th>pushed/16</th><th>+1</th><th>*16</th><th>-1</th><th>chunk_max</th><th>Chunk actuel</th></tr>
+        <tr><td>0</td><td>0</td><td>1</td><td>16</td><td>15</td><td><b>15</b></td><td>Chunk 0 (rangs 0-15)</td></tr>
+        <tr><td>5</td><td>0</td><td>1</td><td>16</td><td>15</td><td><b>15</b></td><td>Chunk 0</td></tr>
+        <tr><td>15</td><td>0</td><td>1</td><td>16</td><td>15</td><td><b>15</b></td><td>Chunk 0</td></tr>
+        <tr><td>16</td><td>1</td><td>2</td><td>32</td><td>31</td><td><b>31</b></td><td>Chunk 1 (rangs 16-31)</td></tr>
+        <tr><td>20</td><td>1</td><td>2</td><td>32</td><td>31</td><td><b>31</b></td><td>Chunk 1</td></tr>
+        <tr><td>32</td><td>2</td><td>3</td><td>48</td><td>47</td><td><b>47</b></td><td>Chunk 2 (rangs 32-47)</td></tr>
+      </table>
+
+      <h3>L'interprétation</h3>
+
+      <ul>
+        <li><code>pushed / chunk_size</code> = numéro du chunk en cours (division entière)</li>
+        <li><code>(pushed / chunk_size + 1) * chunk_size</code> = première valeur du chunk <b>suivant</b></li>
+        <li><code>... - 1</code> = dernière valeur du chunk en cours</li>
+      </ul>
+
+      <h3>Pourquoi cette formule plutôt qu'une variable explicite</h3>
+
+      <p>Alternative naïve :</p>
+      <pre class="code"><span class="kw">int</span> chunk_num = <span class="num">0</span>;
+<span class="kw">int</span> chunk_max = chunk_size - <span class="num">1</span>;
+<span class="kw">int</span> in_chunk = <span class="num">0</span>;
+
+<span class="kw">while</span> (pushed != target)
+{
+    <span class="kw">if</span> ((*a)-&gt;val &lt;= chunk_max)
+    {
+        <span class="fn">pb</span>(a, b);
+        pushed++;
+        in_chunk++;
+        <span class="kw">if</span> (in_chunk == chunk_size)
+        {
+            chunk_num++;
+            chunk_max += chunk_size;
+            in_chunk = <span class="num">0</span>;
+        }
+    }
+    <span class="kw">else</span>
+        <span class="fn">ra</span>(a);
+}</pre>
+
+      <p>Fonctionne mais nécessite 3 variables additionnelles. La formule <code>chunk_max = (pushed / chunk_size + 1) * chunk_size - 1</code> dérive tout de <code>pushed</code>, plus compact.</p>
+
+      <p>👉 Animation détaillée : <a href="../chunk-max-explained.html">chunk_max expliqué</a></p>
+
+      <p>👉 Animation de la boucle pb/ra : <a href="../push-to-b-iteration.html">push_to_b iteration</a></p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">9.7</span>Phase 3 : <code>push_back_to_a</code> — ramener par max</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">push_back_to_a</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="kw">while</span> (*b)
+    {
+        <span class="fn">rotate_max_to_top</span>(b);
+        <span class="fn">pa</span>(a, b);
+    }
+}</pre>
+
+      <h3>L'algorithme</h3>
+
+      <ol>
+        <li>Tant que <code>b</code> n'est pas vide :
+          <ul>
+            <li>Trouver le max de <code>b</code></li>
+            <li>L'amener au top via <code>rb</code> ou <code>rrb</code> (le chemin le plus court)</li>
+            <li>Faire <code>pa</code> pour le déplacer au top de <code>a</code></li>
+          </ul>
+        </li>
+      </ol>
+
+      <h3>Pourquoi on ramène le max d'abord</h3>
+
+      <p>Parce qu'on veut que <code>a</code> finisse trié croissant (petit en top). On commence par mettre le <b>plus grand</b> au top de a, puis on met des plus petits par-dessus. À la fin, le plus petit est en top, le plus grand au bottom. ✓</p>
+
+      <h3>Comment trouver et amener le max</h3>
+
+      <p>Symétrique de <code>find_min_pos</code> / <code>rotate_min_to_top</code> du Ch. 08 :</p>
+
+      <pre class="code"><span class="kw">static int</span> <span class="fn">find_max_pos</span>(<span class="type">t_stack</span> *b)
+{
+    <span class="kw">int</span>     pos;
+    <span class="kw">int</span>     max_pos;
+    <span class="kw">int</span>     max_val;
+
+    pos = <span class="num">0</span>;
+    max_pos = <span class="num">0</span>;
+    max_val = b-&gt;val;
+    <span class="kw">while</span> (b)
+    {
+        <span class="kw">if</span> (b-&gt;val &gt; max_val)
+        {
+            max_val = b-&gt;val;
+            max_pos = pos;
+        }
+        b = b-&gt;next;
+        pos++;
+    }
+    <span class="kw">return</span> (max_pos);
+}
+
+<span class="kw">static void</span> <span class="fn">rotate_max_to_top</span>(<span class="type">t_stack</span> **b)
+{
+    <span class="kw">int</span>     size;
+    <span class="kw">int</span>     pos;
+
+    size = <span class="fn">stack_size</span>(*b);
+    pos = <span class="fn">find_max_pos</span>(*b);
+    <span class="kw">if</span> (pos &lt;= size / <span class="num">2</span>)
+        <span class="kw">while</span> (pos-- &gt; <span class="num">0</span>)
+            <span class="fn">rb</span>(b);
+    <span class="kw">else</span>
+        <span class="kw">while</span> (pos++ &lt; size)
+            <span class="fn">rrb</span>(b);
+}</pre>
+
+      <p>Même logique que <code>rotate_min_to_top</code> mais sur <code>b</code> et pour le max au lieu du min. Choix optimal entre <code>rb</code> et <code>rrb</code> selon la position.</p>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">9.8</span>Le bug initial qu'on a corrigé</h2>
+
+      <p>Au début, on avait écrit <code>push_to_b</code> avec <code>target = stack_size(*a) - 3</code> — on laissait 3 éléments sur <code>a</code> pour faire un <code>sort_3</code> final, comme dans <code>sort_5</code>.</p>
+
+      <pre class="code"><span class="com">// Version initiale (buggée)</span>
+target = <span class="fn">stack_size</span>(*a) - <span class="num">3</span>;     <span class="com">// laisse 3 sur a</span>
+<span class="com">// ... boucle push_to_b ...</span>
+
+<span class="com">// Dans sort_big :</span>
+<span class="fn">index_stack</span>(*a);
+<span class="fn">push_to_b</span>(a, b);
+<span class="fn">sort_3</span>(a);                       <span class="com">// trier les 3 restants</span>
+<span class="fn">push_back_to_a</span>(a, b);</pre>
+
+      <h3>Pourquoi ça ne marchait pas</h3>
+
+      <p>L'idée semblait bonne (réutiliser sort_3, économiser des ops). Mais elle <b>casse l'invariant</b> de <code>push_back_to_a</code>.</p>
+
+      <p>Pour que <code>push_back_to_a</code> produise une pile triée, il faut que <b>toutes les valeurs de b soient &lt; toutes les valeurs restant sur a</b>. Sinon, quand on ramène le max de b sur a, il pourrait être plus petit que ce qui est déjà sur a → ordre cassé.</p>
+
+      <p>Avec <code>target = n - 3</code>, on laissait <b>3 éléments arbitraires</b> sur a (les 3 derniers qui n'étaient pas encore poussés au moment où on atteignait target). Ces 3 éléments n'avaient aucune raison d'être les 3 plus grands. Conséquence : invariant cassé, tri foireux.</p>
+
+      <h3>La détection</h3>
+
+      <p>Sur les tests automatisés, on voyait des "KO" sur certaines piles aléatoires (~5-10 % des cas). On a déroulé le diff sur un cas qui échouait :</p>
+
+      <pre class="code">a = [<span class="num">42</span>, <span class="num">7</span>, <span class="num">99</span>, <span class="num">13</span>, <span class="num">5</span>, <span class="num">60</span>, <span class="num">25</span>, <span class="num">88</span>]
+<span class="com">// après index_stack</span>
+a = [<span class="num">4</span>, <span class="num">1</span>, <span class="num">7</span>, <span class="num">3</span>, <span class="num">0</span>, <span class="num">5</span>, <span class="num">2</span>, <span class="num">6</span>]
+
+<span class="com">// push_to_b avec target = 8 - 3 = 5</span>
+<span class="com">// après plusieurs itérations, on a poussé 5 éléments, il reste 3 sur a</span>
+<span class="com">// mais ces 3 ne sont PAS forcément les 3 plus grands !</span>
+a = [<span class="num">7</span>, <span class="num">5</span>, <span class="num">2</span>]   <span class="com">// 2 est petit, il aurait dû être sur b !</span>
+
+<span class="com">// sort_3 trie a : a = [2, 5, 7]</span>
+<span class="com">// push_back_to_a ramène les max de b...</span>
+<span class="com">// ... mais comme 2 est sur a, à la fin la pile a contient une valeur qui</span>
+<span class="com">// "casse" l'ordre croissant.</span></pre>
+
+      <h3>La correction</h3>
+
+      <p>On change pour <code>target = stack_size(*a)</code> = on pousse TOUT sur b. Pas de <code>sort_3</code> à la fin. <code>push_back_to_a</code> ramène tout dans l'ordre croissant.</p>
+
+      <pre class="code"><span class="com">// Version finale (correcte)</span>
+target = <span class="fn">stack_size</span>(*a);          <span class="com">// pousser tout</span>
+
+<span class="com">// Dans sort_big :</span>
+<span class="fn">index_stack</span>(*a);
+<span class="fn">push_to_b</span>(a, b);
+<span class="fn">push_back_to_a</span>(a, b);          <span class="com">// pas de sort_3</span></pre>
+
+      <p>Coût : quelques ops de plus (on pousse 3 éléments inutiles), mais <b>algo correct dans 100 % des cas</b>. Pour 100 nums on est passé de "70 % de runs OK" à "100 % OK" + bench validé.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Leçon</div>
+        Les optimisations qui semblent "élégantes" peuvent casser des invariants subtils. Mieux vaut commencer par une version simple et correcte, puis optimiser une fois que les tests passent. Si tu veux pousser à 100 %, tu pourrais réintroduire un sort_3 mais en t'assurant que les 3 nodes laissés sur a sont EXACTEMENT les 3 plus grands (par exemple en arrêtant la phase 2 quand chunk_max atteint n-4).
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">9.9</span>L'orchestrateur <code>sort_big</code></h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">sort_big</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="fn">index_stack</span>(*a);
+    <span class="fn">push_to_b</span>(a, b);
+    <span class="fn">push_back_to_a</span>(a, b);
+}</pre>
+
+      <p>Trois lignes. Chaque ligne déclenche une phase de l'algo Turk.</p>
+
+      <h3>Note : on ne check pas si <code>index_stack</code> rate</h3>
+
+      <p><code>index_stack</code> retourne 0 si <code>malloc</code> rate. Dans notre code, on ignore ce retour pour rester simple. Si on voulait être 100 % défensif, on pourrait :</p>
+      <pre class="code"><span class="kw">if</span> (!<span class="fn">index_stack</span>(*a))
+{
+    <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\n"</span>, <span class="num">6</span>);
+    <span class="kw">return</span> ;
+}</pre>
+
+      <p>Mais avec valgrind clean sur des centaines de cas testés, on accepte le risque (très faible) d'un malloc qui rate.</p>
+
+      <p>👉 Simulateur complet du flow Turk : <a href="../turk-full-process.html">Turk full process</a></p>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">9.10</span>Performances atteintes</h2>
+
+      <p>Stats sur nos tests automatisés (3 testers + custom + ~1400 cas) :</p>
+
+      <table>
+        <tr><th>Taille</th><th>Min ops</th><th>Moyenne</th><th>Max ops</th><th>Seuil 80%</th><th>Marge</th></tr>
+        <tr><td>5 nums</td><td>0</td><td>~7</td><td>10</td><td>—</td><td>—</td></tr>
+        <tr><td>100 nums</td><td>~670</td><td>~735</td><td>~825</td><td>&lt; 1100</td><td>~275 ops</td></tr>
+        <tr><td>500 nums</td><td>~7100</td><td>~7270</td><td>~7500</td><td>&lt; 8500</td><td>~1000 ops</td></tr>
+      </table>
+
+      <h3>Pourquoi on est pas à 100 %</h3>
+
+      <p>Pour 100 %, il faudrait sub-700 ops pour 100 nums. On est à ~735 en moyenne. Marge négative de ~35 ops.</p>
+
+      <p>Optimisations possibles (pour pousser à 100 %) :</p>
+      <ul>
+        <li>Tuner <code>chunk_size</code> plus finement (par ex. 11 ou 14 selon n)</li>
+        <li>Faire un <code>rb</code> après chaque <code>pb</code> pour pré-trier b dans la phase 2</li>
+        <li>Optimiser le choix max/2e max dans <code>push_back_to_a</code> (lookahead)</li>
+        <li>Implémenter le <code>sort_3</code> final correct (= leave les 3 plus grands sur a)</li>
+      </ul>
+
+      <p>Notre version actuelle est <b>simple, correcte, et valide 80 %</b>. Plus optimal au déploiement.</p>
+    </section>
+
+    <section id="s11">
+      <h2><span class="num">9.11</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ L'algo Turk en 3 phases</div>
+        <ol style="margin-bottom: 0;">
+          <li><b>index_stack</b> : remplacer chaque valeur par son rang (0 à n-1) pour avoir des chunks bien définis.</li>
+          <li><b>push_to_b</b> : pousser tous les éléments sur b par chunks, en utilisant la formule <code>chunk_max = (pushed/size + 1) * size - 1</code>.</li>
+          <li><b>push_back_to_a</b> : ramener les éléments en sélectionnant le max de b à chaque itération (avec optim rb/rrb).</li>
+        </ol>
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Pourquoi ça marche</div>
+        <ul style="margin-bottom: 0;">
+          <li>Phase 1 normalise les valeurs en [0, n-1] → chunks bien dimensionnés.</li>
+          <li>Phase 2 distribue les éléments par <b>plages de valeurs</b> sur b, créant une structure approximativement triée (décroissante).</li>
+          <li>Phase 3 exploite cette structure pour ramener efficacement (max au top de b souvent ≈ déjà bien placé).</li>
+          <li>Coût total ~3-5n ops pour n éléments.</li>
+        </ul>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi on indexe avant de pousser ?</summary>
+          <div class="answer">
+            Pour que les valeurs soient dans <code>[0, n-1]</code>, ce qui permet de définir des <b>chunks bien dimensionnés</b> (par ex. chunk 0 = rangs 0-15). Sans indexation, on ne saurait pas où placer les frontières de chunks par rapport à des valeurs arbitraires.
+          </div>
+        </details>
+        <details>
+          <summary>Que vaut <code>chunk_max</code> quand <code>pushed = 0</code> et <code>chunk_size = 16</code> ?</summary>
+          <div class="answer">
+            <code>chunk_max = (0/16 + 1) * 16 - 1 = 1 * 16 - 1 = 15</code>. Donc on accepte les rangs 0 à 15 (le chunk 0).
+          </div>
+        </details>
+        <details>
+          <summary>Si tu pousses un élément hors du chunk en cours, qu'est-ce qui se passe ?</summary>
+          <div class="answer">
+            Tu fais <code>ra(a)</code> au lieu de <code>pb</code>. L'élément passe en bas de <code>a</code> (rotation). Il sera évalué à nouveau au tour suivant. Une fois que tu passes au chunk suivant (par incrémentation de <code>pushed</code>), <code>chunk_max</code> augmente et l'élément finit par être accepté.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi <code>push_back_to_a</code> ramène le <b>max</b> et pas le <b>min</b> ?</summary>
+          <div class="answer">
+            Parce qu'on construit <code>a</code> en empilant <b>au top</b>. Si on ramène le max en premier, il finit au bottom de a (les autres viennent par-dessus). Le min finit donc au top à la fin. → Pile triée croissant comme demandé.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="08-petits-tris.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">08 — Petits tris</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="10-pipeline.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">10 — Le pipeline complet</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

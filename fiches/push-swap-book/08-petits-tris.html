@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 08 — Tris pour petites piles</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie IV <span class="sep">/</span> Chapitre 08</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Vue d'ensemble</a></li>
+      <li><a href="#s2"><code>is_sorted</code></a></li>
+      <li><a href="#s3">Le dispatcher <code>sort</code></a></li>
+      <li><a href="#s4"><code>sort_3</code> — 6 cas</a></li>
+      <li><a href="#s5"><code>sort_5</code> — délégation</a></li>
+      <li><a href="#s6"><code>find_min_pos</code></a></li>
+      <li><a href="#s7"><code>rotate_min_to_top</code></a></li>
+      <li><a href="#s8">Stratégie sort_5 complète</a></li>
+      <li><a href="#s9">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><b>8. Petits tris</b></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><a href="10-pipeline.html">10. Pipeline</a></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE IV · CHAPITRE 08</div>
+      <h1>Tris pour petites piles</h1>
+      <div class="ch-sub"><code>sort_3</code> hardcodé, <code>sort_5</code> délègue à <code>sort_3</code></div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">8.1</span>Vue d'ensemble</h2>
+
+      <p>Pour les piles de taille ≤ 5, on n'utilise pas l'algo Turk (qui serait disproportionné). On a des algos dédiés, optimisés cas par cas :</p>
+
+      <table>
+        <tr><th>Taille</th><th>Méthode</th><th>Ops max</th></tr>
+        <tr><td>0 ou 1</td><td>Rien, c'est déjà trié</td><td>0</td></tr>
+        <tr><td>2</td><td>Test simple + <code>sa</code> éventuel</td><td>1</td></tr>
+        <tr><td>3</td><td><code>sort_3</code> hardcodé sur les 6 permutations</td><td>2</td></tr>
+        <tr><td>4-5</td><td><code>sort_5</code> : push 1-2 plus petits sur b, sort_3 sur a, pa pa</td><td>~10</td></tr>
+        <tr><td>&gt; 5</td><td>Algo Turk (Ch. 09)</td><td>~700 pour 100, ~7500 pour 500</td></tr>
+      </table>
+
+      <h3>Pourquoi des algos dédiés pour les petites tailles ?</h3>
+
+      <ul>
+        <li>Pour 3 nums, <b>2 ops max</b> sont suffisantes en hardcodant. Turk ferait 5-10 ops.</li>
+        <li>Pour 5 nums, ~10 ops via délégation à sort_3. Turk en ferait ~25.</li>
+        <li>L'algo Turk a un overhead (indexation, chunks) qui n'est rentable que pour les grosses piles.</li>
+      </ul>
+
+      <p>De plus, <code>sort_5</code> est <b>réutilisé par sort_big</b> indirectement : Turk laisse 3 éléments sur <code>a</code> à la fin, qu'on aurait pu trier avec <code>sort_3</code>. Mais dans notre implémentation finale, on push tout sur b (voir Ch. 09), donc sort_3 n'est utilisé que pour les piles directement de taille 3.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">8.2</span><code>is_sorted</code> — vérifier avant de trier</h2>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">is_sorted</span>(<span class="type">t_stack</span> *stack)
+{
+    <span class="kw">while</span> (stack &amp;&amp; stack-&gt;next)
+    {
+        <span class="kw">if</span> (stack-&gt;val &gt; stack-&gt;next-&gt;val)
+            <span class="kw">return</span> (<span class="num">0</span>);
+        stack = stack-&gt;next;
+    }
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+
+      <h3>L'algorithme</h3>
+
+      <p>On parcourt la chaîne et on vérifie que <b>chaque node a une valeur ≤ son suivant</b>. Si jamais on trouve <code>val &gt; next-&gt;val</code>, ce n'est pas trié → return 0. Sinon, on est arrivé au bout sans trouver d'incohérence → return 1.</p>
+
+      <h3>Conditions de boucle</h3>
+
+      <p><code>while (stack &amp;&amp; stack-&gt;next)</code> :</p>
+      <ul>
+        <li><code>stack</code> : on n'est pas tombé sur NULL</li>
+        <li><code>stack-&gt;next</code> : il y a au moins un node après (sinon on ne peut pas comparer)</li>
+      </ul>
+
+      <h3>Pourquoi cet appel dans <code>main</code></h3>
+
+      <pre class="code"><span class="kw">if</span> (!<span class="fn">is_sorted</span>(a))
+    <span class="fn">sort</span>(&amp;a, &amp;b);</pre>
+
+      <p>Optimisation : si la pile arrive déjà triée, on évite tout le travail de tri. Pas une ligne d'op sur stdout, exit propre.</p>
+
+      <p>Sans cette ligne, <code>sort(&amp;a, &amp;b)</code> serait appelé même sur une pile triée. <code>sort</code> détecterait probablement et ferait rien (selon l'algo), mais ça coûterait des cycles inutiles. Le <code>is_sorted</code> est un short-circuit propre.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">8.3</span>Le dispatcher <code>sort</code></h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">sort</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="kw">int</span>     size;
+
+    size = <span class="fn">stack_size</span>(*a);
+    <span class="kw">if</span> (size &lt;= <span class="num">1</span>)
+        <span class="kw">return</span> ;
+    <span class="kw">if</span> (size == <span class="num">2</span>)
+    {
+        <span class="kw">if</span> ((*a)-&gt;val &gt; (*a)-&gt;next-&gt;val)
+            <span class="fn">sa</span>(a);
+        <span class="kw">return</span> ;
+    }
+    <span class="kw">if</span> (size == <span class="num">3</span>)
+        <span class="fn">sort_3</span>(a);
+    <span class="kw">else if</span> (size &lt;= <span class="num">5</span>)
+        <span class="fn">sort_5</span>(a, b);
+    <span class="kw">else</span>
+        <span class="fn">sort_big</span>(a, b);
+}</pre>
+
+      <h3>Le pattern dispatcher</h3>
+
+      <p>Une seule fonction <code>sort</code> qui dispatche vers la bonne implémentation selon la taille. Avantages :</p>
+
+      <ul>
+        <li><code>main</code> appelle juste <code>sort(&amp;a, &amp;b)</code> sans se soucier de la taille</li>
+        <li>Si on veut changer la stratégie (par ex. sort_5 pour 4-7 au lieu de 4-5), on ne change qu'un endroit</li>
+        <li>Tests faciles : on peut tester chaque taille indépendamment</li>
+      </ul>
+
+      <h3>Les 4 branches</h3>
+
+      <table>
+        <tr><th>size</th><th>Branche</th><th>Pourquoi</th></tr>
+        <tr><td>0 ou 1</td><td><code>return ;</code></td><td>déjà trié par définition</td></tr>
+        <tr><td>2</td><td>Test direct + <code>sa</code></td><td>trop simple pour mériter une fonction dédiée</td></tr>
+        <tr><td>3</td><td><code>sort_3(a)</code></td><td>6 permutations hardcodées</td></tr>
+        <tr><td>4 ou 5</td><td><code>sort_5(a, b)</code></td><td>délégation à sort_3</td></tr>
+        <tr><td>≥ 6</td><td><code>sort_big(a, b)</code></td><td>algorithme Turk</td></tr>
+      </table>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">8.4</span><code>sort_3</code> — 6 cas hardcodés</h2>
+
+      <h3>Le principe : énumérer toutes les permutations</h3>
+
+      <p>Avec 3 éléments distincts (rappel : pas de doublons grâce au parser), il y a <b>3! = 6 permutations possibles</b>. Pour chacune, on connaît la stratégie optimale.</p>
+
+      <p>On utilise les variables <code>top</code>, <code>mid</code>, <code>bot</code> pour représenter les 3 valeurs lues depuis la pile, et on teste leurs relations.</p>
+
+      <h3>Le tableau des 6 cas</h3>
+
+      <table>
+        <tr><th>Pile</th><th>Condition</th><th>Ops</th><th>Stratégie</th></tr>
+        <tr><td>[1, 2, 3]</td><td><code>top &lt; mid &lt; bot</code></td><td>0</td><td>déjà trié, return</td></tr>
+        <tr><td>[2, 1, 3]</td><td><code>top &gt; mid &amp;&amp; top &lt; bot</code></td><td>1</td><td><code>sa</code> → [1, 2, 3]</td></tr>
+        <tr><td>[3, 1, 2]</td><td><code>top &gt; mid &amp;&amp; top &gt; bot &amp;&amp; mid &lt; bot</code></td><td>1</td><td><code>ra</code> → [1, 2, 3]</td></tr>
+        <tr><td>[2, 3, 1]</td><td><code>top &lt; mid &amp;&amp; top &gt; bot</code></td><td>1</td><td><code>rra</code> → [1, 2, 3]</td></tr>
+        <tr><td>[1, 3, 2]</td><td><code>top &lt; mid &amp;&amp; mid &gt; bot &amp;&amp; top &lt; bot</code></td><td>2</td><td><code>rra</code> + <code>sa</code> → [1, 2, 3]</td></tr>
+        <tr><td>[3, 2, 1]</td><td><code>top &gt; mid &amp;&amp; mid &gt; bot</code></td><td>2</td><td><code>sa</code> + <code>rra</code> → [1, 2, 3]</td></tr>
+      </table>
+
+      <h3>Le code</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">sort_3</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="kw">int</span>     top;
+    <span class="kw">int</span>     mid;
+    <span class="kw">int</span>     bot;
+
+    top = (*a)-&gt;val;
+    mid = (*a)-&gt;next-&gt;val;
+    bot = (*a)-&gt;next-&gt;next-&gt;val;
+    <span class="kw">if</span> (top &lt; mid &amp;&amp; mid &lt; bot)
+        <span class="kw">return</span> ;
+    <span class="kw">else if</span> (top &gt; mid &amp;&amp; top &lt; bot)
+        <span class="fn">sa</span>(a);
+    <span class="kw">else if</span> (top &gt; mid &amp;&amp; top &gt; bot &amp;&amp; mid &lt; bot)
+        <span class="fn">ra</span>(a);
+    <span class="kw">else if</span> (top &lt; mid &amp;&amp; top &gt; bot)
+        <span class="fn">rra</span>(a);
+    <span class="kw">else if</span> (top &lt; mid &amp;&amp; mid &gt; bot &amp;&amp; top &lt; bot)
+    {
+        <span class="fn">rra</span>(a);
+        <span class="fn">sa</span>(a);
+    }
+    <span class="kw">else if</span> (top &gt; mid &amp;&amp; mid &gt; bot)
+    {
+        <span class="fn">sa</span>(a);
+        <span class="fn">rra</span>(a);
+    }
+}</pre>
+
+      <h3>Vérification d'un cas : [3, 1, 2]</h3>
+
+      <p>Pile : <code>top=3, mid=1, bot=2</code>. Test des conditions :</p>
+      <ul>
+        <li><code>top &lt; mid</code> ? 3 &lt; 1 ? NON</li>
+        <li><code>top &gt; mid &amp;&amp; top &lt; bot</code> ? 3 &gt; 1 ✓, 3 &lt; 2 ? NON</li>
+        <li><code>top &gt; mid &amp;&amp; top &gt; bot &amp;&amp; mid &lt; bot</code> ? 3 &gt; 1 ✓, 3 &gt; 2 ✓, 1 &lt; 2 ✓ → MATCH</li>
+      </ul>
+      <p>Action : <code>ra(a)</code>. Avant : [3, 1, 2], après ra : [1, 2, 3]. ✓ Trié en 1 op.</p>
+
+      <h3>Pourquoi cette structure if/else if</h3>
+
+      <p>Les conditions sont <b>exhaustives et mutuellement exclusives</b> : pour 3 valeurs distinctes, exactement une condition match. Le if/else if vérifie séquentiellement, court-circuite dès qu'une matche, et garantit qu'on ne fait aucune op si déjà trié.</p>
+
+      <div class="callout key">
+        <div class="lbl">★ Limite théorique : 2 ops max</div>
+        Mathématiquement, pour trier 3 éléments avec les ops disponibles, le pire cas est 2 ops. Notre <code>sort_3</code> l'atteint pour tous les cas. C'est optimal.
+      </div>
+
+      <h3>Erreur de débutant à éviter</h3>
+
+      <p>Si tu te trompes dans l'une des conditions (par ex. tu oublies un <code>&amp;&amp;</code>), tu peux entrer dans la mauvaise branche et faire 2-3 ops alors qu'1 suffirait. Test ton sort_3 sur les 6 permutations possibles avant de passer à la suite.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">8.5</span><code>sort_5</code> — déléguer à sort_3</h2>
+
+      <h3>L'idée centrale</h3>
+
+      <p>On a déjà <code>sort_3</code> qui trie 3 éléments. Pour 5 éléments, on <b>réduit le problème</b> :</p>
+
+      <ol>
+        <li>Push les <b>2 plus petits</b> de <code>a</code> vers <code>b</code></li>
+        <li>Il reste 3 éléments dans <code>a</code> → on appelle <code>sort_3</code></li>
+        <li>Ramène les 2 éléments de <code>b</code> via <code>pa</code> + <code>pa</code></li>
+      </ol>
+
+      <p>Pourquoi les <b>plus petits</b> sur b ? Parce qu'à la fin, on les ramène <b>au top de a</b> via <code>pa</code>. Comme on les a poussés dans l'ordre croissant (le plus petit en dernier), ils reviennent dans le bon ordre (le plus petit reste au top de a).</p>
+
+      <h3>Walk-through complet sur [5, 4, 3, 2, 1]</h3>
+
+      <div class="ascii">État initial : a = [5, 4, 3, 2, 1]    b = []
+
+Étape 1 : amener 1 (min) au top → push sur b
+   rra rra rra → a = [3, 2, 1, 5, 4]... attendons, faisons plutôt :
+   on calcule la position du min via find_min_pos
+   pos=4 → on choisit rra (plus court, 1 ops) → a = [1, 5, 4, 3, 2]
+   pb → a = [5, 4, 3, 2], b = [1]
+
+Étape 2 : amener 2 (nouveau min) au top → push sur b
+   find_min_pos(a) = 3 → rra (1 op) → a = [2, 5, 4, 3]
+   pb → a = [5, 4, 3], b = [2, 1]
+
+Étape 3 : sort_3 sur [5, 4, 3]
+   top=5, mid=4, bot=3 → top > mid > bot → sa puis rra
+   sa → [4, 5, 3]
+   rra → [3, 4, 5]
+
+Étape 4 : pa pa pour ramener b sur a
+   pa → a = [2, 3, 4, 5], b = [1]
+   pa → a = [1, 2, 3, 4, 5], b = []
+
+Total ops : 9 (1 rra + 1 pb + 1 rra + 1 pb + 1 sa + 1 rra + 2 pa = 8 ops...
+            note : variable selon le cas, max 12 ops)
+</div>
+
+      <p>👉 Animation détaillée : <a href="../sort5-step-by-step.html">sort_5 step-by-step</a></p>
+
+      <h3>Le code</h3>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">sort_5</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b)
+{
+    <span class="kw">int</span>     to_push;
+
+    to_push = <span class="fn">stack_size</span>(*a) - <span class="num">3</span>;
+    <span class="kw">while</span> (to_push-- &gt; <span class="num">0</span>)
+    {
+        <span class="fn">rotate_min_to_top</span>(a);
+        <span class="fn">pb</span>(a, b);
+    }
+    <span class="fn">sort_3</span>(a);
+    <span class="kw">while</span> (*b)
+        <span class="fn">pa</span>(a, b);
+}</pre>
+
+      <h3>Décortiquage</h3>
+
+      <ul>
+        <li><code>to_push = stack_size(*a) - 3;</code> : combien d'éléments doivent partir sur b ? Si <code>a</code> a 5, c'est 2. Si <code>a</code> a 4, c'est 1.</li>
+        <li><code>while (to_push-- &gt; 0)</code> : on répète <code>to_push</code> fois.</li>
+        <li><code>rotate_min_to_top(a); pb(a, b);</code> : amène le min au top, push sur b.</li>
+        <li><code>sort_3(a);</code> : trie les 3 restants.</li>
+        <li><code>while (*b) pa(a, b);</code> : tant que b n'est pas vide, ramène un élément sur a.</li>
+      </ul>
+
+      <p>Le code est court parce qu'il <b>compose</b> des briques existantes : <code>rotate_min_to_top</code>, <code>pb</code>, <code>sort_3</code>, <code>pa</code>. Chaque brique fait UNE chose.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">8.6</span><code>find_min_pos</code> — trouver la position du min</h2>
+
+      <pre class="code"><span class="kw">int</span> <span class="fn">find_min_pos</span>(<span class="type">t_stack</span> *a)
+{
+    <span class="kw">int</span>     pos;
+    <span class="kw">int</span>     min_pos;
+    <span class="kw">int</span>     min_val;
+
+    pos = <span class="num">0</span>;
+    min_pos = <span class="num">0</span>;
+    min_val = a-&gt;val;
+    <span class="kw">while</span> (a)
+    {
+        <span class="kw">if</span> (a-&gt;val &lt; min_val)
+        {
+            min_val = a-&gt;val;
+            min_pos = pos;
+        }
+        a = a-&gt;next;
+        pos++;
+    }
+    <span class="kw">return</span> (min_pos);
+}</pre>
+
+      <h3>L'algorithme classique du "trouve le min"</h3>
+
+      <ol>
+        <li>Init : on suppose que le 1er élément est le min (position 0, valeur <code>a-&gt;val</code>).</li>
+        <li>Parcours : pour chaque élément, si sa valeur est plus petite que <code>min_val</code>, on met à jour <code>min_val</code> et <code>min_pos</code>.</li>
+        <li>Retour : la position du min trouvée.</li>
+      </ol>
+
+      <p>O(n) — un seul parcours.</p>
+
+      <h3>Pourquoi on retourne la position et pas le min ?</h3>
+
+      <p>Parce que pour amener le min au top, on a besoin de savoir <b>combien de rotations</b> il faut. La valeur du min en elle-même ne nous intéresse pas à ce moment. La position dit "il faut <code>pos</code> ra pour le ramener au top".</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">8.7</span><code>rotate_min_to_top</code> — choisir ra ou rra</h2>
+
+      <pre class="code"><span class="kw">void</span> <span class="fn">rotate_min_to_top</span>(<span class="type">t_stack</span> **a)
+{
+    <span class="kw">int</span>     size;
+    <span class="kw">int</span>     pos;
+
+    size = <span class="fn">stack_size</span>(*a);
+    pos = <span class="fn">find_min_pos</span>(*a);
+    <span class="kw">if</span> (pos &lt;= size / <span class="num">2</span>)
+    {
+        <span class="kw">while</span> (pos-- &gt; <span class="num">0</span>)
+            <span class="fn">ra</span>(a);
+    }
+    <span class="kw">else</span>
+    {
+        <span class="kw">while</span> (pos++ &lt; size)
+            <span class="fn">rra</span>(a);
+    }
+}</pre>
+
+      <h3>L'optimisation : choisir le chemin le plus court</h3>
+
+      <p>Si le min est à la position <code>pos</code>, on peut le ramener au top de 2 façons :</p>
+
+      <ul>
+        <li><b><code>ra</code> <code>pos</code> fois</b> : le fait remonter par le haut (chaque ra fait avancer d'un cran)</li>
+        <li><b><code>rra</code> <code>(size - pos)</code> fois</b> : le fait remonter par le bas</li>
+      </ul>
+
+      <p>On choisit la méthode <b>la moins coûteuse</b>.</p>
+
+      <div class="ascii">Pile [3, 5, 1, 4, 2], size=5, min=1 à pos=2
+
+Option A — ra :  ra ra → 2 ops
+   [3, 5, 1, 4, 2] → [5, 1, 4, 2, 3] → [1, 4, 2, 3, 5]
+
+Option B — rra : rra rra rra → 3 ops
+   [3, 5, 1, 4, 2] → [2, 3, 5, 1, 4] → [4, 2, 3, 5, 1] → [1, 4, 2, 3, 5]
+
+Option A gagne (2 &lt; 3).
+</div>
+
+      <h3>Le critère <code>pos &lt;= size / 2</code></h3>
+
+      <p>Si <code>pos</code> est dans la 1ère moitié (proche du top), c'est plus court via <code>ra</code>. Sinon, plus court via <code>rra</code>.</p>
+
+      <p>Exemple pour size=5 (size/2 = 2) :</p>
+      <ul>
+        <li>pos = 0 → 0 ops</li>
+        <li>pos = 1 → 1 ra (vs 4 rra)</li>
+        <li>pos = 2 → 2 ra (vs 3 rra)</li>
+        <li>pos = 3 → 2 rra (vs 3 ra)</li>
+        <li>pos = 4 → 1 rra (vs 4 ra)</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">8.8</span>Stratégie sort_5 — pourquoi ça marche</h2>
+
+      <h3>L'invariant</h3>
+
+      <p>À l'étape "push 2 plus petits sur b", on s'assure que <b>les valeurs de b sont toutes &lt; les valeurs de a</b>. Pourquoi ? Parce qu'on pousse spécifiquement les 2 plus petits.</p>
+
+      <p>Conséquence : quand on ramène avec <code>pa</code>, on met d'abord le 2e-plus-petit (en haut de b), puis le 1er-plus-petit (au bottom de b, désormais en haut). Ils arrivent <b>au-dessus</b> des 3 que sort_3 a déjà triés.</p>
+
+      <h3>L'ordre final</h3>
+
+      <p>Si b = [2, 1] (top=2, bottom=1) et a = [3, 4, 5] (top=3, trié), alors :</p>
+      <ul>
+        <li>pa : a = [2, 3, 4, 5], b = [1]</li>
+        <li>pa : a = [1, 2, 3, 4, 5], b = []</li>
+      </ul>
+
+      <p>La pile est triée. ✓</p>
+
+      <div class="callout key">
+        <div class="lbl">★ La condition cachée</div>
+        Pour que ça marche, il faut absolument que <b>les valeurs sur b soient toutes &lt; toutes celles sur a</b>. Si on pousse n'importe quoi sur b (pas spécifiquement les plus petits), à la fin <code>pa</code> mettrait des valeurs trop grandes en haut de a → pile pas triée.<br><br>
+        C'est exactement le piège qu'on a découvert dans la phase Turk (Ch. 09) — la première version laissait 3 éléments arbitraires sur a, et l'invariant cassait.
+      </div>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">8.9</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Les algos par taille</div>
+        <ul style="margin-bottom: 0;">
+          <li><code>is_sorted</code> : court-circuit dans main si pile arrive triée.</li>
+          <li>Dispatcher <code>sort</code> : route vers la bonne implémentation.</li>
+          <li><code>sort_3</code> : 6 if/else if hardcodés, 2 ops max.</li>
+          <li><code>sort_5</code> : pousse les 2 plus petits sur b, sort_3 sur a, pa pa.</li>
+          <li>Helpers <code>find_min_pos</code> et <code>rotate_min_to_top</code> (avec optim ra/rra).</li>
+        </ul>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi hardcoder 6 cas pour sort_3 et pas un algo générique ?</summary>
+          <div class="answer">
+            Parce que pour 3 éléments distincts, il n'y a que 6 permutations. On peut <b>toutes les énumérer</b> et donner la solution optimale (2 ops max) à chacune. Un algo générique comme insertion sort ferait potentiellement plus d'ops. Hardcoder = optimal pour ce cas spécifique.
+          </div>
+        </details>
+        <details>
+          <summary>Dans sort_5, pourquoi on pousse les <b>plus petits</b> sur b et pas les plus grands ?</summary>
+          <div class="answer">
+            Parce qu'à la fin on les ramène via <code>pa</code> qui les met <b>au top de a</b>. On veut que les plus petits se retrouvent au top une fois la pile triée. Si on poussait les plus grands, ils reviendraient au top de a et casseraient l'ordre.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi <code>rotate_min_to_top</code> choisit ra ou rra selon <code>pos &lt;= size/2</code> ?</summary>
+          <div class="answer">
+            Pour minimiser le nombre d'ops. Si le min est dans la 1ère moitié, ra (par le haut) est plus court. Sinon, rra (par le bas) est plus court. Le seuil <code>size/2</code> définit le point d'inflexion.
+          </div>
+        </details>
+        <details>
+          <summary>Que retourne <code>is_sorted</code> sur une pile vide ?</summary>
+          <div class="answer">
+            <code>1</code> (vrai). Une pile vide est considérée comme triée par convention. La boucle <code>while (stack &amp;&amp; stack-&gt;next)</code> ne s'exécute pas, on tombe directement sur <code>return (1)</code>.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="07-ops.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">07 — Les 11 opérations</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="09-turk.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">09 — L'algorithme Turk</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>

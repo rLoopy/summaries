@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 10 — Le pipeline complet</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 push_swap — gitbook</a></div>
+  <div class="breadcrumb">Partie IV <span class="sep">/</span> Chapitre 10</div>
+</div>
+<div class="progress" id="progress"></div>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <h3>📑 Dans ce chapitre</h3>
+    <ol>
+      <li><a href="#s1">Le code <code>main</code></a></li>
+      <li><a href="#s2">Le helper <code>print_error</code></a></li>
+      <li><a href="#s3">Les early returns</a></li>
+      <li><a href="#s4">Le flow ligne par ligne</a></li>
+      <li><a href="#s5">Le cleanup</a></li>
+      <li><a href="#s6">Tracer un exemple complet</a></li>
+      <li><a href="#s7">Récap</a></li>
+    </ol>
+    <div class="ch-list">
+      <div class="label">CHAPITRES</div>
+      <ol>
+        <li><a href="01-memoire.html">1. Mémoire</a></li>
+        <li><a href="02-linked-lists.html">2. Linked lists</a></li>
+        <li><a href="03-sujet.html">3. Le sujet</a></li>
+        <li><a href="04-architecture.html">4. Architecture</a></li>
+        <li><a href="05-parser.html">5. Parser</a></li>
+        <li><a href="06-stack.html">6. stack.c</a></li>
+        <li><a href="07-ops.html">7. Les 11 ops</a></li>
+        <li><a href="08-petits-tris.html">8. Petits tris</a></li>
+        <li><a href="09-turk.html">9. Turk</a></li>
+        <li><b>10. Pipeline</b></li>
+        <li><a href="11-tests.html">11. Tests</a></li>
+        <li><a href="12-peer-eval.html">12. Peer-eval</a></li>
+        <li><a href="13-meta.html">13. Méta</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+    <header class="chapter-header">
+      <div class="ch-num">PARTIE IV · CHAPITRE 10</div>
+      <h1>Le pipeline complet</h1>
+      <div class="ch-sub"><code>main</code> ligne par ligne, gestion d'erreurs, cleanup</div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="num">10.1</span>Le code <code>main.c</code> complet</h2>
+
+      <pre class="code"><span class="kw">static int</span> <span class="fn">print_error</span>(<span class="kw">void</span>)
+{
+    <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\n"</span>, <span class="num">6</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}
+
+<span class="kw">int</span> <span class="fn">main</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    <span class="kw">int</span>     n;
+    <span class="kw">int</span>     *values;
+    <span class="type">t_stack</span> *a;
+    <span class="type">t_stack</span> *b;
+
+    <span class="kw">if</span> (argc &lt; <span class="num">2</span>)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    values = <span class="fn">parse_args</span>(argc, argv, &amp;n);
+    <span class="kw">if</span> (!values)
+        <span class="kw">return</span> (<span class="fn">print_error</span>());
+    a = <span class="fn">build_stack</span>(values, n);
+    <span class="fn">free</span>(values);
+    <span class="kw">if</span> (!a)
+        <span class="kw">return</span> (<span class="fn">print_error</span>());
+    b = <span class="num">NULL</span>;
+    <span class="kw">if</span> (!<span class="fn">is_sorted</span>(a))
+        <span class="fn">sort</span>(&amp;a, &amp;b);
+    <span class="fn">stack_free</span>(&amp;a);
+    <span class="fn">stack_free</span>(&amp;b);
+    <span class="kw">return</span> (<span class="num">0</span>);
+}</pre>
+
+      <p>21 lignes au total (avec les déclarations et l'helper), tout compris. C'est le squelette qui orchestre les ~15 autres fichiers.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">10.2</span>Le helper <code>print_error</code></h2>
+
+      <pre class="code"><span class="kw">static int</span> <span class="fn">print_error</span>(<span class="kw">void</span>)
+{
+    <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\n"</span>, <span class="num">6</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+
+      <h3>Pourquoi ce helper ?</h3>
+
+      <p>Pour respecter la norme : <code>main</code> a 2 cas d'erreur, chacun avec 2 actions (write + return). Sans helper, on aurait :</p>
+      <pre class="code"><span class="kw">if</span> (!values)
+{
+    <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\n"</span>, <span class="num">6</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}
+<span class="com">// ...</span>
+<span class="kw">if</span> (!a)
+{
+    <span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\n"</span>, <span class="num">6</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</pre>
+      <p>main passerait à 26+ lignes → dépassement de la limite de 25 (norminette). Avec le helper, chaque cas tient en 1 ligne :</p>
+      <pre class="code"><span class="kw">if</span> (!values)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());
+<span class="kw">if</span> (!a)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());</pre>
+
+      <p>Compact, DRY, conforme à la norme.</p>
+
+      <h3>Pourquoi <code>static</code> ?</h3>
+
+      <p>Parce que <code>print_error</code> n'a aucune raison d'être appelée depuis un autre fichier. Le mot-clé <code>static</code> la garde locale à <code>main.c</code>.</p>
+
+      <h3>Pourquoi <code>return (1)</code> ?</h3>
+
+      <p>Pour que <code>main</code> retourne 1 à l'OS = "exit code non-zero = il y a eu une erreur". Convention Unix. Quand tu fais <code>./push_swap abc; echo $?</code>, tu obtiens 1.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">10.3</span>Les early returns</h2>
+
+      <p>Le code de <code>main</code> utilise des "early returns" : sortir tôt en cas de problème, sans imbriquer des if/else profonds.</p>
+
+      <h3>Les 3 early returns</h3>
+
+      <pre class="code"><span class="kw">if</span> (argc &lt; <span class="num">2</span>)
+    <span class="kw">return</span> (<span class="num">0</span>);                  <span class="com">// pas d'arg → exit 0 silencieux</span>
+
+<span class="com">// ...</span>
+
+<span class="kw">if</span> (!values)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());        <span class="com">// parser a échoué → Error + exit 1</span>
+
+<span class="com">// ...</span>
+
+<span class="kw">if</span> (!a)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());        <span class="com">// build_stack a échoué (malloc) → Error + exit 1</span></pre>
+
+      <h3>Avantages du pattern early return</h3>
+
+      <ul>
+        <li>Code linéaire, facile à lire</li>
+        <li>Pas d'indentation profonde (chaque condition → un return)</li>
+        <li>Le "happy path" (= tout va bien) reste en bas, lisible</li>
+        <li>Pas de variables d'état d'erreur à propager</li>
+      </ul>
+
+      <div class="callout note">
+        <div class="lbl">★ Pattern alternatif (qu'on n'utilise PAS)</div>
+        <pre class="code"><span class="kw">int</span> ret = <span class="num">0</span>;
+<span class="kw">if</span> (argc &lt; <span class="num">2</span>)
+{
+    <span class="com">// rien</span>
+}
+<span class="kw">else</span>
+{
+    values = <span class="fn">parse_args</span>(...);
+    <span class="kw">if</span> (!values)
+    {
+        ret = <span class="num">1</span>;
+        <span class="com">// ...</span>
+    }
+    <span class="kw">else</span>
+    {
+        <span class="com">// suite</span>
+    }
+}
+<span class="kw">return</span> (ret);</pre>
+        Imbrication profonde → lourd à lire. Les early returns sont plus propres pour un flow comme celui-ci.
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">10.4</span>Le flow ligne par ligne</h2>
+
+      <p>On déroule chaque ligne dans l'ordre.</p>
+
+      <h3>Lignes 1-5 : déclarations</h3>
+
+      <pre class="code"><span class="kw">int</span>     n;
+<span class="kw">int</span>     *values;
+<span class="type">t_stack</span> *a;
+<span class="type">t_stack</span> *b;</pre>
+
+      <p>Norme : déclarations en début de fonction, séparées du code par une ligne vide. Pas d'initialisation directe (la norme préfère <code>x;</code> puis <code>x = ...;</code>).</p>
+
+      <h3>Ligne 6 : check argc</h3>
+
+      <pre class="code"><span class="kw">if</span> (argc &lt; <span class="num">2</span>)
+    <span class="kw">return</span> (<span class="num">0</span>);</pre>
+
+      <p>Si l'user n'a pas passé d'argument, on sort immédiatement (silencieusement). Le sujet impose ce comportement.</p>
+
+      <h3>Ligne 7-8 : parsing</h3>
+
+      <pre class="code">values = <span class="fn">parse_args</span>(argc, argv, &amp;n);
+<span class="kw">if</span> (!values)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());</pre>
+
+      <p>On appelle <code>parse_args</code> (cf Ch. 05). Si ça échoue (NULL retourné), on affiche Error et on sort avec code 1.</p>
+
+      <p>Note bien le <code>&amp;n</code> : on passe <b>l'adresse</b> de <code>n</code> pour que <code>parse_args</code> puisse écrire la taille via <code>*n = ...</code>.</p>
+
+      <h3>Ligne 9-12 : construction de la pile</h3>
+
+      <pre class="code">a = <span class="fn">build_stack</span>(values, n);
+<span class="fn">free</span>(values);
+<span class="kw">if</span> (!a)
+    <span class="kw">return</span> (<span class="fn">print_error</span>());</pre>
+
+      <p>On convertit le tableau d'<code>int</code> en linked list. Une fois la pile construite, on n'a plus besoin du tableau intermédiaire → on free.</p>
+
+      <p>Si <code>build_stack</code> échoue (malloc out of memory), on sort avec Error. C'est un cas extrême mais on le gère pour ne jamais avoir de comportement indéfini.</p>
+
+      <h3>Ligne 13 : init de b</h3>
+
+      <pre class="code">b = <span class="num">NULL</span>;</pre>
+
+      <p>La pile <code>b</code> commence vide. <code>NULL</code> est la représentation d'une linked list vide.</p>
+
+      <h3>Ligne 14-15 : le tri</h3>
+
+      <pre class="code"><span class="kw">if</span> (!<span class="fn">is_sorted</span>(a))
+    <span class="fn">sort</span>(&amp;a, &amp;b);</pre>
+
+      <p>Optimisation : si la pile arrive déjà triée, on évite tout le travail. Sinon, on lance <code>sort</code> qui dispatche selon la taille (cf Ch. 08).</p>
+
+      <h3>Lignes 16-18 : cleanup</h3>
+
+      <pre class="code"><span class="fn">stack_free</span>(&amp;a);
+<span class="fn">stack_free</span>(&amp;b);
+<span class="kw">return</span> (<span class="num">0</span>);</pre>
+
+      <p>On libère les 2 piles (même si <code>b</code> devrait être vide à ce stade — au cas où). Exit avec code 0 (= succès).</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">10.5</span>Le cleanup — détail critique</h2>
+
+      <h3>Toutes les allocs</h3>
+
+      <p>Dans le flow, on a 3 types d'allocations potentielles :</p>
+
+      <ol>
+        <li><b><code>parse_args</code></b> alloue le tableau <code>values</code> (et internement des tokens qu'elle free elle-même)</li>
+        <li><b><code>build_stack</code></b> alloue n nodes via <code>stack_new</code></li>
+        <li>Les opérations de tri (<code>pb</code>, <code>pa</code>) déplacent les nodes existants mais n'allouent rien</li>
+        <li><b><code>index_stack</code></b> (si on passe par sort_big) alloue temporairement un tableau qu'elle free elle-même</li>
+      </ol>
+
+      <h3>Les frees correspondants</h3>
+
+      <ol>
+        <li><code>free(values)</code> après <code>build_stack</code></li>
+        <li><code>stack_free(&amp;a)</code> et <code>stack_free(&amp;b)</code> à la fin de <code>main</code></li>
+      </ol>
+
+      <p>Chaque alloc a son free. Vérifié avec valgrind : <b>0 byte en fuite</b>.</p>
+
+      <h3>Pourquoi free b même si elle est vide</h3>
+
+      <p>À la fin du tri normal (Turk), <code>b</code> doit être vide. Mais :</p>
+      <ul>
+        <li>Si l'algo de tri a un bug et laisse des éléments → <code>stack_free</code> les libère</li>
+        <li><code>stack_free</code> sur une pile vide est sûr (ne fait rien)</li>
+        <li>Ça met la variable <code>b</code> à NULL proprement</li>
+      </ul>
+
+      <p>C'est une protection à coût zéro qui rend le code robuste.</p>
+
+      <h3>Le passage par <code>&amp;a</code></h3>
+
+      <p>On passe <code>&amp;a</code> à <code>stack_free</code> (pas juste <code>a</code>) parce que <code>stack_free</code> met <code>*stack = NULL</code> à la fin → modifie la variable locale <code>a</code> de <code>main</code>. C'est juste pour la propreté du pointeur après free.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">10.6</span>Tracer un exemple complet</h2>
+
+      <p>Suivons <code>./push_swap 3 1 2</code> de bout en bout.</p>
+
+      <h3>Étape 1 : entrée dans main</h3>
+
+      <div class="ascii">argc = 4
+argv = ["./push_swap", "3", "1", "2", NULL]
+</div>
+
+      <h3>Étape 2 : check argc</h3>
+
+      <p><code>argc &lt; 2</code> ? 4 &lt; 2 ? NON → on continue.</p>
+
+      <h3>Étape 3 : parse_args</h3>
+
+      <p><code>parse_args(4, argv, &amp;n)</code> :</p>
+      <ul>
+        <li>tokenize → <code>["3", "1", "2", NULL]</code></li>
+        <li>count_tokens → 3, écrit dans <code>n</code></li>
+        <li>convert_tokens : check chaque, convert → <code>values = [3, 1, 2]</code></li>
+        <li>has_duplicates → 0 (pas de doublon)</li>
+        <li>return <code>values</code></li>
+      </ul>
+      <p>Retour : <code>values = [3, 1, 2]</code>, <code>n = 3</code>.</p>
+
+      <h3>Étape 4 : build_stack</h3>
+
+      <p><code>a = build_stack([3, 1, 2], 3)</code> :</p>
+      <ul>
+        <li>add_bottom(3) → a = [3]</li>
+        <li>add_bottom(1) → a = [3, 1]</li>
+        <li>add_bottom(2) → a = [3, 1, 2]</li>
+        <li>return head</li>
+      </ul>
+      <p>Pile <code>a</code> contient les nodes pour 3, 1, 2.</p>
+
+      <h3>Étape 5 : free(values)</h3>
+
+      <p>Le tableau d'int n'est plus utile. On le libère.</p>
+
+      <h3>Étape 6 : b = NULL</h3>
+
+      <p>Pile b commence vide.</p>
+
+      <h3>Étape 7 : is_sorted(a)</h3>
+
+      <p>Parcourt <code>[3, 1, 2]</code> : 3 &gt; 1 → return 0 (pas trié). Le <code>if</code> match.</p>
+
+      <h3>Étape 8 : sort(&amp;a, &amp;b)</h3>
+
+      <p>Dispatcher : <code>stack_size(*a) = 3</code> → branche <code>sort_3(a)</code>.</p>
+
+      <p><code>sort_3</code> lit <code>top=3, mid=1, bot=2</code>. Test :</p>
+      <ul>
+        <li><code>top &lt; mid &amp;&amp; mid &lt; bot</code> ? 3 &lt; 1 ? NON</li>
+        <li><code>top &gt; mid &amp;&amp; top &lt; bot</code> ? 3 &gt; 1 ✓, 3 &lt; 2 ? NON</li>
+        <li><code>top &gt; mid &amp;&amp; top &gt; bot &amp;&amp; mid &lt; bot</code> ? 3 &gt; 1 ✓, 3 &gt; 2 ✓, 1 &lt; 2 ✓ → MATCH</li>
+      </ul>
+      <p>Action : <code>ra(a)</code>. Écrit "ra\n" sur stdout. Modifie la pile : <code>a = [1, 2, 3]</code>.</p>
+
+      <h3>Étape 9 : stack_free(&amp;a) + stack_free(&amp;b)</h3>
+
+      <p>Libère les 3 nodes de a. b est déjà vide → no-op. <code>a</code> et <code>b</code> sont mis à NULL.</p>
+
+      <h3>Étape 10 : return 0</h3>
+
+      <p>Le processus termine avec exit code 0.</p>
+
+      <h3>Sortie observée par l'user</h3>
+
+      <pre class="code">$ ./push_swap 3 1 2
+ra
+$ echo $?
+0</pre>
+
+      <p>1 ligne sur stdout (ra), exit 0. Sortie minimaliste, conforme au sujet.</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">10.7</span>Récap du chapitre</h2>
+
+      <div class="callout key">
+        <div class="lbl">★ Le pipeline en 7 étapes</div>
+        <ol style="margin-bottom: 0;">
+          <li>Check <code>argc</code> : 0 arg → exit 0 silencieux</li>
+          <li><code>parse_args</code> → <code>int *values</code> + <code>n</code>, ou NULL si erreur</li>
+          <li><code>build_stack</code> → <code>t_stack *a</code></li>
+          <li><code>free(values)</code> (plus utile)</li>
+          <li>Initialiser <code>b = NULL</code></li>
+          <li>Check <code>is_sorted</code>, sinon <code>sort(&amp;a, &amp;b)</code></li>
+          <li><code>stack_free(&amp;a)</code> + <code>stack_free(&amp;b)</code>, exit 0</li>
+        </ol>
+      </div>
+
+      <div class="callout note">
+        <div class="lbl">★ Hygiène mémoire</div>
+        <ul style="margin-bottom: 0;">
+          <li>Chaque alloc est trackée et freed</li>
+          <li>Early returns avec cleanup propre (ou via les fonctions appelées)</li>
+          <li>Helper <code>print_error</code> pour économiser des lignes</li>
+          <li>valgrind : 0 leak, 0 erreur</li>
+        </ul>
+      </div>
+
+      <div class="check">
+        <div class="q">Auto-éval</div>
+        <details>
+          <summary>Pourquoi <code>free(values)</code> après <code>build_stack</code> et pas à la fin ?</summary>
+          <div class="answer">
+            Parce que <code>values</code> n'est plus utile après <code>build_stack</code> (ses valeurs ont été copiées dans les nodes). Free tôt = pas de mémoire orpheline qui traîne longtemps. C'est aussi plus facile à raisonner : tant que tu ne touches plus à une variable, tu peux la free.
+          </div>
+        </details>
+        <details>
+          <summary>Que retourne <code>main</code> dans chacun des cas ?</summary>
+          <div class="answer">
+            <ul style="margin-bottom: 0;">
+              <li>Pas d'argument → <code>return 0</code> (succès, rien à faire)</li>
+              <li>Parse erreur → <code>return print_error()</code> = <code>return 1</code></li>
+              <li>build_stack erreur → idem</li>
+              <li>Tri réussi → <code>return 0</code></li>
+            </ul>
+            0 = succès, 1 = erreur. Convention Unix standard.
+          </div>
+        </details>
+        <details>
+          <summary>Pourquoi on appelle <code>stack_free(&amp;b)</code> alors que b devrait être vide ?</summary>
+          <div class="answer">
+            Robustesse. Si pour une raison quelconque b n'est pas vide (bug, optimisation future), <code>stack_free</code> nettoie. Et c'est sûr sur une pile vide (ne fait rien). Coût zéro, sécurité totale.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="nav-bottom">
+      <a href="09-turk.html" class="nav-link">
+        <span class="dir">← Chapitre précédent</span>
+        <span class="name">09 — L'algorithme Turk</span>
+      </a>
+      <a href="index.html" class="home-link">↑ Sommaire</a>
+      <a href="11-tests.html" class="nav-link next">
+        <span class="dir">Chapitre suivant →</span>
+        <span class="name">11 — Tests &amp; qualité</span>
+      </a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+const sections = document.querySelectorAll('section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  sidebarLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
