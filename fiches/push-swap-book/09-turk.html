@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 09 — L'algorithme Turk</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -314,8 +314,9 @@ a = [<span class="num">2</span>, <span class="num">0</span>, <span class="num">3
     i = <span class="num">0</span>;
     <span class="kw">while</span> (a)
     {
-        vals[i++] = a-&gt;val;
+        vals[i] = a-&gt;val;
         a = a-&gt;next;
+        i++;
     }
 }
 
@@ -525,11 +526,15 @@ a = [<span class="num">2</span>, <span class="num">0</span>, <span class="num">3
     size = <span class="fn">stack_size</span>(*b);
     pos = <span class="fn">find_max_pos</span>(*b);
     <span class="kw">if</span> (pos &lt;= size / <span class="num">2</span>)
+    {
         <span class="kw">while</span> (pos-- &gt; <span class="num">0</span>)
             <span class="fn">rb</span>(b);
+    }
     <span class="kw">else</span>
+    {
         <span class="kw">while</span> (pos++ &lt; size)
             <span class="fn">rrb</span>(b);
+    }
 }</pre>
 
       <p>Même logique que <code>rotate_min_to_top</code> mais sur <code>b</code> et pour le max au lieu du min. Choix optimal entre <code>rb</code> et <code>rrb</code> selon la position.</p>

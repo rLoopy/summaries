@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 04 — Architecture du projet</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -106,7 +106,20 @@
 
       <pre class="code"><span class="kw">static void</span> <span class="fn">rotate</span>(<span class="type">t_stack</span> **stack)
 {
-    <span class="com">/* logique de rotation : 7 lignes */</span>
+    <span class="type">t_stack</span> *first;
+    <span class="type">t_stack</span> *last;
+
+    <span class="kw">if</span> (!*stack || !(*stack)-&gt;next)
+        <span class="kw">return</span> ;
+    first = *stack;
+    *stack = first-&gt;next;
+    last = *stack;
+    <span class="kw">while</span> (last-&gt;next)
+    {
+        last = last-&gt;next;
+    }
+    last-&gt;next = first;
+    first-&gt;next = <span class="num">NULL</span>;
 }
 
 <span class="kw">void</span> <span class="fn">ra</span>(<span class="type">t_stack</span> **a)
@@ -374,22 +387,19 @@
       <p>Maintenant le bloc complet — relis-le avec la table ci-dessus sous les yeux :</p>
 
       <pre class="code">NAME      = push_swap
-
 CC        = cc
 CFLAGS    = -Wall -Wextra -Werror
-
 SRC_DIR   = src
 OBJ_DIR   = obj
 INC_DIR   = includes
 LIBFT_DIR = libft
-
 LIBFT     = $(LIBFT_DIR)/libft.a
-
-SRCS      = $(SRC_DIR)/main.c \
-            $(SRC_DIR)/parser.c \
-            $(SRC_DIR)/validator.c \
-            <span class="com"># ... etc</span>
-
+SRCS      = $(SRC_DIR)/main.c $(SRC_DIR)/parser.c $(SRC_DIR)/validator.c \
+            $(SRC_DIR)/stack.c $(SRC_DIR)/op_swap.c $(SRC_DIR)/op_push.c \
+            $(SRC_DIR)/op_rotate.c $(SRC_DIR)/op_reverse.c $(SRC_DIR)/sort.c \
+            $(SRC_DIR)/sort_3.c $(SRC_DIR)/sort_5.c $(SRC_DIR)/index_stack.c \
+            $(SRC_DIR)/push_to_b.c $(SRC_DIR)/push_back_to_a.c \
+            $(SRC_DIR)/sort_big.c
 OBJS      = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 INCLUDES  = -I$(INC_DIR) -I$(LIBFT_DIR)
 
