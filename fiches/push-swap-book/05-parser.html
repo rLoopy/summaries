@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 05 — Parser &amp; validator</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -517,19 +517,29 @@ i=1 (val=1):
       <p>Si un token est invalide en milieu de parcours, on libère <code>values</code> et on return NULL. <b>Pas de leak</b>, même en cas d'erreur partielle.</p>
 
       <div class="callout key">
-        <div class="lbl">★ Pattern important : alloc + cleanup en cas d'erreur</div>
-        <pre class="code">tab = <span class="fn">malloc</span>(...);
-<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i++)
+        <div class="lbl">★ Le pattern dans <code>convert_tokens</code> (ton code)</div>
+        <pre class="code"><span class="kw">int</span> *<span class="fn">convert_tokens</span>(<span class="kw">char</span> **tokens, <span class="kw">int</span> n)
 {
-    <span class="kw">if</span> (problème)
-    {
-        <span class="fn">free</span>(tab);       <span class="com">// libérer avant de quitter</span>
+    <span class="kw">int</span>    *values;
+    <span class="kw">int</span>    i;
+
+    values = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>) * n);
+    <span class="kw">if</span> (!values)
         <span class="kw">return</span> (<span class="num">NULL</span>);
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (i &lt; n)
+    {
+        <span class="kw">if</span> (!<span class="fn">is_number</span>(tokens[i]))
+        {
+            <span class="fn">free</span>(values);
+            <span class="kw">return</span> (<span class="num">NULL</span>);
+        }
+        values[i] = (<span class="kw">int</span>)<span class="fn">ft_atol</span>(tokens[i]);
+        i++;
     }
-    tab[i] = ...;
-}
-<span class="kw">return</span> (tab);</pre>
-        À chaque <code>malloc</code> doit correspondre un <code>free</code> sur tous les chemins, y compris les chemins d'erreur. C'est ce qui fait la différence entre du code "qui marche" et du code "sans leak".
+    <span class="kw">return</span> (values);
+}</pre>
+        À chaque <code>malloc</code> doit correspondre un <code>free</code> sur tous les chemins, y compris les chemins d'erreur partielle. Ici si <code>is_number()</code> rejette un token en milieu de parcours, on libère <code>values</code> avant de return NULL — c'est ce qui fait que valgrind sort <code>0 bytes in use at exit</code> même sur input invalide. Le même pattern revient dans <code>parse_args</code> (free sur erreur de tokens, free sur doublons).
       </div>
     </section>
 

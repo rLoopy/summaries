@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ch. 04 — Architecture du projet</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <script defer src="theme.js?v=6"></script>
 </head>
 <body>
@@ -313,37 +313,59 @@
 
       <h3>Structure</h3>
 
-      <pre class="code"><span class="kw">#ifndef</span> PUSH_SWAP_H
-<span class="kw">#define</span> PUSH_SWAP_H
+      <pre class="code"><span class="com">/* header 42 omis */</span>
 
-<span class="com">/* includes */</span>
-<span class="kw">#include</span> <span class="str">"libft.h"</span>
-<span class="kw">#include</span> <span class="str">&lt;limits.h&gt;</span>
+<span class="kw">#ifndef</span> PUSH_SWAP_H
+<span class="kw"># define</span> PUSH_SWAP_H
 
-<span class="com">/* struct */</span>
+<span class="kw"># include</span> <span class="str">"libft.h"</span>
+<span class="kw"># include</span> <span class="str">&lt;limits.h&gt;</span>
+
 <span class="kw">typedef struct</span> <span class="type">s_stack</span>
 {
     <span class="kw">int</span>              val;
     <span class="kw">struct</span> <span class="type">s_stack</span>  *next;
 }   <span class="type">t_stack</span>;
 
-<span class="com">/* PARSER */</span>
 <span class="kw">long</span>    <span class="fn">ft_atol</span>(<span class="kw">char</span> *s);
 <span class="kw">int</span>     <span class="fn">is_valid_int</span>(<span class="kw">char</span> *s);
-<span class="com">/* ... */</span>
+<span class="kw">int</span>     <span class="fn">is_number</span>(<span class="kw">char</span> *s);
+<span class="kw">int</span>     <span class="fn">has_duplicates</span>(<span class="kw">int</span> *values, <span class="kw">int</span> n);
+<span class="kw">int</span>     <span class="fn">count_tokens</span>(<span class="kw">char</span> **tokens);
+<span class="kw">void</span>    <span class="fn">free_tokens</span>(<span class="kw">char</span> **tokens);
+<span class="kw">int</span>     *<span class="fn">convert_tokens</span>(<span class="kw">char</span> **tokens, <span class="kw">int</span> n);
+<span class="kw">int</span>     *<span class="fn">parse_args</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv, <span class="kw">int</span> *n);
+<span class="kw">char</span>    **<span class="fn">tokenize</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv);
 
-<span class="com">/* STACK */</span>
 <span class="type">t_stack</span> *<span class="fn">stack_new</span>(<span class="kw">int</span> val);
 <span class="kw">void</span>    <span class="fn">stack_add_bottom</span>(<span class="type">t_stack</span> **stack, <span class="kw">int</span> val);
-<span class="com">/* ... */</span>
+<span class="kw">int</span>     <span class="fn">stack_size</span>(<span class="type">t_stack</span> *stack);
+<span class="kw">void</span>    <span class="fn">stack_free</span>(<span class="type">t_stack</span> **stack);
+<span class="type">t_stack</span> *<span class="fn">build_stack</span>(<span class="kw">int</span> *values, <span class="kw">int</span> n);
 
-<span class="com">/* OPS */</span>
 <span class="kw">void</span>    <span class="fn">sa</span>(<span class="type">t_stack</span> **a);
-<span class="com">/* ... les 11 ops ... */</span>
+<span class="kw">void</span>    <span class="fn">sb</span>(<span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">ss</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">pa</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">pb</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">ra</span>(<span class="type">t_stack</span> **a);
+<span class="kw">void</span>    <span class="fn">rb</span>(<span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">rr</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">rra</span>(<span class="type">t_stack</span> **a);
+<span class="kw">void</span>    <span class="fn">rrb</span>(<span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">rrr</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
 
-<span class="com">/* SORT */</span>
+<span class="kw">int</span>     <span class="fn">is_sorted</span>(<span class="type">t_stack</span> *stack);
 <span class="kw">void</span>    <span class="fn">sort</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
-<span class="com">/* ... */</span>
+<span class="kw">void</span>    <span class="fn">sort_3</span>(<span class="type">t_stack</span> **a);
+<span class="kw">void</span>    <span class="fn">sort_5</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">int</span>     <span class="fn">index_stack</span>(<span class="type">t_stack</span> *a);
+<span class="kw">void</span>    <span class="fn">push_to_b</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">push_back_to_a</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+<span class="kw">void</span>    <span class="fn">sort_big</span>(<span class="type">t_stack</span> **a, <span class="type">t_stack</span> **b);
+
+<span class="kw">int</span>     <span class="fn">find_min_pos</span>(<span class="type">t_stack</span> *a);
+<span class="kw">void</span>    <span class="fn">rotate_min_to_top</span>(<span class="type">t_stack</span> **a);
 
 <span class="kw">#endif</span></pre>
 
