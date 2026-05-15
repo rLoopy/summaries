@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — step debugger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+<style>
+main { max-width: 1500px !important; }
+
+.debugger {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 6px 6px 0 var(--ink);
+  margin: 20px 0;
+}
+.dbg-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.9fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 1200px) { .dbg-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 800px)  { .dbg-grid { grid-template-columns: 1fr; } }
+
+/* CODE PANEL */
+.code-panel {
+  background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink);
+  overflow: hidden; box-shadow: 3px 3px 0 var(--ink);
+  max-height: 700px; overflow-y: auto;
+}
+.code-header {
+  background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0; z-index: 2;
+}
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.55); font-size: 12px;
+}
+.code-body {
+  padding: 14px 0; font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; line-height: 1.7; color: #E9E5F0;
+  counter-reset: lineno; overflow-x: auto;
+}
+.code-line {
+  padding: 2px 18px 2px 42px; position: relative;
+  white-space: pre; transition: background 0.15s; min-width: max-content;
+}
+.code-line::before {
+  counter-increment: lineno; content: counter(lineno);
+  position: absolute; left: 8px; color: #5C5A75;
+  font-size: 10px; width: 24px; text-align: right;
+}
+.code-line.active {
+  background: rgba(255, 233, 107, 0.22);
+  border-left: 3px solid var(--hl-yellow);
+  padding-left: 35px;
+}
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; }
+.op { color: #FF9F7A; font-weight: 700; }
+
+/* STACKS panel */
+.stacks-panel {
+  background: var(--paper-d);
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+.stacks-title {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px;
+  color: var(--ink); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 1px;
+  text-align: center;
+}
+.stacks-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  min-height: 360px;
+}
+.stack-col {
+  display: flex; flex-direction: column;
+  align-items: center;
+  border: 2px dashed var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 8px 6px;
+  min-height: 360px;
+}
+.stack-col.empty { opacity: 0.6; }
+.stack-label {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  color: var(--ink); margin-bottom: 6px;
+}
+.stack-label .sz {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--muted); margin-left: 4px;
+}
+.cube {
+  width: 70px; min-height: 26px; padding: 3px 6px;
+  border: 2px solid var(--ink); border-radius: 6px;
+  background: var(--hl-yellow);
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 13px; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 3px;
+  transition: all 0.25s;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.cube.top {
+  background: var(--accent); color: #fff;
+  transform: scale(1.05);
+  box-shadow: 2px 4px 0 var(--ink);
+}
+.cube.a-color { background: var(--hl-mint); }
+.cube.b-color { background: var(--hl-pink); }
+.cube.top.a-color { background: var(--accent); }
+.cube.top.b-color { background: var(--accent-d); color: #fff; }
+.cube.fading { opacity: 0; transform: scale(0.7); }
+.cube .raw {
+  font-size: 9px; color: var(--muted); margin-left: 5px;
+  font-weight: 400;
+}
+
+/* STATE panel */
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+.vars-box, .ops-box {
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 12px;
+  background: var(--paper);
+}
+.ops-box { background: #1C1A28; }
+.vars-title, .ops-title {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px;
+  margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.vars-title { color: var(--ink); }
+.ops-title { color: #9DD6A8; font-size: 12px; }
+.var-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 7px; background: var(--paper-d);
+  border: 2px solid var(--ink); border-radius: 7px;
+  margin-bottom: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+}
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 90px; }
+.var-eq { color: var(--muted); }
+.var-val {
+  color: var(--ink); font-weight: 700;
+  padding: 2px 7px;
+  background: var(--hl-yellow); border: 1.5px solid var(--ink);
+  border-radius: 4px; min-width: 28px; text-align: center;
+}
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+.var-val.long { background: var(--hl-mint); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ops-list {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: #E9E5F0;
+  max-height: 220px; overflow-y: auto;
+  line-height: 1.5;
+}
+.ops-count {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: #FF9F7A; margin-bottom: 6px;
+  font-weight: 700;
+}
+.op-tok {
+  display: inline-block;
+  background: rgba(255,159,122,0.15);
+  border: 1px solid rgba(255,159,122,0.4);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: 1px 2px;
+  color: #FFB58E;
+}
+.op-tok.last {
+  background: var(--hl-yellow);
+  color: var(--ink);
+  border-color: var(--hl-yellow);
+  font-weight: 700;
+}
+
+.desc-box {
+  background: var(--ink); color: var(--paper); border-radius: 12px;
+  border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent);
+  padding: 12px 14px;
+  font-family: 'Patrick Hand', cursive; font-size: 16px;
+  line-height: 1.4; min-height: 50px;
+}
+.desc-box .tag {
+  display: inline-block;
+  background: var(--hl-yellow); color: var(--ink);
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px; margin-right: 7px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.desc-box .tag.phase {
+  background: var(--accent); color: #fff;
+}
+.desc-box .tag.op {
+  background: var(--hl-mint); color: var(--ink);
+}
+
+.ctrls {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap; align-items: center;
+}
+.ctrl-btn {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink);
+  border-radius: 22px; padding: 8px 16px;
+  box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.ctrl-btn.skip { background: var(--hl-purple); }
+
+.step-counter {
+  font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft);
+  text-align: center; margin-top: 12px; font-weight: 700;
+}
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+
+.examples {
+  display: flex; gap: 8px; justify-content: center;
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+.ex-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 18px;
+  padding: 6px 12px; cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.1s;
+}
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.legend-mini {
+  display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px;
+  font-family: 'Patrick Hand', cursive; font-size: 13px;
+  color: var(--ink-soft); justify-content: center;
+}
+.legend-mini-item { display: flex; align-items: center; gap: 5px; }
+.legend-mini-box {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1.5px solid var(--ink);
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">push_swap</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">step by step ↓</div>
+  <p class="hero-sub">Mes piles <span class="hl">A</span> et <span class="hl">B</span> en action, chaque op visualisée. <span class="hl">6 scénarios</span> du sort_3 au Turk 16.</p>
+</section>
+
+<main>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="dbg-grid">
+      <div class="code-panel">
+        <div class="code-header">
+          <div class="dot" style="background:#FF6B6B"></div>
+          <div class="dot" style="background:#FFD26A"></div>
+          <div class="dot" style="background:#7ECE7E"></div>
+          <div class="title" id="code-title">push_swap.c</div>
+        </div>
+        <div class="code-body" id="code-body"></div>
+      </div>
+
+      <div class="stacks-panel">
+        <div class="stacks-title">piles</div>
+        <div class="stacks-row">
+          <div class="stack-col" id="stack-a">
+            <div class="stack-label">A <span class="sz" id="sz-a">0</span></div>
+          </div>
+          <div class="stack-col" id="stack-b">
+            <div class="stack-label">B <span class="sz" id="sz-b">0</span></div>
+          </div>
+        </div>
+        <div class="legend-mini">
+          <div class="legend-mini-item"><span class="legend-mini-box" style="background:var(--accent)"></span>top</div>
+          <div class="legend-mini-item"><span class="legend-mini-box" style="background:var(--hl-mint)"></span>val A</div>
+          <div class="legend-mini-item"><span class="legend-mini-box" style="background:var(--hl-pink)"></span>val B</div>
+        </div>
+      </div>
+
+      <div class="state-panel">
+        <div class="vars-box">
+          <div class="vars-title">variables</div>
+          <div id="vars-list"></div>
+        </div>
+        <div class="ops-box">
+          <div class="ops-title">opérations émises</div>
+          <div class="ops-count" id="ops-count">0 ops</div>
+          <div class="ops-list" id="ops-list">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desc-box" id="desc-box">
+      <span class="tag phase" id="desc-phase">init</span>
+      <span class="tag" id="desc-tag">ready</span>
+      <span id="desc-text">Choisis un scénario et clique next.</span>
+    </div>
+
+    <div class="ctrls" style="margin-top:14px;">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn skip" id="btn-skip-op">skip ↦ op</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="80" max="1500" value="450" step="40">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">tri honnête ✌</div>
+  <div class="footer-meta">cercle 02 · <a href="pointeurs-stack-A-Z.html">fiche push_swap</a> · <a href="push_swap-algo-tutor.html">algo viz</a> · <a href="push_swap-chunks-tutor.html">chunks viz</a></div>
+</footer><script>
+/* ═════════════════════════════════════════════════════════════
+   PUSH_SWAP — step debugger
+   Simulation fidèle du code C de loopy (src/*.c).
+   Chaque op imprime côté C est ici un step "op".
+   ═════════════════════════════════════════════════════════════ */
+
+// ──────── CODE DISPLAY (concaténation simplifiée des sources) ────────
+const CODE = [
+'<span class="cm">/* op_swap : sa, sb, ss — échange les 2 premiers */</span>',
+'<span class="kw">static</span> <span class="tp">void</span> <span class="fn">swap_top</span>(<span class="tp">t_stack</span> **stack) {',
+'\t<span class="kw">if</span> (!*stack || !(*stack)->next) <span class="kw">return</span>;',
+'\t<span class="tp">int</span> tmp = (*stack)->val;',
+'\t(*stack)->val = (*stack)->next->val;',
+'\t(*stack)->next->val = tmp;',
+'}',
+'<span class="kw">void</span> <span class="fn">sa</span>(<span class="tp">t_stack</span> **a) { <span class="fn">swap_top</span>(a); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"sa\\n"</span>, <span class="num">3</span>); }',
+'<span class="kw">void</span> <span class="fn">sb</span>(<span class="tp">t_stack</span> **b) { <span class="fn">swap_top</span>(b); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"sb\\n"</span>, <span class="num">3</span>); }',
+'',
+'<span class="cm">/* op_push : pa, pb — déplace le top de src vers dst */</span>',
+'<span class="kw">static</span> <span class="tp">void</span> <span class="fn">push_top</span>(<span class="tp">t_stack</span> **dst, <span class="tp">t_stack</span> **src) {',
+'\t<span class="kw">if</span> (!*src) <span class="kw">return</span>;',
+'\t<span class="tp">t_stack</span> *top = *src; *src = top->next;',
+'\ttop->next = *dst; *dst = top;',
+'}',
+'<span class="kw">void</span> <span class="fn">pa</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) { <span class="fn">push_top</span>(a, b); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"pa\\n"</span>, <span class="num">3</span>); }',
+'<span class="kw">void</span> <span class="fn">pb</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) { <span class="fn">push_top</span>(b, a); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"pb\\n"</span>, <span class="num">3</span>); }',
+'',
+'<span class="cm">/* op_rotate : ra, rb, rr — le 1er node devient le dernier */</span>',
+'<span class="kw">static</span> <span class="tp">void</span> <span class="fn">rotate</span>(<span class="tp">t_stack</span> **stack) { <span class="cm">/* ... */</span> }',
+'<span class="kw">void</span> <span class="fn">ra</span>(<span class="tp">t_stack</span> **a) { <span class="fn">rotate</span>(a); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"ra\\n"</span>, <span class="num">3</span>); }',
+'<span class="kw">void</span> <span class="fn">rb</span>(<span class="tp">t_stack</span> **b) { <span class="fn">rotate</span>(b); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"rb\\n"</span>, <span class="num">3</span>); }',
+'',
+'<span class="cm">/* op_reverse : rra, rrb, rrr — dernier devient premier */</span>',
+'<span class="kw">static</span> <span class="tp">void</span> <span class="fn">reverse_rotate</span>(<span class="tp">t_stack</span> **stack) { <span class="cm">/* ... */</span> }',
+'<span class="kw">void</span> <span class="fn">rra</span>(<span class="tp">t_stack</span> **a) { <span class="fn">reverse_rotate</span>(a); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"rra\\n"</span>, <span class="num">4</span>); }',
+'<span class="kw">void</span> <span class="fn">rrb</span>(<span class="tp">t_stack</span> **b) { <span class="fn">reverse_rotate</span>(b); <span class="fn">write</span>(<span class="num">1</span>, <span class="op">"rrb\\n"</span>, <span class="num">4</span>); }',
+'',
+'<span class="cm">/* sort_3 : 6 cas hardcodés selon top/mid/bot */</span>',
+'<span class="kw">void</span> <span class="fn">sort_3</span>(<span class="tp">t_stack</span> **a) {',
+'\t<span class="tp">int</span> top = (*a)->val;',
+'\t<span class="tp">int</span> mid = (*a)->next->val;',
+'\t<span class="tp">int</span> bot = (*a)->next->next->val;',
+'\t<span class="kw">if</span> (top &lt; mid &amp;&amp; mid &lt; bot) <span class="kw">return</span>;',
+'\t<span class="kw">else if</span> (top &gt; mid &amp;&amp; top &lt; bot)               <span class="fn">sa</span>(a);',
+'\t<span class="kw">else if</span> (top &gt; mid &amp;&amp; top &gt; bot &amp;&amp; mid &lt; bot) <span class="fn">ra</span>(a);',
+'\t<span class="kw">else if</span> (top &lt; mid &amp;&amp; top &gt; bot)              <span class="fn">rra</span>(a);',
+'\t<span class="kw">else if</span> (top &lt; mid &amp;&amp; mid &gt; bot &amp;&amp; top &lt; bot){ <span class="fn">rra</span>(a); <span class="fn">sa</span>(a); }',
+'\t<span class="kw">else if</span> (top &gt; mid &amp;&amp; mid &gt; bot)             { <span class="fn">sa</span>(a); <span class="fn">rra</span>(a); }',
+'}',
+'',
+'<span class="cm">/* sort_5 : push 2 mini sur b, sort_3 sur a, repush */</span>',
+'<span class="kw">void</span> <span class="fn">sort_5</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) {',
+'\t<span class="tp">int</span> to_push = <span class="fn">stack_size</span>(*a) - <span class="num">3</span>;',
+'\t<span class="kw">while</span> (to_push-- &gt; <span class="num">0</span>) {',
+'\t\t<span class="fn">rotate_min_to_top</span>(a);',
+'\t\t<span class="fn">pb</span>(a, b);',
+'\t}',
+'\t<span class="fn">sort_3</span>(a);',
+'\t<span class="kw">while</span> (*b) <span class="fn">pa</span>(a, b);',
+'}',
+'',
+'<span class="cm">/* index_stack : remplace chaque val par son rang (0..n-1) */</span>',
+'<span class="kw">int</span> <span class="fn">index_stack</span>(<span class="tp">t_stack</span> *a) { <span class="cm">/* val → rank */</span> }',
+'',
+'<span class="cm">/* push_to_b : chunks de 16 (≤100 nums) ou 35 (&gt;100) */</span>',
+'<span class="kw">void</span> <span class="fn">push_to_b</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) {',
+'\t<span class="tp">int</span> chunk_size = (<span class="fn">stack_size</span>(*a) &lt;= <span class="num">100</span>) ? <span class="num">16</span> : <span class="num">35</span>;',
+'\t<span class="tp">int</span> target = <span class="fn">stack_size</span>(*a);',
+'\t<span class="tp">int</span> pushed = <span class="num">0</span>;',
+'\t<span class="kw">while</span> (pushed != target) {',
+'\t\t<span class="tp">int</span> chunk_max = (pushed / chunk_size + <span class="num">1</span>) * chunk_size - <span class="num">1</span>;',
+'\t\t<span class="kw">if</span> ((*a)->val &lt;= chunk_max) { <span class="fn">pb</span>(a, b); pushed++; }',
+'\t\t<span class="kw">else</span>                         <span class="fn">ra</span>(a);',
+'\t}',
+'}',
+'',
+'<span class="cm">/* push_back_to_a : ramène max de B sur top A puis pa */</span>',
+'<span class="kw">void</span> <span class="fn">push_back_to_a</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) {',
+'\t<span class="kw">while</span> (*b) {',
+'\t\t<span class="fn">rotate_max_to_top</span>(b);',
+'\t\t<span class="fn">pa</span>(a, b);',
+'\t}',
+'}',
+'',
+'<span class="cm">/* sort_big : Turk en 3 phases */</span>',
+'<span class="kw">void</span> <span class="fn">sort_big</span>(<span class="tp">t_stack</span> **a, <span class="tp">t_stack</span> **b) {',
+'\t<span class="fn">index_stack</span>(*a);',
+'\t<span class="fn">push_to_b</span>(a, b);',
+'\t<span class="fn">push_back_to_a</span>(a, b);',
+'}',
+];
+
+// Map (fn, logical-step) → line number (1-based dans CODE)
+const LN = {
+  // op_swap (1..9)
+  swap_top: 2, sa: 8, sb: 9,
+  // op_push (11..18)
+  push_top: 12, pa: 16, pb: 17,
+  // op_rotate (20..23)
+  rotate: 21, ra: 22, rb: 23,
+  // op_reverse (25..28)
+  reverse_rotate: 26, rra: 27, rrb: 28,
+  // sort_3 (30..40)
+  sort3_head: 31, sort3_top: 32, sort3_mid: 33, sort3_bot: 34,
+  sort3_c1: 35, sort3_c2: 36, sort3_c3: 37, sort3_c4: 38,
+  sort3_c5: 39, sort3_c6: 40,
+  // sort_5 (42..50)
+  sort5_head: 43, sort5_topush: 44, sort5_while: 45,
+  sort5_rotmin: 46, sort5_pb: 47, sort5_sort3: 49, sort5_final: 50,
+  // index_stack (52..53)
+  index: 53,
+  // push_to_b (55..63)
+  ptb_head: 56, ptb_chunk: 57, ptb_target: 58, ptb_pushed: 59,
+  ptb_while: 60, ptb_max: 61, ptb_pb: 62, ptb_ra: 63,
+  // push_back_to_a (66..71)
+  pba_head: 67, pba_while: 68, pba_rotmax: 69, pba_pa: 70,
+  // sort_big (73..77)
+  big_head: 74, big_index: 75, big_ptb: 76, big_pba: 77,
+};
+
+// ──────── STACK SIMULATION (objet immutable au moment du snap) ────────
+function deepCopy(arr) { return arr.slice(); }
+
+class Sim {
+  constructor(values, scenarioName) {
+    this.a = values.slice();          // top = index 0
+    this.b = [];
+    this.aRaw = values.slice();       // valeurs originales pour affichage avant index
+    this.bRaw = [];
+    this.indexed = false;
+    this.ops = [];
+    this.frames = [];
+    this.scenario = scenarioName;
+    this.phase = 'init';
+    this.fn = 'main';
+    this.vars = {};
+  }
+  // ───── helpers
+  size(stack) { return stack.length; }
+  // ───── ops (matchent le code C)
+  sa() { if (this.a.length>=2) [this.a[0],this.a[1]]=[this.a[1],this.a[0]];
+         if (this.aRaw.length>=2) [this.aRaw[0],this.aRaw[1]]=[this.aRaw[1],this.aRaw[0]];
+         this._emit('sa', LN.sa, `sa : échange top et 2e de A.`); }
+  sb() { if (this.b.length>=2) [this.b[0],this.b[1]]=[this.b[1],this.b[0]];
+         if (this.bRaw.length>=2) [this.bRaw[0],this.bRaw[1]]=[this.bRaw[1],this.bRaw[0]];
+         this._emit('sb', LN.sb, `sb : échange top et 2e de B.`); }
+  pa() { if (this.b.length) { this.a.unshift(this.b.shift()); this.aRaw.unshift(this.bRaw.shift()); }
+         this._emit('pa', LN.pa, `pa : pousse top de B sur A.`); }
+  pb() { if (this.a.length) { this.b.unshift(this.a.shift()); this.bRaw.unshift(this.aRaw.shift()); }
+         this._emit('pb', LN.pb, `pb : pousse top de A sur B.`); }
+  ra() { if (this.a.length>=2) { this.a.push(this.a.shift()); this.aRaw.push(this.aRaw.shift()); }
+         this._emit('ra', LN.ra, `ra : top de A va en bas.`); }
+  rb() { if (this.b.length>=2) { this.b.push(this.b.shift()); this.bRaw.push(this.bRaw.shift()); }
+         this._emit('rb', LN.rb, `rb : top de B va en bas.`); }
+  rra(){ if (this.a.length>=2) { this.a.unshift(this.a.pop()); this.aRaw.unshift(this.aRaw.pop()); }
+         this._emit('rra', LN.rra, `rra : bottom de A remonte au top.`); }
+  rrb(){ if (this.b.length>=2) { this.b.unshift(this.b.pop()); this.bRaw.unshift(this.bRaw.pop()); }
+         this._emit('rrb', LN.rrb, `rrb : bottom de B remonte au top.`); }
+
+  _emit(op, line, desc) {
+    this.ops.push(op);
+    this._snap(line, 'op', desc, { op });
+  }
+  _snap(line, tag, desc, extra = {}) {
+    this.frames.push({
+      line, tag, desc, fn: this.fn, phase: this.phase,
+      a: deepCopy(this.a), b: deepCopy(this.b),
+      aRaw: deepCopy(this.aRaw), bRaw: deepCopy(this.bRaw),
+      indexed: this.indexed,
+      ops: this.ops.slice(),
+      vars: Object.assign({}, this.vars),
+      ...extra,
+    });
+  }
+
+  // ═════════ index_stack ═════════
+  do_index() {
+    this.fn = 'index_stack'; this.phase = 'indexation';
+    const original = this.a.slice();
+    this.vars = { n: original.length, original: '['+original.join(',')+']' };
+    this._snap(LN.index, 'enter', `index_stack : on remplace chaque val par son RANG (0 = plus petit). Original = [${original.join(',')}].`);
+    const sorted = original.slice().sort((x,y)=>x-y);
+    const rankOf = new Map();
+    sorted.forEach((v,i)=>rankOf.set(v,i));
+    this.a = original.map(v => rankOf.get(v));
+    this.indexed = true;
+    this.vars = { n: original.length, indexed: '['+this.a.join(',')+']' };
+    this._snap(LN.index, 'done', `Indexé : [${this.a.join(',')}]. Maintenant tout est dans [0..n-1].`);
+  }
+
+  // ═════════ sort_3 ═════════
+  do_sort_3() {
+    this.fn = 'sort_3'; this.phase = 'sort_3';
+    this._snap(LN.sort3_head, 'enter', `sort_3 : on dispatch sur les 6 cas selon top/mid/bot.`);
+    const top = this.a[0], mid = this.a[1], bot = this.a[2];
+    this.vars = { top, mid, bot };
+    this._snap(LN.sort3_top, 'read', `top = ${top}`);
+    this._snap(LN.sort3_mid, 'read', `mid = ${mid}`);
+    this._snap(LN.sort3_bot, 'read', `bot = ${bot}`);
+
+    if (top < mid && mid < bot) {
+      this._snap(LN.sort3_c1, 'check', `top<mid<bot → déjà trié. return.`);
+      return;
+    } else if (top > mid && top < bot) {
+      this._snap(LN.sort3_c2, 'check', `top>mid && top<bot → cas {mid,top,bot}. sa()`);
+      this.sa();
+    } else if (top > mid && top > bot && mid < bot) {
+      this._snap(LN.sort3_c3, 'check', `top>mid && top>bot && mid<bot → top doit aller au bas. ra()`);
+      this.ra();
+    } else if (top < mid && top > bot) {
+      this._snap(LN.sort3_c4, 'check', `top<mid && top>bot → bot en haut. rra()`);
+      this.rra();
+    } else if (top < mid && mid > bot && top < bot) {
+      this._snap(LN.sort3_c5, 'check', `top<mid && mid>bot && top<bot → rra() puis sa()`);
+      this.rra(); this.sa();
+    } else if (top > mid && mid > bot) {
+      this._snap(LN.sort3_c6, 'check', `top>mid && mid>bot → tout inversé. sa() puis rra()`);
+      this.sa(); this.rra();
+    }
+  }
+
+  // ═════════ sort_5 helpers ═════════
+  find_min_pos() {
+    let pos = 0, min_pos = 0, min_val = this.a[0];
+    for (let k=0;k<this.a.length;k++){ if (this.a[k]<min_val){min_val=this.a[k];min_pos=k;} }
+    return min_pos;
+  }
+  rotate_min_to_top() {
+    const size = this.a.length;
+    const pos = this.find_min_pos();
+    this.vars = { ...this.vars, min_pos: pos, size_a: size };
+    this._snap(LN.sort5_rotmin, 'compute',
+      `rotate_min_to_top : min est à pos ${pos}/${size}. ${pos<=size/2 ? 'ra×'+pos : 'rra×'+(size-pos)}.`);
+    if (pos <= size/2) {
+      let p = pos; while (p-- > 0) this.ra();
+    } else {
+      let p = pos; while (p++ < size) this.rra();
+    }
+  }
+  do_sort_5() {
+    this.fn = 'sort_5'; this.phase = 'sort_5';
+    this._snap(LN.sort5_head, 'enter', `sort_5 : on isole les 2 mini sur B, on sort_3 le reste, on repush.`);
+    let to_push = this.a.length - 3;
+    this.vars = { to_push };
+    this._snap(LN.sort5_topush, 'compute', `to_push = ${to_push} (size-3).`);
+    while (to_push-- > 0) {
+      this.vars = { to_push: to_push+1 };
+      this._snap(LN.sort5_while, 'loop', `boucle : reste ${to_push+1} mini à pousser sur B.`);
+      this.rotate_min_to_top();
+      this.pb();
+    }
+    this._snap(LN.sort5_sort3, 'call', `Plus que 3 sur A. → sort_3.`);
+    this.do_sort_3();
+    this.fn = 'sort_5'; this.phase = 'sort_5';
+    this._snap(LN.sort5_final, 'loop', `Reste à repush B sur A (les 2 mini, en ordre).`);
+    while (this.b.length) this.pa();
+  }
+
+  // ═════════ push_to_b ═════════
+  do_push_to_b() {
+    this.fn = 'push_to_b'; this.phase = 'push_to_b';
+    const sz = this.a.length;
+    const chunk_size = sz <= 100 ? 16 : 35;
+    const target = sz;
+    let pushed = 0;
+    this.vars = { chunk_size, target, pushed, chunk_max: chunk_size-1 };
+    this._snap(LN.ptb_head, 'enter',
+      `push_to_b : on vide A vers B par chunks. ${sz}<=100 → chunk_size=${chunk_size}.`);
+    this._snap(LN.ptb_chunk, 'assign', `chunk_size = ${chunk_size}`);
+    this._snap(LN.ptb_target, 'assign', `target = ${target}`);
+    this._snap(LN.ptb_pushed, 'assign', `pushed = 0`);
+    let safety = 0;
+    while (pushed !== target && safety++ < 2000) {
+      const chunk_max = Math.floor(pushed / chunk_size + 1) * chunk_size - 1;
+      this.vars = { chunk_size, target, pushed, chunk_max };
+      const topVal = this.a[0];
+      this._snap(LN.ptb_while, 'loop',
+        `pushed=${pushed}/${target}. chunk_max=${chunk_max}. top de A = ${topVal}.`);
+      this._snap(LN.ptb_max, 'compute',
+        `chunk_max = (${pushed}/${chunk_size} + 1) × ${chunk_size} − 1 = ${chunk_max}`);
+      if (topVal <= chunk_max) {
+        this._snap(LN.ptb_pb, 'check',
+          `top=${topVal} ≤ ${chunk_max} ✓ → pb (et pushed++).`);
+        this.pb();
+        pushed++;
+      } else {
+        this._snap(LN.ptb_ra, 'check',
+          `top=${topVal} > ${chunk_max} ✗ → ra (le verra plus tard).`);
+        this.ra();
+      }
+      this.vars = { chunk_size, target, pushed, chunk_max };
+    }
+  }
+
+  // ═════════ push_back_to_a ═════════
+  find_max_pos() {
+    let pos = 0, max_pos = 0, max_val = this.b[0];
+    for (let k=0;k<this.b.length;k++){ if (this.b[k]>max_val){max_val=this.b[k];max_pos=k;} }
+    return max_pos;
+  }
+  rotate_max_to_top() {
+    const size = this.b.length;
+    const pos = this.find_max_pos();
+    this.vars = { ...this.vars, max_pos: pos, size_b: size };
+    this._snap(LN.pba_rotmax, 'compute',
+      `rotate_max_to_top : max=${this.b[pos]} à pos ${pos}/${size}. ${pos<=size/2 ? 'rb×'+pos : 'rrb×'+(size-pos)}.`);
+    if (pos <= size/2) {
+      let p = pos; while (p-- > 0) this.rb();
+    } else {
+      let p = pos; while (p++ < size) this.rrb();
+    }
+  }
+  do_push_back_to_a() {
+    this.fn = 'push_back_to_a'; this.phase = 'push_back_to_a';
+    this._snap(LN.pba_head, 'enter',
+      `push_back_to_a : on ramène les max de B vers A en ordre décroissant → A sera trié.`);
+    while (this.b.length) {
+      this._snap(LN.pba_while, 'loop', `B size = ${this.b.length}.`);
+      this.rotate_max_to_top();
+      this.pa();
+    }
+  }
+
+  // ═════════ sort_big (Turk complet) ═════════
+  do_sort_big() {
+    this.fn = 'sort_big'; this.phase = 'sort_big';
+    this._snap(LN.big_head, 'enter',
+      `sort_big : Turk en 3 phases — index, push_to_b par chunks, push_back_to_a.`);
+    this._snap(LN.big_index, 'call', `phase 1 : index_stack`);
+    this.do_index();
+    this._snap(LN.big_ptb, 'call', `phase 2 : push_to_b`);
+    this.do_push_to_b();
+    this._snap(LN.big_pba, 'call', `phase 3 : push_back_to_a`);
+    this.do_push_back_to_a();
+  }
+}
+
+// ──────── DISPATCHER (mimique main.c → sort.c) ────────
+function isSorted(arr) {
+  for (let i=0; i<arr.length-1; i++) if (arr[i] > arr[i+1]) return false;
+  return true;
+}
+function runScenario(values) {
+  const s = new Sim(values, 'scenario');
+  s._snap(0, 'init', `Pile A initiale = [${values.join(',')}], B vide. n=${values.length}.`);
+  const n = values.length;
+  if (isSorted(values)) {
+    s._snap(0, 'done', `is_sorted(a) == 1 → sort() jamais appelée. 0 op. Programme terminé.`);
+    return s.frames;
+  }
+  if (n <= 1) return s.frames;
+  if (n === 2) {
+    if (s.a[0] > s.a[1]) s.sa();
+    return s.frames;
+  }
+  if (n === 3) { s.do_sort_3(); return s.frames; }
+  if (n <= 5) { s.do_sort_5(); return s.frames; }
+  s.do_sort_big();
+  s._snap(LN.big_head, 'done', `Trié ! ${s.ops.length} ops au total.`);
+  return s.frames;
+}
+
+// ──────── SCÉNARIOS ────────
+const EXAMPLES = [
+  { label: 'sort_3 : [3,1,2]',           arr: [3,1,2] },
+  { label: 'sort_3 : [2,1,3]',           arr: [2,1,3] },
+  { label: 'sort_5 : [3,1,4,2,5]',       arr: [3,1,4,2,5] },
+  { label: 'Turk 8 : [4,1,7,2,0,5,3,6]', arr: [4,1,7,2,0,5,3,6] },
+  { label: '11 démo : [1,2,3,4,5] (trié)', arr: [1,2,3,4,5] },
+  { label: 'Turk 16 random',             arr: shuffleSeed(16, 42) },
+];
+
+function shuffleSeed(n, seed) {
+  // deterministic Fisher-Yates avec LCG
+  const arr = Array.from({length:n}, (_,i)=>i);
+  let s = seed;
+  for (let i = arr.length-1; i>0; i--) {
+    s = (s * 1664525 + 1013904223) | 0;
+    const j = Math.abs(s) % (i+1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ──────── STATE ────────
+let curScenario = EXAMPLES[0];
+let frames = [];
+let cur = 0;
+let playing = false;
+let playTimer = null;
+
+// ──────── RENDERING ────────
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = EXAMPLES.map((e, idx) => `
+    <button class="ex-chip ${idx === 0 ? 'active' : ''}" data-idx="${idx}">${e.label}</button>
+  `).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const ex = EXAMPLES[parseInt(chip.dataset.idx)];
+      loadScenario(ex);
+    });
+  });
+}
+
+function renderCode() {
+  const body = document.getElementById('code-body');
+  body.innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-line="${idx + 1}">${html || '&nbsp;'}</div>`
+  ).join('');
+}
+
+function renderStack(elId, vals, raw, indexed, color) {
+  const el = document.getElementById(elId);
+  const sizeEl = document.getElementById(elId === 'stack-a' ? 'sz-a' : 'sz-b');
+  el.querySelectorAll('.cube').forEach(c => c.remove());
+  sizeEl.textContent = vals.length;
+  vals.forEach((v, idx) => {
+    const cube = document.createElement('div');
+    cube.className = `cube ${color}` + (idx === 0 ? ' top' : '');
+    if (indexed && raw && raw[idx] !== undefined && raw[idx] !== v) {
+      cube.innerHTML = `${v}<span class="raw">${raw[idx]}</span>`;
+    } else {
+      cube.textContent = v;
+    }
+    el.appendChild(cube);
+  });
+  if (vals.length === 0) el.classList.add('empty');
+  else el.classList.remove('empty');
+}
+
+function renderVars(vars) {
+  const el = document.getElementById('vars-list');
+  const entries = Object.entries(vars);
+  if (!entries.length) { el.innerHTML = '<div style="font-family:Patrick Hand,cursive;color:var(--muted);font-size:13px;">— rien à montrer —</div>'; return; }
+  el.innerHTML = entries.map(([k,v]) => {
+    const isNull = v === null || v === undefined;
+    const isLong = typeof v === 'string' && v.length > 12;
+    return `
+      <div class="var-row">
+        <span class="var-name">${k}</span>
+        <span class="var-eq">=</span>
+        <span class="var-val ${isNull?'null':''} ${isLong?'long':''}">${isNull ? '-' : v}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderOps(ops, lastOp) {
+  document.getElementById('ops-count').textContent = `${ops.length} op${ops.length>1?'s':''}`;
+  if (!ops.length) { document.getElementById('ops-list').innerHTML = '<span style="color:var(--muted);">—</span>'; return; }
+  const html = ops.map((o, i) => {
+    const isLast = (i === ops.length - 1) && lastOp === o;
+    return `<span class="op-tok ${isLast ? 'last' : ''}">${o}</span>`;
+  }).join('');
+  const list = document.getElementById('ops-list');
+  list.innerHTML = html;
+  list.scrollTop = list.scrollHeight;
+}
+
+function renderFrame(f) {
+  // Code highlight
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  document.getElementById('code-title').textContent = `${f.fn}.c`;
+
+  // Stacks (avec rendu indexé OU raw selon phase)
+  const showIndexed = f.indexed;
+  renderStack('stack-a', f.a, f.aRaw, showIndexed, 'a-color');
+  renderStack('stack-b', f.b, f.bRaw, showIndexed, 'b-color');
+
+  // Vars
+  renderVars(f.vars);
+
+  // Ops
+  renderOps(f.ops, f.op);
+
+  // Desc
+  document.getElementById('desc-phase').textContent = f.phase;
+  document.getElementById('desc-tag').textContent = f.tag;
+  document.getElementById('desc-text').textContent = f.desc;
+
+  // Counter
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadScenario(ex) {
+  curScenario = ex;
+  frames = runScenario(ex.arr);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+
+// "skip to next op" : avance jusqu'à un frame avec tag === 'op'
+function skipToOp() {
+  let i = cur + 1;
+  while (i < frames.length && frames[i].tag !== 'op') i++;
+  if (i < frames.length) { cur = i; renderFrame(frames[cur]); }
+  else { cur = frames.length - 1; renderFrame(frames[cur]); }
+}
+
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 1500 - parseInt(document.getElementById('speed').value) + 80;
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, Math.max(60, speed));
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+// Bindings
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-skip-op').addEventListener('click', () => { stopPlay(); skipToOp(); });
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT') return;
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+  else if (e.key === 'n') { stopPlay(); skipToOp(); }
+});
+
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+// init
+renderCode();
+renderExamples();
+loadScenario(EXAMPLES[0]);
+</script>
+
+</body>
+</html>
