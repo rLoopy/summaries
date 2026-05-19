@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>index_stack — step debugger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+<style>
+main { max-width: 1400px !important; }
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.dbg-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 1100px) { .dbg-grid { grid-template-columns: 1fr; } }
+
+/* Code panel */
+.code-panel { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); overflow: hidden; box-shadow: 3px 3px 0 var(--ink); }
+.code-header { background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5); font-size: 12px; }
+.code-body { padding: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #E9E5F0; counter-reset: lineno; }
+.code-line { padding: 2px 20px 2px 44px; position: relative; white-space: pre; transition: background 0.15s; }
+.code-line::before { counter-increment: lineno; content: counter(lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.22); border-left: 3px solid var(--hl-yellow); padding-left: 41px; }
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; }
+
+/* State panel */
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+.vars-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; background: var(--paper); }
+.vars-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.var-row { display: flex; align-items: center; gap: 8px; padding: 5px 7px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 7px; margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 55px; }
+.var-eq { color: var(--muted); }
+.var-val { color: var(--ink); font-weight: 700; padding: 2px 7px; background: var(--hl-yellow); border: 1.5px solid var(--ink); border-radius: 4px; min-width: 28px; text-align: center; }
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+
+/* Stack visual */
+.stacks-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; background: var(--paper); }
+.stack-row { display: flex; gap: 16px; }
+.stack-col { flex: 1; }
+.stack-label { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; color: var(--ink); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+.node-list { display: flex; flex-direction: column; gap: 4px; }
+.node { display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; padding: 6px 10px; border: 2.5px solid var(--ink); border-radius: 8px; background: var(--paper-d); box-shadow: 2px 2px 0 var(--ink); transition: all 0.3s; position: relative; }
+.node.top-node::before { content: '← top'; position: absolute; right: -52px; font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+.node.active-node { background: var(--hl-yellow) !important; transform: scale(1.05); }
+.node.ranked { background: #a5d8a8 !important; }
+.node.empty { background: var(--paper-e); color: var(--muted); font-style: italic; }
+
+/* Vals snapshot */
+.vals-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; background: #1C1A28; }
+.vals-label { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; color: #9DD6A8; margin-bottom: 6px; text-transform: uppercase; }
+.vals-array { display: flex; gap: 6px; flex-wrap: wrap; }
+.val-cell { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; padding: 4px 10px; border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; color: #FFB380; background: #262333; }
+.val-cell.counted { border-color: #6fb07e; color: #6fb07e; }
+.val-cell.null-cell { color: #5C5A75; font-style: italic; }
+
+/* Desc box */
+.desc-box { background: var(--ink); color: var(--paper); border-radius: 12px; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent); padding: 12px 14px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.4; min-height: 50px; }
+.desc-box .tag { display: inline-block; background: var(--hl-yellow); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 7px; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Controls */
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft); text-align: center; margin-top: 12px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.rank-formula { background: #262333; border-radius: 8px; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #E9E5F0; margin-top: 6px; }
+.rank-formula .hl { color: var(--hl-yellow); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ index_stack — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">index_stack</span></div>
+  <p class="hero-sub">Phase 1 du Turk · remplace les valeurs par des rangs [0..n-1]</p>
+</section>
+
+<main>
+
+<div class="examples">
+  <button class="ex-chip active" onclick="loadExample(0)">[-42, 999, 7, -3, 50]</button>
+  <button class="ex-chip" onclick="loadExample(1)">[3, 1, 4, 2, 5]</button>
+  <button class="ex-chip" onclick="loadExample(2)">[100, -5, 42, 0, 77]</button>
+</div>
+
+<div class="debugger">
+  <div class="dbg-grid">
+
+    <!-- Code panel -->
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="dot" style="background:#ff5f57"></div>
+        <div class="dot" style="background:#febc2e"></div>
+        <div class="dot" style="background:#28c840"></div>
+        <div class="title">index_stack.c</div>
+      </div>
+      <div class="code-body" id="code-body">
+        <div class="code-line" data-line="1"><span class="kw">int</span>  <span class="fn">index_stack</span>(<span class="tp">t_stack</span> *a)</div>
+        <div class="code-line" data-line="2">{</div>
+        <div class="code-line" data-line="3">    <span class="kw">int</span>      n;</div>
+        <div class="code-line" data-line="4">    <span class="kw">int</span>      *vals;</div>
+        <div class="code-line" data-line="5">    <span class="tp">t_stack</span>  *cur;</div>
+        <div class="code-line" data-line="6"> </div>
+        <div class="code-line" data-line="7">    n = <span class="fn">stack_size</span>(a);</div>
+        <div class="code-line" data-line="8">    vals = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>) * n);</div>
+        <div class="code-line" data-line="9">    <span class="kw">if</span> (!vals) <span class="kw">return</span> (<span class="num">0</span>);</div>
+        <div class="code-line" data-line="10">    <span class="fn">copy_vals</span>(a, vals);</div>
+        <div class="code-line" data-line="11">    cur = a;</div>
+        <div class="code-line" data-line="12">    <span class="kw">while</span> (cur)</div>
+        <div class="code-line" data-line="13">    {</div>
+        <div class="code-line" data-line="14">        cur-&gt;val = <span class="fn">compute_rank</span>(cur-&gt;val, vals, n);</div>
+        <div class="code-line" data-line="15">        cur = cur-&gt;next;</div>
+        <div class="code-line" data-line="16">    }</div>
+        <div class="code-line" data-line="17">    <span class="fn">free</span>(vals);</div>
+        <div class="code-line" data-line="18">    <span class="kw">return</span> (<span class="num">1</span>);</div>
+        <div class="code-line" data-line="19">}</div>
+      </div>
+    </div>
+
+    <!-- State panel -->
+    <div class="state-panel">
+
+      <div class="vars-box">
+        <div class="vars-title">Variables</div>
+        <div class="var-row"><span class="var-name">n</span><span class="var-eq">=</span><span class="var-val" id="v-n">?</span></div>
+        <div class="var-row"><span class="var-name">cur</span><span class="var-eq">=</span><span class="var-val" id="v-cur">NULL</span></div>
+        <div class="var-row"><span class="var-name">rank</span><span class="var-eq">=</span><span class="var-val" id="v-rank">?</span></div>
+      </div>
+
+      <div class="stacks-box">
+        <div class="vars-title">Pile A</div>
+        <div class="node-list" id="stack-display"></div>
+      </div>
+
+      <div class="vals-box">
+        <div class="vals-label">vals[] — snapshot</div>
+        <div class="vals-array" id="vals-display">
+          <span class="val-cell null-cell">pas encore alloué</span>
+        </div>
+        <div class="rank-formula" id="rank-formula" style="display:none"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="desc-box" id="desc-box">
+    <span class="tag">intro</span>Prêt à démarrer. Clique <b>Suivant →</b> pour commencer.
+  </div>
+
+  <div class="ctrls" style="margin-top:14px">
+    <button class="ctrl-btn" id="btn-prev" onclick="prev()" disabled>← Préc</button>
+    <button class="ctrl-btn primary" id="btn-next" onclick="next()">Suivant →</button>
+    <button class="ctrl-btn" onclick="restart()">↺ Reset</button>
+  </div>
+  <div class="step-counter"><span class="num" id="step-cur">0</span> / <span id="step-total">?</span></div>
+</div>
+
+</main>
+
+<script>
+const EXAMPLES = [
+  [-42, 999, 7, -3, 50],
+  [3, 1, 4, 2, 5],
+  [100, -5, 42, 0, 77],
+];
+let exIdx = 0;
+let origVals = [];
+let steps = [];
+let stepIdx = 0;
+
+function computeRank(target, vals) {
+  return vals.filter(v => v < target).length;
+}
+
+function buildSteps(vals) {
+  const n = vals.length;
+  const snapshot = [...vals];
+  const pile = vals.map((v, i) => ({ orig: v, rank: null, idx: i }));
+  const result = [];
+
+  // Step 0: initial
+  result.push({
+    line: null,
+    desc: `<span class="tag">début</span>Pile A initiale : <b>[${vals.join(', ')}]</b>. On va remplacer chaque valeur par son rang — combien de valeurs lui sont inférieures.`,
+    n: '?', cur: 'NULL', rank: '?',
+    pile: pile.map(p => ({ ...p })),
+    vals: null,
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  // Step 1: n = stack_size
+  result.push({
+    line: 7,
+    desc: `<span class="tag">ligne 7</span><b>n = stack_size(a)</b> → on compte les nodes dans A. Résultat : <b>n = ${n}</b>.`,
+    n: String(n), cur: 'NULL', rank: '?',
+    pile: pile.map(p => ({ ...p })),
+    vals: null,
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  // Step 2: malloc
+  result.push({
+    line: 8,
+    desc: `<span class="tag">ligne 8</span><b>malloc(sizeof(int) * ${n})</b> → alloue un tableau de ${n} ints. C'est là qu'on va sauvegarder les valeurs originales.`,
+    n: String(n), cur: 'NULL', rank: '?',
+    pile: pile.map(p => ({ ...p })),
+    vals: snapshot.map(() => '?'),
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  // Step 3: copy_vals
+  result.push({
+    line: 10,
+    desc: `<span class="tag">ligne 10</span><b>copy_vals(a, vals)</b> → copie toutes les valeurs originales dans vals[]. Snapshot figé : même si on modifie la pile après, vals[] ne change pas.`,
+    n: String(n), cur: 'NULL', rank: '?',
+    pile: pile.map(p => ({ ...p })),
+    vals: [...snapshot],
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  // Step 4: cur = a
+  result.push({
+    line: 11,
+    desc: `<span class="tag">ligne 11</span><b>cur = a</b> → on pointe sur le premier node. On va parcourir la pile et calculer le rang de chacun.`,
+    n: String(n), cur: `a[0] = ${vals[0]}`, rank: '?',
+    pile: pile.map(p => ({ ...p })),
+    vals: [...snapshot],
+    rankFormula: null,
+    activeNode: 0,
+  });
+
+  // For each node: compute_rank + assign
+  const currentPile = pile.map(p => ({ ...p }));
+  for (let i = 0; i < n; i++) {
+    const rank = computeRank(snapshot[i], snapshot);
+    const counted = snapshot.map(v => v < snapshot[i]);
+
+    // Show while (cur) check
+    result.push({
+      line: 12,
+      desc: `<span class="tag">while</span>cur n'est pas NULL (<b>cur->val = ${snapshot[i]}</b>). On entre dans la boucle.`,
+      n: String(n), cur: `a[${i}] = ${snapshot[i]}`, rank: '?',
+      pile: currentPile.map(p => ({ ...p })),
+      vals: [...snapshot],
+      rankFormula: null,
+      activeNode: i,
+    });
+
+    // Show compute_rank
+    const countedCount = counted.filter(Boolean).length;
+    result.push({
+      line: 14,
+      desc: `<span class="tag">ligne 14</span><b>compute_rank(${snapshot[i]}, vals, ${n})</b> → compte combien de vals[j] sont <b>strictement inférieurs</b> à <b>${snapshot[i]}</b>.`,
+      n: String(n), cur: `a[${i}] = ${snapshot[i]}`, rank: `${rank} (calcul...)`,
+      pile: currentPile.map(p => ({ ...p })),
+      vals: counted,
+      rankFormula: `vals[] : ${snapshot.map((v, j) => `${v}${counted[j] ? ' ✓' : ''}`).join(', ')} → <span class="hl">${countedCount} valeurs < ${snapshot[i]}</span> → rang = ${rank}`,
+      activeNode: i,
+    });
+
+    // Assign rank
+    currentPile[i] = { ...currentPile[i], rank };
+    result.push({
+      line: 14,
+      desc: `<span class="tag">assignation</span><b>cur->val = ${rank}</b>. La valeur <b>${snapshot[i]}</b> est remplacée par son rang <b>${rank}</b> dans la pile. 🎯`,
+      n: String(n), cur: `a[${i}] = ${snapshot[i]}`, rank: String(rank),
+      pile: currentPile.map(p => ({ ...p })),
+      vals: [...snapshot],
+      rankFormula: null,
+      activeNode: i,
+    });
+
+    // cur = cur->next
+    if (i < n - 1) {
+      result.push({
+        line: 15,
+        desc: `<span class="tag">ligne 15</span><b>cur = cur->next</b> → on avance au node suivant (<b>${snapshot[i+1]}</b>).`,
+        n: String(n), cur: `a[${i+1}] = ${snapshot[i+1]}`, rank: '?',
+        pile: currentPile.map(p => ({ ...p })),
+        vals: [...snapshot],
+        rankFormula: null,
+        activeNode: i + 1,
+      });
+    }
+  }
+
+  // free + return
+  result.push({
+    line: 17,
+    desc: `<span class="tag">ligne 17</span><b>free(vals)</b> → le snapshot a fait son travail, on libère la mémoire.`,
+    n: String(n), cur: 'NULL', rank: '—',
+    pile: currentPile.map(p => ({ ...p })),
+    vals: null,
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  result.push({
+    line: 18,
+    desc: `<span class="tag">done ✓</span>Résultat : <b>[${currentPile.map(p => p.rank).join(', ')}]</b>. Toutes les valeurs sont maintenant des rangs [0..${n-1}]. L'algo Turk peut maintenant faire des chunks propres !`,
+    n: String(n), cur: 'NULL', rank: '—',
+    pile: currentPile.map(p => ({ ...p })),
+    vals: null,
+    rankFormula: null,
+    activeNode: -1,
+  });
+
+  return result;
+}
+
+function loadExample(idx) {
+  exIdx = idx;
+  document.querySelectorAll('.ex-chip').forEach((c, i) => c.classList.toggle('active', i === idx));
+  origVals = [...EXAMPLES[idx]];
+  steps = buildSteps(origVals);
+  stepIdx = 0;
+  document.getElementById('step-total').textContent = steps.length - 1;
+  render();
+}
+
+function render() {
+  const s = steps[stepIdx];
+
+  // Highlight code line
+  document.querySelectorAll('.code-line').forEach(el => {
+    el.classList.remove('active');
+    if (s.line && parseInt(el.dataset.line) === s.line) el.classList.add('active');
+  });
+
+  // Variables
+  document.getElementById('v-n').textContent = s.n;
+  document.getElementById('v-cur').textContent = s.cur;
+  document.getElementById('v-rank').textContent = s.rank;
+
+  // Stack
+  const stackEl = document.getElementById('stack-display');
+  stackEl.innerHTML = '';
+  s.pile.forEach((node, i) => {
+    const div = document.createElement('div');
+    div.className = 'node';
+    if (i === 0) div.classList.add('top-node');
+    if (i === s.activeNode) div.classList.add('active-node');
+    if (node.rank !== null) div.classList.add('ranked');
+    div.textContent = node.rank !== null ? `${node.orig} → ${node.rank}` : node.orig;
+    stackEl.appendChild(div);
+  });
+
+  // Vals snapshot
+  const valsEl = document.getElementById('vals-display');
+  if (s.vals === null) {
+    valsEl.innerHTML = '<span class="val-cell null-cell">libéré / pas encore alloué</span>';
+  } else if (Array.isArray(s.vals) && typeof s.vals[0] === 'boolean') {
+    valsEl.innerHTML = origVals.map((v, i) =>
+      `<span class="val-cell ${s.vals[i] ? 'counted' : ''}">${v}${s.vals[i] ? ' ✓' : ''}</span>`
+    ).join('');
+  } else {
+    valsEl.innerHTML = s.vals.map(v =>
+      `<span class="val-cell">${v}</span>`
+    ).join('');
+  }
+
+  // Rank formula
+  const formulaEl = document.getElementById('rank-formula');
+  if (s.rankFormula) {
+    formulaEl.style.display = 'block';
+    formulaEl.innerHTML = s.rankFormula;
+  } else {
+    formulaEl.style.display = 'none';
+  }
+
+  // Desc
+  document.getElementById('desc-box').innerHTML = s.desc;
+
+  // Step counter
+  document.getElementById('step-cur').textContent = stepIdx;
+
+  // Buttons
+  document.getElementById('btn-prev').disabled = stepIdx === 0;
+  document.getElementById('btn-next').disabled = stepIdx === steps.length - 1;
+
+  // Progress bar
+  const pct = steps.length > 1 ? (stepIdx / (steps.length - 1)) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+function restart() { stepIdx = 0; render(); }
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+});
+
+loadExample(0);
+</script>
+</body>
+</html>
