@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>index_stack — le système de rangs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+
+.video { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 24px 36px 70px 36px; }
+
+.scene-title { font-family: 'Kalam', cursive; font-size: 32px; color: #ffe96b; text-align: center; margin-bottom: 6px; min-height: 42px; opacity: 0; transform: translateY(-15px); transition: all 0.6s ease; }
+.scene-title.in { opacity: 1; transform: translateY(0); }
+.subtitle { font-family: 'Caveat', cursive; font-size: 20px; color: #c0b3e0; text-align: center; margin-bottom: 16px; min-height: 24px; }
+
+.main { flex: 1; display: flex; gap: 24px; min-height: 0; }
+.stage-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 0; gap: 24px; }
+
+/* Stack nodes */
+.pile-row { display: flex; gap: 60px; align-items: flex-start; justify-content: center; }
+.pile-col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 130px; }
+.pile-label { font-family: 'Kalam', cursive; font-size: 26px; color: #ff9f7a; font-weight: 700; letter-spacing: 4px; margin-bottom: 4px; }
+.top-marker { font-family: 'Caveat', cursive; font-size: 16px; color: #ffe96b; height: 20px; }
+.box { width: 120px; height: 52px; background: #2a2833; border: 3px solid #ff9f7a; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 20px; color: #f0e9d8; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 #c0b3e0; transition: all 0.5s ease; gap: 8px; }
+.box.ranked { background: #6fb07e; color: #0f0e1a; border-color: #6fb07e; box-shadow: 3px 3px 0 #2a2833; }
+.box.active { background: #ffe96b; color: #0f0e1a; border-color: #ffe96b; box-shadow: 3px 3px 0 #2a2833; }
+.box .rank-badge { background: #0f0e1a; color: #ffe96b; font-size: 13px; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+.bottom-marker { font-family: 'Caveat', cursive; font-size: 13px; color: #5c5a75; font-style: italic; margin-top: 4px; }
+
+/* Values array */
+.vals-row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.val-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.val-box { width: 80px; height: 46px; background: #2a2833; border: 2px solid #5c5a75; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #ffb380; display: flex; align-items: center; justify-content: center; transition: all 0.4s; }
+.val-box.counted { border-color: #6fb07e; color: #6fb07e; background: rgba(111,176,126,0.1); }
+.val-box.target { border-color: #ffe96b; color: #ffe96b; background: rgba(255,233,107,0.15); box-shadow: 0 0 8px rgba(255,233,107,0.3); }
+.val-idx { font-family: 'Caveat', cursive; font-size: 13px; color: #5c5a75; }
+
+/* Big text */
+.big-text { font-family: 'Kalam', cursive; font-size: 24px; color: #ffe96b; text-align: center; line-height: 1.6; }
+.big-text .muted { color: #5c5a75; font-size: 16px; }
+.big-text code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 18px; }
+
+/* Chunk visual */
+.chunk-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.chunk-box { width: 58px; height: 44px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid; transition: all 0.4s; }
+.chunk-box.c0 { background: rgba(255,159,122,0.15); border-color: #ff9f7a; color: #ff9f7a; }
+.chunk-box.c1 { background: rgba(121,184,216,0.15); border-color: #79b8d8; color: #79b8d8; }
+.chunk-box.c2 { background: rgba(111,176,126,0.15); border-color: #6fb07e; color: #6fb07e; }
+.chunk-box.c3 { background: rgba(201,166,255,0.15); border-color: #c9a6ff; color: #c9a6ff; }
+.chunk-label { font-family: 'Caveat', cursive; font-size: 14px; color: #5c5a75; text-align: center; }
+
+/* Problem box */
+.prob-box { background: rgba(255,100,100,0.08); border: 2px solid rgba(255,100,100,0.4); border-radius: 12px; padding: 16px 24px; font-size: 20px; line-height: 1.6; max-width: 700px; text-align: center; }
+.sol-box { background: rgba(111,176,126,0.08); border: 2px solid rgba(111,176,126,0.4); border-radius: 12px; padding: 16px 24px; font-size: 20px; line-height: 1.6; max-width: 700px; text-align: center; }
+.arrow-down { font-size: 32px; color: #c0b3e0; text-align: center; }
+
+/* Code panel */
+.code-panel { width: 400px; background: #1a1825; border: 2px solid #2a2833; border-radius: 12px; padding: 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #c0b3e0; display: flex; flex-direction: column; }
+.code-panel .code-title { font-family: 'Kalam', cursive; font-size: 13px; color: #79b8d8; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed #2a2833; }
+.code-panel pre { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; }
+.code-panel .line { display: block; padding: 1px 8px; border-radius: 3px; transition: all 0.4s ease; color: #5c5a75; }
+.code-panel .line.hl { background: rgba(255,233,107,0.18); color: #ffe96b; font-weight: 700; box-shadow: inset 4px 0 0 #ffe96b; }
+.code-panel .line.done { color: #6fb07e; }
+.code-panel .kw { color: #ff9f7a; } .code-panel .fn { color: #79b8d8; } .code-panel .com { color: #5c5a75; font-style: italic; } .code-panel .num { color: #c9a6ff; } .code-panel .type { color: #9dd6a8; }
+.action-card { background: rgba(255,233,107,0.08); border: 2px solid #ffe96b; border-radius: 8px; padding: 10px 14px; margin-top: 12px; font-family: 'Patrick Hand', cursive; font-size: 14px; color: #ffe96b; line-height: 1.4; }
+
+/* Caption */
+.caption { font-family: 'Patrick Hand', cursive; font-size: 20px; color: #f0e9d8; text-align: center; max-width: 1100px; line-height: 1.5; margin: 14px auto 0 auto; min-height: 60px; opacity: 0; transform: translateY(15px); transition: all 0.6s ease; }
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 16px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Formula */
+.formula { font-family: 'JetBrains Mono', monospace; font-size: 18px; background: #2a2833; border-radius: 10px; padding: 14px 20px; color: #c0b3e0; text-align: center; }
+.formula .hl { color: #ffe96b; font-weight: 700; }
+.formula .green { color: #6fb07e; }
+
+/* Controls */
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s linear; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+.keyhint { position: fixed; bottom: 42px; left: 20px; font-family: 'Caveat', cursive; font-size: 13px; color: #3a3849; }
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">index_stack</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="main">
+    <div class="stage-wrap" id="stage"></div>
+    <div class="code-panel">
+      <div class="code-title" id="code-title">CODE</div>
+      <pre id="code-body"></pre>
+      <div class="action-card" id="action-card">→ démarrage…</div>
+    </div>
+  </div>
+  <div class="caption" id="caption"></div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+const CODE_LINES = [
+  '<span class="kw">int</span>  <span class="fn">index_stack</span>(<span class="type">t_stack</span> *a)',
+  '{',
+  '  <span class="kw">int</span>  n  = <span class="fn">stack_size</span>(a);',
+  '  <span class="kw">int</span>  *vals = <span class="fn">malloc</span>(n);',
+  '  <span class="fn">copy_vals</span>(a, vals);    <span class="com">// snapshot</span>',
+  '  cur = a;',
+  '  <span class="kw">while</span> (cur)',
+  '  {',
+  '    cur->val = <span class="fn">compute_rank</span>(cur->val, vals, n);',
+  '    cur = cur->next;',
+  '  }',
+  '  <span class="fn">free</span>(vals);',
+  '  <span class="kw">return</span> (<span class="num">1</span>);',
+  '}',
+];
+
+function renderCode(hl=[], done=[]) {
+  return CODE_LINES.map((ln, i) => {
+    const n = i + 1;
+    const cls = hl.includes(n) ? ' hl' : (done.includes(n) ? ' done' : '');
+    return `<span class="line${cls}">${ln}</span>`;
+  }).join('\n');
+}
+
+function renderPile(nodes) {
+  let h = '<div class="pile-col">';
+  h += '<div class="pile-label">A</div>';
+  h += '<div class="top-marker">↓ top</div>';
+  nodes.forEach(n => {
+    const cls = n.ranked ? ' ranked' : (n.active ? ' active' : '');
+    h += `<div class="box${cls}">${n.val}`;
+    if (n.ranked) h += `<span class="rank-badge">→ ${n.rank}</span>`;
+    h += '</div>';
+  });
+  h += '<div class="bottom-marker">bottom</div></div>';
+  return `<div class="pile-row">${h}</div>`;
+}
+
+function renderVals(vals, target=null, counted=[]) {
+  let h = '<div class="vals-row">';
+  vals.forEach((v, i) => {
+    const isTarget = v === target;
+    const isCounted = counted.includes(i);
+    const cls = isTarget ? ' target' : (isCounted ? ' counted' : '');
+    h += `<div class="val-cell">
+      <div class="val-box${cls}">${v}${isCounted ? ' ✓' : ''}</div>
+      <div class="val-idx">vals[${i}]</div>
+    </div>`;
+  });
+  h += '</div>';
+  return h;
+}
+
+const ORIG = [-42, 999, 7, -3, 50];
+
+const SCENES = [
+  // 1 — Le problème
+  {
+    dur: 8000,
+    title: "Le problème des chunks",
+    subtitle: "pourquoi on ne peut pas couper directement par valeur",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="prob-box">
+          Pile A : <b style="color:#ffb380">[-42, 999, 7, -3, 50, ...]</b><br>
+          <span style="color:#9dd6a8; font-size:17px;">500 valeurs entre -2 milliards et +2 milliards</span><br><br>
+          Tu veux faire des chunks de 35.<br>
+          <b style="color:#ff9f7a;">Chunk 0 = valeurs de ??? à ???</b><br>
+          <span style="color:#5c5a75; font-size:16px;">Impossible — la distribution est inconnue.</span>
+        </div>`;
+      code.innerHTML = renderCode();
+      action.textContent = 'On a besoin d\'une échelle fixe et prévisible.';
+      caption.innerHTML = "<b>Le cœur du problème</b> : avec des valeurs arbitraires, impossible de définir des seuils de chunk sensés. <b>-42</b> et <b>999</b> — c'est quoi le milieu ?";
+    }
+  },
+
+  // 2 — La solution
+  {
+    dur: 8000,
+    title: "La solution : les rangs",
+    subtitle: "remplacer les valeurs par leur position dans l'ordre trié",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="arrow-down" style="font-size:20px; color:#5c5a75;">avant</div>
+        <div class="prob-box">[-42, 999, 7, -3, 50] — valeurs quelconques</div>
+        <div class="arrow-down">↓ index_stack</div>
+        <div class="sol-box">
+          [0, 4, 2, 1, 3] — <b style="color:#6fb07e;">rangs [0..n-1]</b><br>
+          <span style="color:#9dd6a8; font-size:17px;">denses, continues, prévisibles</span><br>
+          Chunk 0 = rangs 0–15 · Chunk 1 = rangs 16–31 · ...
+        </div>`;
+      code.innerHTML = renderCode();
+      action.textContent = 'n valeurs → rangs de 0 à n-1. Toujours.';
+      caption.innerHTML = "Après indexing, les valeurs sont <span class='hl'>0, 1, 2, ..., n-1</span>. La distribution est connue d'avance. On peut définir des chunks propres : <b>chunk k = rangs [k*35 .. (k+1)*35 - 1]</b>.";
+    }
+  },
+
+  // 3 — C'est quoi un rang ?
+  {
+    dur: 9000,
+    title: "C'est quoi un rang ?",
+    subtitle: "rang = combien de valeurs sont strictement inférieures à toi",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          rang de X = <span class="hl">nombre de valeurs &lt; X</span> dans la pile
+        </div>
+        <div class="vals-row">
+          ${ORIG.map((v, i) => `<div class="val-cell"><div class="val-box">${v}</div><div class="val-idx">a[${i}]</div></div>`).join('')}
+        </div>
+        <div class="big-text" style="font-size:19px; color:#c0b3e0;">
+          Le plus petit a rang <b style="color:#ffe96b">0</b> (personne en-dessous)<br>
+          Le plus grand a rang <b style="color:#ffe96b">n-1</b> (tout le monde en-dessous)
+        </div>`;
+      code.innerHTML = renderCode([9]);
+      action.textContent = 'compute_rank compte les valeurs < cible.';
+      caption.innerHTML = "La règle est simple : <b>0 = plus petit, n-1 = plus grand</b>. Le rang d'une valeur c'est exactement sa position dans le tableau trié.";
+    }
+  },
+
+  // 4 — Calcul rang de -42
+  {
+    dur: 9000,
+    title: "Calcul — rang de -42",
+    subtitle: "combien de vals[j] < -42 ?",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          target = <span class="hl">-42</span> · combien de valeurs sont &lt; -42 ?
+        </div>
+        ${renderVals(ORIG, -42, [])}
+        <div class="big-text">
+          Aucune valeur n'est &lt; -42<br>
+          → rang = <b style="color:#6fb07e">0</b> (c'est le minimum)
+        </div>`;
+      code.innerHTML = renderCode([9]);
+      action.innerHTML = 'vals : [-42, 999, 7, -3, 50]<br>Aucun < -42 → rank = 0';
+      caption.innerHTML = "<b>-42</b> est le plus petit de tous. Zéro valeur lui est inférieure → son rang est <span class='hl'>0</span>.";
+    }
+  },
+
+  // 5 — Calcul rang de -3
+  {
+    dur: 9000,
+    title: "Calcul — rang de -3",
+    subtitle: "combien de vals[j] < -3 ?",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          target = <span class="hl">-3</span> · combien de valeurs sont &lt; -3 ?
+        </div>
+        ${renderVals(ORIG, -3, [0])}
+        <div class="big-text">
+          Seulement -42 est &lt; -3<br>
+          → rang = <b style="color:#6fb07e">1</b>
+        </div>`;
+      code.innerHTML = renderCode([9]);
+      action.innerHTML = 'vals[0] = -42 ✓ (< -3)<br>→ rank = 1';
+      caption.innerHTML = "Seul <b>-42</b> est inférieur à <b>-3</b>. Une valeur → rang <span class='hl'>1</span>.";
+    }
+  },
+
+  // 6 — Calcul rang de 7
+  {
+    dur: 9000,
+    title: "Calcul — rang de 7",
+    subtitle: "combien de vals[j] < 7 ?",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          target = <span class="hl">7</span> · combien de valeurs sont &lt; 7 ?
+        </div>
+        ${renderVals(ORIG, 7, [0, 3])}
+        <div class="big-text">
+          -42 ✓ et -3 ✓ sont &lt; 7<br>
+          → rang = <b style="color:#6fb07e">2</b>
+        </div>`;
+      code.innerHTML = renderCode([9]);
+      action.innerHTML = 'vals[0]=-42 ✓  vals[3]=-3 ✓<br>→ rank = 2';
+      caption.innerHTML = "<b>-42</b> et <b>-3</b> sont tous les deux inférieurs à <b>7</b>. Deux valeurs → rang <span class='hl'>2</span>.";
+    }
+  },
+
+  // 7 — Calcul rang de 999
+  {
+    dur: 9000,
+    title: "Calcul — rang de 999",
+    subtitle: "combien de vals[j] < 999 ?",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          target = <span class="hl">999</span> · combien de valeurs sont &lt; 999 ?
+        </div>
+        ${renderVals(ORIG, 999, [0, 2, 3, 4])}
+        <div class="big-text">
+          -42 ✓ · 7 ✓ · -3 ✓ · 50 ✓<br>
+          → rang = <b style="color:#6fb07e">4</b> (c'est le maximum)
+        </div>`;
+      code.innerHTML = renderCode([9]);
+      action.innerHTML = '4 valeurs < 999<br>→ rank = 4 = n-1';
+      caption.innerHTML = "<b>999</b> est le plus grand. Les 4 autres lui sont inférieurs → rang <span class='hl'>4 = n-1</span>. Toujours : le max a rang n-1.";
+    }
+  },
+
+  // 8 — Résultat complet
+  {
+    dur: 9000,
+    title: "Résultat : tous les rangs calculés",
+    subtitle: "[-42, 999, 7, -3, 50] → [0, 4, 2, 1, 3]",
+    render: (stage, code, action, caption) => {
+      const nodes = [
+        { val: -42, ranked: true, rank: 0 },
+        { val: 999, ranked: true, rank: 4 },
+        { val: 7,   ranked: true, rank: 2 },
+        { val: -3,  ranked: true, rank: 1 },
+        { val: 50,  ranked: true, rank: 3 },
+      ];
+      stage.innerHTML = renderPile(nodes);
+      code.innerHTML = renderCode([], [1,2,3,4,5,6,7,8,9,10,11,12,13,14]);
+      action.innerHTML = 'Pile A mutée in-place.<br>vals[] libéré.';
+      caption.innerHTML = "La pile A est <b>mutée in-place</b> — les valeurs originales sont remplacées par les rangs. Maintenant <b>[0, 4, 2, 1, 3]</b> : on sait que les valeurs vont de 0 à 4, on peut faire des chunks propres.";
+    }
+  },
+
+  // 9 — Pourquoi le snapshot copy_vals ?
+  {
+    dur: 10000,
+    title: "Pourquoi copy_vals ?",
+    subtitle: "le danger de muter la pile pendant le calcul",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="prob-box" style="font-size: 18px; line-height: 1.8;">
+          ⚠️ <b style="color:#ff9f7a;">Sans snapshot</b> — si on mute node[0] directement :<br>
+          <span style="color:#5c5a75;">node[0].val : -42 → 0</span><br>
+          Quand on calcule le rang de node[1] (999)...<br>
+          <code style="font-family:'JetBrains Mono',monospace; font-size:16px; color:#ffb380;">vals[0] = 0</code> au lieu de <code style="color:#ffb380;">-42</code><br>
+          <b style="color:#ff9f7a;">Résultat faussé !</b>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="sol-box" style="font-size: 18px; line-height: 1.8;">
+          ✅ <b style="color:#6fb07e;">Avec copy_vals</b> : snapshot figé<br>
+          Tous les rangs sont calculés depuis les <b>valeurs originales</b><br>
+          Mutation in-place safe
+        </div>`;
+      code.innerHTML = renderCode([5]);
+      action.innerHTML = 'copy_vals = snapshot des valeurs<br>avant toute mutation.';
+      caption.innerHTML = "<code>copy_vals</code> fait une copie des valeurs originales dans <code>vals[]</code>. Pendant le calcul des rangs, on lit dans <code>vals[]</code> (immuable) et on écrit dans la pile. <b>Sans ça, chaque mutation fausserait le calcul des rangs suivants.</b>";
+    }
+  },
+
+  // 10 — Lien avec les chunks
+  {
+    dur: 10000,
+    title: "Après index_stack → les chunks deviennent possibles",
+    subtitle: "push_to_b utilise les rangs pour décider quoi pousser",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size: 19px; margin-bottom: 8px;">
+          n = 10 · chunk_size = 3 · rangs = [0..9]
+        </div>
+        <div class="chunk-row">
+          ${[0,1,2].map(v => `<div class="val-cell"><div class="chunk-box c0">${v}</div><div class="chunk-label">chunk 0</div></div>`).join('')}
+          ${[3,4,5].map(v => `<div class="val-cell"><div class="chunk-box c1">${v}</div><div class="chunk-label">chunk 1</div></div>`).join('')}
+          ${[6,7,8].map(v => `<div class="val-cell"><div class="chunk-box c2">${v}</div><div class="chunk-label">chunk 2</div></div>`).join('')}
+          <div class="val-cell"><div class="chunk-box c3">9</div><div class="chunk-label">chunk 3</div></div>
+        </div>
+        <div class="formula" style="font-size:15px; margin-top:12px;">
+          chunk_max = <span class="hl">(pushed / chunk_size + 1) * chunk_size - 1</span><br>
+          si <span class="green">val &lt;= chunk_max</span> → pb · sinon → ra
+        </div>`;
+      code.innerHTML = renderCode();
+      action.innerHTML = 'index_stack → push_to_b.<br>Les rangs rendent les seuils trivials.';
+      caption.innerHTML = "Avec des rangs <b>[0..n-1]</b>, <code>push_to_b</code> peut dire : <b>chunk 0 = rangs 0 à chunk_size-1</b>. Sans indexing, cette comparaison serait impossible avec des valeurs arbitraires.";
+    }
+  },
+
+  // 11 — Résumé
+  {
+    dur: 8000,
+    title: "Résumé — index_stack en 1 phrase",
+    subtitle: "Phase 1 du Turk",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div class="sol-box" style="font-size: 22px; line-height: 1.9;">
+          <b style="color:#ffe96b;">index_stack</b> remplace chaque valeur<br>par son rang dans l'ordre trié<br>
+          <span style="color:#9dd6a8; font-size:18px;">→ rend les chunks possibles dans push_to_b</span>
+        </div>
+        <div class="formula">
+          rang = <span class="hl"># valeurs strictement inférieures</span><br>
+          0 = min · n-1 = max · <span class="green">toujours n valeurs distinctes</span>
+        </div>`;
+      code.innerHTML = renderCode([], [1,2,3,4,5,6,7,8,9,10,11,12,13,14]);
+      action.innerHTML = '✅ Phase 1 comprise.\nPhase 2 : push_to_b.';
+      caption.innerHTML = "Si on te demande en defense : <b>\"pourquoi index_stack ?\"</b> — la réponse c'est : <i>pour normaliser les valeurs en [0..n-1] et permettre à push_to_b de définir des chunks prévisibles.</i>";
+    }
+  },
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const codeBodyEl = document.getElementById('code-body');
+const actionEl = document.getElementById('action-card');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, codeBodyEl, actionEl, captionEl);
+    setTimeout(() => { titleEl.classList.add('in'); setTimeout(() => captionEl.classList.add('in'), 200); }, 80);
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(d) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), d); }
+function togglePause() {
+  paused = !paused;
+  document.getElementById('btn-pause').textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-pause').textContent = '⏸ pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+</body>
+</html>
