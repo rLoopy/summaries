@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — c'est quoi les signaux UNIX ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+
+.video { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 24px 36px 70px 36px; }
+
+.scene-title { font-family: 'Kalam', cursive; font-size: 32px; color: #ffe96b; text-align: center; margin-bottom: 6px; min-height: 42px; opacity: 0; transform: translateY(-15px); transition: all 0.6s ease; }
+.scene-title.in { opacity: 1; transform: translateY(0); }
+.subtitle { font-family: 'Caveat', cursive; font-size: 20px; color: #c0b3e0; text-align: center; margin-bottom: 16px; min-height: 24px; }
+
+.main { flex: 1; display: flex; gap: 24px; min-height: 0; }
+.stage-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; gap: 24px; padding: 0 20px; }
+
+/* Process box */
+.process { background: #1a1825; border: 3px solid #79b8d8; border-radius: 12px; padding: 16px 24px; min-width: 180px; text-align: center; box-shadow: 4px 4px 0 rgba(121,184,216,0.3); transition: all 0.4s; }
+.process.client { border-color: #ff9f7a; box-shadow: 4px 4px 0 rgba(255,159,122,0.3); }
+.process.server { border-color: #6fb07e; box-shadow: 4px 4px 0 rgba(111,176,126,0.3); }
+.process .p-label { font-family: 'Kalam', cursive; font-size: 14px; letter-spacing: 2px; color: #5c5a75; text-transform: uppercase; }
+.process .p-name { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #ffe96b; font-weight: 700; margin: 4px 0; }
+.process .p-pid { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c0b3e0; }
+.process.client .p-name { color: #ff9f7a; }
+.process.server .p-name { color: #6fb07e; }
+
+.processes-row { display: flex; gap: 60px; align-items: center; }
+
+/* Arrow signal */
+.signal-arrow { font-family: 'JetBrains Mono', monospace; font-size: 24px; color: #ffe96b; padding: 8px 16px; background: rgba(255,233,107,0.1); border: 2px dashed #ffe96b; border-radius: 12px; }
+.signal-arrow.usr1 { color: #ff9f7a; border-color: #ff9f7a; background: rgba(255,159,122,0.1); }
+.signal-arrow.usr2 { color: #79b8d8; border-color: #79b8d8; background: rgba(121,184,216,0.1); }
+.signal-arrow.ack { color: #6fb07e; border-color: #6fb07e; background: rgba(111,176,126,0.1); }
+
+/* Big text */
+.big-text { font-family: 'Kalam', cursive; font-size: 24px; color: #ffe96b; text-align: center; line-height: 1.6; max-width: 900px; }
+.big-text .muted { color: #5c5a75; font-size: 16px; }
+.big-text code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 18px; }
+
+/* Bit display */
+.bits-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.bit { width: 56px; height: 56px; border: 3px solid #5c5a75; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: #5c5a75; background: #1a1825; transition: all 0.4s; }
+.bit.zero { color: #ff9f7a; border-color: #ff9f7a; background: rgba(255,159,122,0.1); }
+.bit.one { color: #79b8d8; border-color: #79b8d8; background: rgba(121,184,216,0.1); }
+.bit.active { transform: scale(1.15); box-shadow: 0 0 20px currentColor; }
+.bit-label { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5c5a75; margin-top: 4px; }
+.bits-container { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.bits-labels { display: flex; gap: 6px; }
+.bits-labels span { width: 56px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #5c5a75; }
+
+/* Signal table */
+.sig-table { display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; padding: 16px 24px; background: #1a1825; border: 2px solid #2a2833; border-radius: 12px; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.sig-table .sig-name { color: #ff9f7a; font-weight: 700; }
+.sig-table .sig-desc { color: #c0b3e0; }
+.sig-table .free { color: #6fb07e !important; font-weight: 700; }
+
+/* Problem/solution boxes */
+.prob-box { background: rgba(255,100,100,0.08); border: 2px solid rgba(255,100,100,0.4); border-radius: 12px; padding: 16px 24px; font-size: 18px; line-height: 1.6; max-width: 780px; text-align: center; }
+.sol-box { background: rgba(111,176,126,0.08); border: 2px solid rgba(111,176,126,0.4); border-radius: 12px; padding: 16px 24px; font-size: 18px; line-height: 1.6; max-width: 780px; text-align: center; }
+.arrow-down { font-size: 28px; color: #c0b3e0; text-align: center; }
+
+/* Code panel */
+.code-panel { width: 420px; background: #1a1825; border: 2px solid #2a2833; border-radius: 12px; padding: 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #c0b3e0; display: flex; flex-direction: column; }
+.code-panel .code-title { font-family: 'Kalam', cursive; font-size: 13px; color: #79b8d8; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed #2a2833; }
+.code-panel pre { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; }
+.code-panel .line { display: block; padding: 1px 8px; border-radius: 3px; transition: all 0.4s; color: #8f89a6; }
+.code-panel .line.hl { background: rgba(255,233,107,0.2); color: #ffe96b; font-weight: 700; box-shadow: inset 4px 0 0 #ffe96b; }
+.code-panel .kw { color: #ff9f7a; } .code-panel .fn { color: #79b8d8; } .code-panel .com { color: #5c5a75; font-style: italic; } .code-panel .num { color: #c9a6ff; } .code-panel .type { color: #9dd6a8; } .code-panel .str { color: #ffd88a; }
+.action-card { background: rgba(255,233,107,0.08); border: 2px solid #ffe96b; border-radius: 8px; padding: 10px 14px; margin-top: 12px; font-family: 'Patrick Hand', cursive; font-size: 14px; color: #ffe96b; line-height: 1.4; }
+
+/* Caption */
+.caption { font-family: 'Patrick Hand', cursive; font-size: 20px; color: #f0e9d8; text-align: center; max-width: 1100px; line-height: 1.5; margin: 14px auto 0 auto; min-height: 60px; opacity: 0; transform: translateY(15px); transition: all 0.6s ease; }
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 16px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 10px; max-width: 900px; }
+.tl-row { display: flex; gap: 12px; align-items: center; padding: 10px 14px; background: #1a1825; border-left: 3px solid; border-radius: 6px; }
+.tl-row.c { border-color: #ff9f7a; }
+.tl-row.s { border-color: #6fb07e; }
+.tl-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+.tl-tag.c { background: rgba(255,159,122,0.2); color: #ff9f7a; }
+.tl-tag.s { background: rgba(111,176,126,0.2); color: #6fb07e; }
+.tl-action { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c0b3e0; }
+.tl-action b { color: #ffe96b; }
+
+/* Controls */
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s linear; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+.keyhint { position: fixed; bottom: 42px; left: 20px; font-family: 'Caveat', cursive; font-size: 13px; color: #3a3849; }
+
+.ascii-table { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.ascii-cell { background: #1a1825; border: 1px solid #2a2833; border-radius: 4px; padding: 4px 6px; text-align: center; color: #c0b3e0; }
+.ascii-cell.hl { background: rgba(255,233,107,0.15); border-color: #ffe96b; color: #ffe96b; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">minitalk</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="main">
+    <div class="stage-wrap" id="stage"></div>
+    <div class="code-panel" id="code-wrap" style="display:none">
+      <div class="code-title" id="code-title">CODE</div>
+      <pre id="code-body"></pre>
+      <div class="action-card" id="action-card">→ démarrage…</div>
+    </div>
+  </div>
+  <div class="caption" id="caption"></div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+function p(name, pid, type='neutral') {
+  return `<div class="process ${type}">
+    <div class="p-label">${type === 'client' ? 'CLIENT' : type === 'server' ? 'SERVER' : 'PROCESS'}</div>
+    <div class="p-name">${name}</div>
+    <div class="p-pid">PID ${pid}</div>
+  </div>`;
+}
+
+function arrow(label, type='') {
+  return `<div class="signal-arrow ${type}">→ ${label} →</div>`;
+}
+
+const SCENES = [
+  // 1 — Intro
+  {
+    dur: 7500,
+    title: "minitalk — c'est quoi le projet ?",
+    subtitle: "deux programmes qui se parlent via des SIGNAUX UNIX",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="processes-row">
+          ${p('./client', '4567', 'client')}
+          ${arrow('signaux', 'usr1')}
+          ${p('./server', '1234', 'server')}
+        </div>
+        <div class="big-text">
+          Le client envoie une <b style="color:#ff9f7a">string</b> au server.<br>
+          Mais <span style="color:#ffe96b">pas de fichier, pas de pipe, pas de socket</span>.<br>
+          Juste des <b style="color:#79b8d8">signaux UNIX</b>.
+        </div>`;
+      caption.innerHTML = "Imagine 2 programmes qui tournent sur la même machine. Ils doivent se parler. Le seul moyen autorisé : <b>les signaux UNIX</b>.";
+    }
+  },
+
+  // 2 — Process
+  {
+    dur: 8000,
+    title: "Concept 1 — c'est quoi un process ?",
+    subtitle: "chaque programme lancé est un \"processus\" identifié par un PID",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="processes-row">
+          ${p('./firefox', '1042')}
+          ${p('./vscode', '2389')}
+          ${p('./server', '5500')}
+        </div>
+        <div class="big-text">
+          Quand tu lances un programme, Linux lui donne<br>
+          un <b style="color:#ffe96b">PID</b> (Process ID) — un numéro unique.<br>
+          <span class="muted">tu peux le voir avec <code>ps aux</code> dans un terminal</span>
+        </div>`;
+      caption.innerHTML = "Le <b>PID</b> c'est l'adresse d'un programme en cours d'exécution. Pour lui envoyer un signal, tu dois connaître son PID.";
+    }
+  },
+
+  // 3 — Doorbell analogy
+  {
+    dur: 8000,
+    title: "Concept 2 — un signal c'est un coup de sonnette",
+    subtitle: "un message instantané sans contenu",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size: 28px;">
+          🛎️ Tu sonnes chez ton voisin.<br>
+          <span style="font-size: 18px; color: #5c5a75;">→ il sait que quelqu'un est là</span><br>
+          <span style="font-size: 18px; color: #5c5a75;">→ mais la sonnerie ne dit RIEN d'autre</span>
+        </div>
+        <div class="big-text" style="font-size: 22px; color: #c0b3e0;">
+          Un signal UNIX c'est pareil :<br>
+          <b style="color:#ff9f7a">notification pure, zéro contenu</b>.<br>
+          Juste un "type" (lequel des 30+ signaux ?).
+        </div>`;
+      caption.innerHTML = "Quand un process reçoit un signal, il sait <b>quel type</b> de signal il a reçu — mais aucune donnée n'est transmise avec. C'est juste une notif.";
+    }
+  },
+
+  // 4 — Linux signals
+  {
+    dur: 9500,
+    title: "Concept 3 — Linux a ~30 signaux prédéfinis",
+    subtitle: "chacun a une signification standard",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="sig-table">
+          <span class="sig-name">SIGINT</span>      <span class="sig-desc">CTRL+C dans le terminal → "arrête-toi"</span>
+          <span class="sig-name">SIGKILL</span>     <span class="sig-desc">kill -9 → "meurs maintenant" (non bloquable)</span>
+          <span class="sig-name">SIGTERM</span>     <span class="sig-desc">kill → "termine proprement"</span>
+          <span class="sig-name">SIGSEGV</span>     <span class="sig-desc">segfault (accès mémoire invalide)</span>
+          <span class="sig-name">SIGCHLD</span>     <span class="sig-desc">un process enfant s'est terminé</span>
+          <span class="sig-name free">SIGUSR1</span><span class="sig-desc free">🆓 libre pour usage perso</span>
+          <span class="sig-name free">SIGUSR2</span><span class="sig-desc free">🆓 libre pour usage perso</span>
+        </div>
+        <div class="big-text" style="font-size: 19px; color: #ff9f7a;">
+          Le sujet de minitalk : <b style="color:#ffe96b">SIGUSR1 + SIGUSR2 SEULEMENT</b><br>
+          <span class="muted">2 signaux pour transmettre n'importe quelle string.</span>
+        </div>`;
+      caption.innerHTML = "Linux fournit 2 signaux <b>SIGUSR1</b> et <b>SIGUSR2</b> qui n'ont aucune signification imposée. Le développeur leur donne le sens qu'il veut. Pour minitalk : ce sont nos 2 seuls outils.";
+    }
+  },
+
+  // 5 — kill() & handler
+  {
+    dur: 10000,
+    title: "Comment ça fonctionne techniquement ?",
+    subtitle: "kill() pour envoyer + handler pour recevoir",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="processes-row">
+          ${p('./A', '1000')}
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+            ${arrow('kill(PID_B, SIGUSR1)', 'usr1')}
+            <div style="font-family:'Caveat',cursive; color:#79b8d8; font-size:16px;">interruption</div>
+          </div>
+          ${p('./B', '2000')}
+        </div>
+        <div class="big-text" style="font-size:18px;">
+          Quand B reçoit le signal :<br>
+          1️⃣ ce qu'il faisait est <b style="color:#ff9f7a">interrompu</b><br>
+          2️⃣ le <b style="color:#ffe96b">handler</b> est appelé (= fonction enregistrée)<br>
+          3️⃣ B reprend ce qu'il faisait
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// process A — émetteur</span></span>
+<span class="line hl"><span class="fn">kill</span>(2000, SIGUSR1);   <span class="com">// envoie</span></span>
+<span class="line"> </span>
+<span class="line"><span class="com">// process B — récepteur</span></span>
+<span class="line"><span class="kw">void</span> <span class="fn">handler</span>(<span class="kw">int</span> sig)</span>
+<span class="line">{</span>
+<span class="line">  <span class="com">// déclenché à la</span></span>
+<span class="line">  <span class="com">// réception d'un signal</span></span>
+<span class="line">  <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"reçu!\\n"</span>, <span class="num">6</span>);</span>
+<span class="line">}</span>
+<span class="line"> </span>
+<span class="line"><span class="kw">int</span> <span class="fn">main</span>()</span>
+<span class="line">{</span>
+<span class="line">  <span class="fn">signal</span>(SIGUSR1, handler);</span>
+<span class="line">  <span class="fn">pause</span>();  <span class="com">// attend signal</span></span>
+<span class="line">}</span>`;
+      action.innerHTML = 'Le handler tourne dans le contexte du process B,<br>déclenché par le kernel à la réception.';
+      caption.innerHTML = "<code>kill(pid, SIG)</code> envoie un signal (oui, le nom est trompeur — ça ne tue pas forcément). <code>signal()</code> ou <code>sigaction()</code> enregistre la fonction handler. <code>pause()</code> bloque le process jusqu'à réception.";
+    }
+  },
+
+  // 6 — The problem: 2 signals, how to send a string?
+  {
+    dur: 9000,
+    title: "🤔 Le défi minitalk",
+    subtitle: "comment envoyer \"Salut\" avec seulement 2 signaux ?",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="prob-box" style="font-size: 22px;">
+          On veut envoyer la string <b style="color:#ffe96b">"Salut"</b><br>
+          On a <b style="color:#79b8d8">2 signaux</b> : SIGUSR1 et SIGUSR2<br>
+          ❓ Comment représenter <b style="color:#ff9f7a">5 caractères</b> avec <b>2 valeurs</b> ?
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="sol-box" style="font-size: 22px;">
+          💡 <b style="color:#6fb07e">Encodage binaire</b><br>
+          Un char = 8 bits (en ASCII).<br>
+          On envoie <b style="color:#ffe96b">bit par bit</b> :<br>
+          SIGUSR1 = 0 · SIGUSR2 = 1
+        </div>`;
+      caption.innerHTML = "Astuce classique en informatique : <b>tout est binaire</b>. Un caractère, c'est juste un nombre sur 8 bits. Si on peut transmettre des <b>0</b> et des <b>1</b>, on peut transmettre n'importe quoi.";
+    }
+  },
+
+  // 7 — ASCII reminder
+  {
+    dur: 10000,
+    title: "Rappel — un caractère c'est un nombre",
+    subtitle: "table ASCII : chaque char a un code numérique",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="ascii-table" style="max-width: 700px;">
+          <div class="ascii-cell">'A' = 65</div>
+          <div class="ascii-cell">'B' = 66</div>
+          <div class="ascii-cell">'C' = 67</div>
+          <div class="ascii-cell">'D' = 68</div>
+          <div class="ascii-cell hl">'S' = 83</div>
+          <div class="ascii-cell hl">'a' = 97</div>
+          <div class="ascii-cell hl">'l' = 108</div>
+          <div class="ascii-cell hl">'u' = 117</div>
+          <div class="ascii-cell hl">'t' = 116</div>
+          <div class="ascii-cell">'0' = 48</div>
+          <div class="ascii-cell">' ' = 32</div>
+          <div class="ascii-cell">'\\n' = 10</div>
+        </div>
+        <div class="big-text">
+          'S' c'est 83 en décimal<br>
+          en binaire 8 bits :<br>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:30px; color:#ffe96b;">0 1 0 1 0 0 1 1</span><br>
+          <span class="muted">(= 64 + 16 + 2 + 1 = 83)</span>
+        </div>`;
+      caption.innerHTML = "En C, un <code>char</code> c'est juste un <b>nombre entier sur 8 bits</b> (0–255). La correspondance \"lettre → nombre\" c'est la table ASCII. Donc envoyer un char = envoyer un nombre = envoyer 8 bits.";
+    }
+  },
+
+  // 8 — Encoding 'S' bit by bit
+  {
+    dur: 12000,
+    title: "Envoyer 'S' (binaire 01010011) bit par bit",
+    subtitle: "MSB first — du bit 7 au bit 0",
+    show_code: false,
+    render: (stage, caption) => {
+      const bits = ['0','1','0','1','0','0','1','1'];
+      const sigs = ['SIGUSR1', 'SIGUSR2', 'SIGUSR1', 'SIGUSR2', 'SIGUSR1', 'SIGUSR1', 'SIGUSR2', 'SIGUSR2'];
+      stage.innerHTML = `
+        <div class="big-text" style="font-size: 22px;">
+          Caractère 'S' → binaire : <b style="color:#ffe96b; font-family:'JetBrains Mono',monospace;">01010011</b>
+        </div>
+        <div class="bits-container">
+          <div class="bits-row">
+            ${bits.map(b => `<div class="bit ${b==='0'?'zero':'one'}">${b}</div>`).join('')}
+          </div>
+          <div class="bits-labels">
+            ${[7,6,5,4,3,2,1,0].map(i => `<span>bit ${i}</span>`).join('')}
+          </div>
+        </div>
+        <div class="big-text" style="font-size: 17px; line-height:1.8;">
+          <span style="color:#ff9f7a;">SIGUSR1 = 0</span> &nbsp;&nbsp;
+          <span style="color:#79b8d8;">SIGUSR2 = 1</span><br>
+          <span class="muted">le client envoie 8 signaux d'affilée :</span><br>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#c0b3e0;">SIGUSR1 → SIGUSR2 → SIGUSR1 → SIGUSR2 → SIGUSR1 → SIGUSR1 → SIGUSR2 → SIGUSR2</span>
+        </div>`;
+      caption.innerHTML = "Le client lit le char <b>'S'</b>, le convertit en binaire, et envoie <b>1 signal par bit</b>. Bit à 0 → SIGUSR1, bit à 1 → SIGUSR2. Le server reçoit 8 signaux et reconstruit 'S'.";
+    }
+  },
+
+  // 9 — Multi-char
+  {
+    dur: 8500,
+    title: "Pour une string entière",
+    subtitle: '"Salut" = 5 chars × 8 bits = 40 signaux',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size: 22px;">
+          string "Salut"
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; font-family:'JetBrains Mono',monospace;">
+          <div style="text-align:center;"><div style="font-size:24px; color:#ffe96b;">'S'</div><div style="color:#c0b3e0;">01010011</div></div>
+          <div style="text-align:center;"><div style="font-size:24px; color:#ffe96b;">'a'</div><div style="color:#c0b3e0;">01100001</div></div>
+          <div style="text-align:center;"><div style="font-size:24px; color:#ffe96b;">'l'</div><div style="color:#c0b3e0;">01101100</div></div>
+          <div style="text-align:center;"><div style="font-size:24px; color:#ffe96b;">'u'</div><div style="color:#c0b3e0;">01110101</div></div>
+          <div style="text-align:center;"><div style="font-size:24px; color:#ffe96b;">'t'</div><div style="color:#c0b3e0;">01110100</div></div>
+        </div>
+        <div class="big-text" style="font-size: 19px;">
+          Total : <b style="color:#ff9f7a">40 signaux</b> envoyés du client au server<br>
+          + 1 char de fin <b style="color:#79b8d8">'\\0'</b> (00000000) pour dire "string finie"
+        </div>`;
+      caption.innerHTML = "Le client parcourt chaque char de la string. Pour chaque char : 8 signaux. À la fin il envoie le <b>caractère nul '\\0'</b> (8 bits à 0) — c'est le marqueur de fin que le server reconnaît.";
+    }
+  },
+
+  // 10 — The sync problem
+  {
+    dur: 11000,
+    title: "⚠️ LE problème : pas de file d'attente",
+    subtitle: "si tu envoies 2 signaux trop vite, le server n'en voit qu'1",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="prob-box" style="font-size: 18px; line-height:1.7;">
+          ⚠️ <b style="color:#ff9f7a;">Linux ne fait PAS la queue des signaux.</b><br>
+          Si le client envoie SIGUSR1 deux fois en 1 µs,<br>
+          le server peut n'en recevoir qu'<b style="color:#ffe96b">UN seul</b>.<br>
+          <span class="muted">→ tu perds des bits → le message arrive corrompu</span>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="sol-box" style="font-size: 19px;">
+          💡 <b style="color:#6fb07e">Solution : protocole d'accusé de réception (ACK)</b><br>
+          Le client envoie 1 bit → <b style="color:#ffe96b">attend la confirmation</b> du server → envoie le bit suivant.
+        </div>`;
+      caption.innerHTML = "C'est <b>LA</b> subtilité de minitalk. Sans synchronisation, le client va envoyer les 8 bits d'un char en quelques nanosecondes — le server va en perdre 5 sur 8. Le message arrive cassé.";
+    }
+  },
+
+  // 11 — The ACK protocol
+  {
+    dur: 13000,
+    title: "Le protocole avec ACK",
+    subtitle: "1 bit → 1 ack → 1 bit → 1 ack → ...",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="timeline">
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action"><span style="color:#ff9f7a">kill(server_pid, SIGUSR1)</span> &nbsp; <b>// envoie bit 0</b></span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action"><span style="color:#79b8d8">pause()</span> &nbsp; <b>// attend l'ACK du server</b></span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">handler() déclenché → reçoit SIGUSR1 → enregistre bit 0</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action"><span style="color:#6fb07e">kill(client_pid, SIGUSR1)</span> &nbsp; <b>// envoie ACK</b></span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">ACK reçu → handler du client se déclenche → <b>pause()</b> se débloque</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action"><span style="color:#ff9f7a">kill(server_pid, SIGUSR2)</span> &nbsp; <b>// envoie bit suivant (1)</b></span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">... boucle pour les 8 bits du char puis le char suivant ...</span></div>
+        </div>`;
+      caption.innerHTML = "Chaque bit envoyé attend sa <b>confirmation</b> avant que le suivant parte. C'est lent (1 bit à la fois) mais c'est <b>fiable</b>. Sans cet ACK, minitalk ne marche pas.";
+    }
+  },
+
+  // 12 — Recap
+  {
+    dur: 9500,
+    title: "✅ Récap — minitalk en 1 phrase",
+    subtitle: "client + server qui se parlent bit par bit avec SIGUSR1/SIGUSR2 + ACK",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size: 22px; line-height: 1.8;">
+          🎯 <b style="color:#ffe96b;">Architecture</b><br>
+          <span style="font-size:17px;">2 programmes : <b style="color:#ff9f7a">./client</b> et <b style="color:#6fb07e">./server</b></span>
+        </div>
+        <div class="big-text" style="font-size: 18px; line-height: 1.8;">
+          📡 <b style="color:#79b8d8">Protocole</b><br>
+          SIGUSR1 = bit 0 · SIGUSR2 = bit 1<br>
+          8 signaux = 1 char · String finie par '\\0' (8 zeros)
+        </div>
+        <div class="big-text" style="font-size: 18px; line-height: 1.8;">
+          🔁 <b style="color:#c9a6ff">Sync</b><br>
+          Le server ACK chaque bit pour éviter les pertes<br>
+          (sinon Linux mange les signaux trop rapides)
+        </div>`;
+      caption.innerHTML = "Si on te demande en defense \"explique minitalk\" — voilà la réponse en 3 phrases. <b>Bit par bit, SIGUSR1/SIGUSR2, avec ACK pour la sync.</b>";
+    }
+  },
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const codeWrapEl = document.getElementById('code-wrap');
+const codeBodyEl = document.getElementById('code-body');
+const actionEl = document.getElementById('action-card');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    codeWrapEl.style.display = s.show_code ? 'flex' : 'none';
+    s.render(stageEl, captionEl, codeBodyEl, actionEl);
+    setTimeout(() => { titleEl.classList.add('in'); setTimeout(() => captionEl.classList.add('in'), 200); }, 80);
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(d) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), d); }
+function togglePause() {
+  paused = !paused;
+  document.getElementById('btn-pause').textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-pause').textContent = '⏸ pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+</body>
+</html>
