@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — guide defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=2">
+<style>
+main { max-width: 1100px !important; }
+.code-panel { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); overflow: hidden; box-shadow: 3px 3px 0 var(--ink); margin: 16px 0; }
+.code-header { background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5); font-size: 12px; }
+.code-body { padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #E9E5F0; overflow-x: auto; }
+.code-body .kw { color: #A5D8A8; }
+.code-body .tp { color: #79B8D8; }
+.code-body .fn { color: #C0B3E0; }
+.code-body .str { color: #FFD88A; }
+.code-body .num { color: #FFB380; }
+.code-body .cm { color: #5C5A75; font-style: italic; }
+.note { background: var(--paper-d); border-left: 4px solid var(--accent); padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.note.warn { border-left-color: #ff7a7a; background: rgba(255,122,122,0.05); }
+.note.tip { border-left-color: #6fb07e; background: rgba(111,176,126,0.05); }
+.note b { color: var(--accent-d); }
+.note code { font-family: 'JetBrains Mono', monospace; background: #1C1A28; color: #ffb380; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.flow { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; padding: 20px; background: var(--paper-d); border-radius: 12px; border: 2px solid var(--ink); margin: 16px 0; }
+.box { background: #1C1A28; border: 3px solid; border-radius: 12px; padding: 12px 18px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ffe96b; text-align: center; box-shadow: 3px 3px 0 var(--ink); min-width: 140px; }
+.box.client { border-color: #ff9f7a; color: #ff9f7a; }
+.box.server { border-color: #6fb07e; color: #6fb07e; }
+.arr { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #c0b3e0; }
+.qa { background: var(--paper-d); border: 2px solid var(--ink); border-radius: 12px; padding: 14px 18px; margin: 14px 0; box-shadow: 3px 3px 0 var(--ink); }
+.qa .q { font-family: 'Kalam', cursive; font-weight: 700; font-size: 17px; color: #79b8d8; margin-bottom: 8px; }
+.qa .q::before { content: 'Q: '; color: #ff9f7a; }
+.qa .a { font-family: 'Patrick Hand', cursive; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.qa .a::before { content: 'R: '; color: #6fb07e; font-weight: 700; }
+.qa code { font-family: 'JetBrains Mono', monospace; background: #1C1A28; color: #ffb380; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.qa b { color: var(--accent-d); }
+table.t { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: 'Patrick Hand', cursive; font-size: 15px; }
+table.t th, table.t td { padding: 8px 12px; border: 2px solid var(--ink); text-align: left; }
+table.t th { background: var(--paper-d); font-family: 'Kalam', cursive; font-size: 14px; }
+table.t code { font-family: 'JetBrains Mono', monospace; background: #1C1A28; color: #ffb380; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+section { margin: 30px 0; }
+h2 { font-family: 'Kalam', cursive; font-size: 28px; color: var(--accent-d); border-bottom: 3px dashed var(--ink); padding-bottom: 6px; margin-bottom: 14px; }
+h3 { font-family: 'Kalam', cursive; font-size: 22px; color: var(--ink); margin: 18px 0 8px 0; }
+.toc { background: var(--paper-d); border: 2px solid var(--ink); border-radius: 12px; padding: 16px 22px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); font-family: 'Patrick Hand', cursive; font-size: 16px; }
+.toc-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px; color: var(--accent-d); margin-bottom: 8px; }
+.toc ol { padding-left: 22px; line-height: 1.7; }
+.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dashed var(--ink); }
+.toc a:hover { background: var(--hl-yellow); }
+.bits-row { display: flex; gap: 4px; justify-content: center; margin: 10px 0; }
+.bit-cell { width: 44px; height: 44px; border: 2.5px solid var(--ink); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; background: var(--paper); }
+.bit-cell.one { color: #79b8d8; background: rgba(121,184,216,0.1); border-color: #79b8d8; }
+.bit-cell.zero { color: #ff9f7a; background: rgba(255,159,122,0.1); border-color: #ff9f7a; }
+.bits-labels { display: flex; gap: 4px; justify-content: center; }
+.bits-labels span { width: 44px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="band">
+  <span class="band-l">★ minitalk — guide defense</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">minitalk</span></div>
+  <p class="hero-sub">Comprendre chaque ligne · expliquer chaque choix · répondre à toutes les questions</p>
+</section>
+<main>
+<div class="toc">
+  <div class="toc-title">📑 Sommaire</div>
+  <ol>
+    <li><a href="#projet">Le projet en 1 minute</a></li>
+    <li><a href="#archi">Architecture des fichiers</a></li>
+    <li><a href="#server">server.c décortiqué</a></li>
+    <li><a href="#client">client.c décortiqué</a></li>
+    <li><a href="#makefile">Le Makefile</a></li>
+    <li><a href="#concepts">Concepts à maîtriser</a></li>
+    <li><a href="#faq">FAQ defense</a></li>
+    <li><a href="#checklist">Checklist finale</a></li>
+  </ol>
+</div>
+<section id="projet">
+  <h2>1. Le projet en 1 minute</h2>
+  <p style="font-family:'Patrick Hand',cursive; font-size:17px; line-height:1.6;">
+    Deux programmes (<b>client</b> + <b>server</b>) qui se parlent <b>uniquement via des signaux UNIX</b>.
+    Le client envoie une string au server <b>bit par bit</b>, le server reconstruit et affiche.
+  </p>
+  <div class="flow">
+    <div class="box client">./client<br><small>PID + msg</small></div>
+    <div class="arr">→ kill(SIGUSR1/2) →</div>
+    <div class="box server">./server<br><small>affiche</small></div>
+  </div>
+  <h3>Le protocole en 4 règles</h3>
+  <table class="t">
+    <tr><td><code>SIGUSR1</code></td><td>= bit <b>0</b></td></tr>
+    <tr><td><code>SIGUSR2</code></td><td>= bit <b>1</b></td></tr>
+    <tr><td>8 signaux</td><td>= 1 caractère (envoyés <b>MSB first</b>)</td></tr>
+    <tr><td>8 bits à 0 ('\0')</td><td>= fin de message → server affiche <code>'\n'</code></td></tr>
+  </table>
+  <div class="note">
+    <b>Pourquoi bit par bit ?</b> On a seulement 2 signaux. Pour envoyer un caractère (0 à 255 en ASCII), il faut le décomposer en bits — c'est la seule façon d'utiliser 2 valeurs pour transmettre n'importe quelle donnée.
+  </div>
+</section>
+
+<section id="archi">
+  <h2>2. Architecture des fichiers</h2>
+  <pre style="background: var(--paper-d); border: 2px solid var(--ink); border-radius: 10px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink);">
+minitalk/
+├── includes/
+│   └── minitalk.h        # 5 includes système (signal, unistd, etc.)
+├── src/
+│   ├── server.c          # 3 fonctions, ~70 lignes
+│   └── client.c          # 3 fonctions, ~60 lignes
+├── Makefile              # all, clean, fclean, re + $(NAME)
+└── README.md</pre>
+  <div class="note tip">
+    <b>Pourquoi cette structure ?</b> Minitalk est petit (~130 lignes). Pas besoin de splitter en 10 fichiers — 2 .c (un par binaire) c'est suffisant et clair. Chaque .c a 3 fonctions max → respect facile du norminette (5 fct/fichier max).
+  </div>
+</section>
+<section id="server">
+  <h2>3. server.c décortiqué</h2>
+  <h3>3.1 handle_signal — le cœur du server</h3>
+  <p style="font-family:'Patrick Hand',cursive; font-size:16px;">Appelée par le kernel à chaque signal reçu. Assemble les bits en char et affiche dès qu'on a 8 bits.</p>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/server.c — handle_signal</div></div>
+    <div class="code-body"><span class="kw">static void</span> <span class="fn">handle_signal</span>(<span class="kw">int</span> sig)
+{
+    <span class="kw">static unsigned char</span>  c;
+    <span class="kw">static int</span>            bit_count;
+
+    c = c &lt;&lt; <span class="num">1</span>;                <span class="cm">// fait de la place à droite</span>
+    <span class="kw">if</span> (sig == SIGUSR2)
+        c = c | <span class="num">1</span>;            <span class="cm">// met un 1 si SIGUSR2</span>
+    bit_count++;
+    <span class="kw">if</span> (bit_count == <span class="num">8</span>)
+    {
+        <span class="kw">if</span> (c == <span class="num">0</span>)
+            <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);  <span class="cm">// fin de message</span>
+        <span class="kw">else</span>
+            <span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);    <span class="cm">// affiche le char</span>
+        c = <span class="num">0</span>;
+        bit_count = <span class="num">0</span>;
+    }
+}</div>
+  </div>
+  <div class="note"><b>Les variables <code>static</code> :</b> elles gardent leur valeur entre les appels du handler. Sans <code>static</code>, <code>c</code> et <code>bit_count</code> repartiraient à 0 à chaque signal et on perdrait l'état de reconstruction.</div>
+  <div class="note tip"><b>Auto-init à 0 :</b> en C, une variable <code>static</code> non initialisée est <b>automatiquement initialisée à 0</b> par le standard. Pas besoin d'écrire <code>= 0</code>.</div>
+  <div class="note warn"><b>Pourquoi <code>unsigned char</code> ?</b> Avec un <code>char</code> signé, si le bit 7 est à 1 (caractères &gt; 127), le shift gauche peut faire déborder vers le bit de signe — comportement indéfini en C. <code>unsigned char</code> garantit que tous les shifts sont prévisibles.</div>
+
+  <h3>3.2 print_pid — affichage sans printf</h3>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/server.c — print_pid</div></div>
+    <div class="code-body"><span class="kw">static void</span> <span class="fn">print_pid</span>(<span class="kw">void</span>)
+{
+    <span class="tp">pid_t</span>  pid;
+    <span class="kw">char</span>   buf[<span class="num">12</span>];
+    <span class="kw">int</span>    i;
+
+    pid = <span class="fn">getpid</span>();
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (pid &gt; <span class="num">0</span>)
+    {
+        buf[i++] = (pid % <span class="num">10</span>) + <span class="str">'0'</span>;
+        pid /= <span class="num">10</span>;
+    }
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"Server PID: "</span>, <span class="num">12</span>);
+    <span class="kw">while</span> (i--)
+        <span class="fn">write</span>(<span class="num">1</span>, &amp;buf[i], <span class="num">1</span>);
+    <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\n"</span>, <span class="num">1</span>);
+}</div>
+  </div>
+  <div class="note"><b>Pourquoi à l'envers ?</b> La boucle remplit <code>buf[]</code> en partant des unités. Pour afficher dans le bon ordre, on parcourt le buffer en arrière avec <code>while (i--)</code>.</div>
+
+  <h3>3.3 main — setup + boucle pause</h3>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/server.c — main</div></div>
+    <div class="code-body"><span class="kw">int</span>  <span class="fn">main</span>(<span class="kw">void</span>)
+{
+    <span class="kw">struct</span> <span class="tp">sigaction</span>  sa;
+
+    <span class="fn">print_pid</span>();
+    <span class="fn">sigemptyset</span>(&amp;sa.sa_mask);
+    <span class="fn">sigaddset</span>(&amp;sa.sa_mask, SIGUSR1);
+    <span class="fn">sigaddset</span>(&amp;sa.sa_mask, SIGUSR2);
+    sa.sa_flags = SA_RESTART;
+    sa.sa_handler = handle_signal;
+    <span class="fn">sigaction</span>(SIGUSR1, &amp;sa, NULL);
+    <span class="fn">sigaction</span>(SIGUSR2, &amp;sa, NULL);
+    <span class="kw">while</span> (<span class="num">1</span>)
+        <span class="fn">pause</span>();
+    <span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+  </div>
+  <div class="note tip"><b>Pourquoi <code>sigaddset</code> les 2 signaux ?</b> Quand le handler tourne, par défaut seul le signal qui l'a déclenché est bloqué. Avec <code>sigaddset</code>, on bloque AUSSI l'autre signal. Ça évite qu'un handler SIGUSR1 soit interrompu par un SIGUSR2 (race condition sur <code>c</code> et <code>bit_count</code>).</div>
+  <div class="note"><b><code>while (1) pause()</code> :</b> <code>pause()</code> bloque le process jusqu'à réception d'un signal. Quand le handler finit, <code>pause()</code> retourne et la boucle relance <code>pause()</code>. Le server attend ainsi indéfiniment.</div>
+</section>
+<section id="client">
+  <h2>4. client.c décortiqué</h2>
+  <h3>4.1 send_char — extraction et envoi des 8 bits</h3>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/client.c — send_char</div></div>
+    <div class="code-body"><span class="kw">static void</span> <span class="fn">send_char</span>(<span class="kw">int</span> pid, <span class="kw">char</span> c)
+{
+    <span class="kw">int</span>            i;
+    <span class="kw">unsigned char</span>  uc;
+
+    uc = (<span class="kw">unsigned char</span>)c;
+    i = <span class="num">7</span>;
+    <span class="kw">while</span> (i &gt;= <span class="num">0</span>)
+    {
+        <span class="kw">if</span> ((uc &gt;&gt; i) &amp; <span class="num">1</span>)
+            <span class="fn">kill</span>(pid, SIGUSR2);
+        <span class="kw">else</span>
+            <span class="fn">kill</span>(pid, SIGUSR1);
+        <span class="fn">usleep</span>(<span class="num">700</span>);
+        i--;
+    }
+}</div>
+  </div>
+  <div class="note tip"><b><code>(uc &gt;&gt; i) &amp; 1</code> :</b> formule magique pour extraire le bit à la position <code>i</code>.<br>• <code>uc &gt;&gt; i</code> : décale les bits de <code>i</code> positions vers la droite → le bit qui nous intéresse arrive en position 0<br>• <code>&amp; 1</code> : garde uniquement le bit 0, efface tout le reste → résultat = 0 ou 1</div>
+  <div class="note"><b>MSB first (i de 7 à 0) :</b> on envoie le bit le plus à gauche en premier. Convention arbitraire mais cohérente avec la reconstruction côté server.</div>
+  <div class="note warn"><b><code>usleep(700)</code> :</b> sans ça, le client envoie les signaux trop vite et Linux en perd. 700µs laisse au server le temps de traiter chaque bit. Calibré pour rester sous "100 chars en 1 seconde" : 800 bits × 700µs ≈ 560ms.</div>
+
+  <h3>4.2 check_pid — le ping kill(pid, 0)</h3>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/client.c — check_pid</div></div>
+    <div class="code-body"><span class="kw">static int</span> <span class="fn">check_pid</span>(<span class="kw">int</span> pid)
+{
+    <span class="kw">if</span> (pid &lt;= <span class="num">0</span>)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="kw">if</span> (<span class="fn">kill</span>(pid, <span class="num">0</span>) == -<span class="num">1</span>)
+        <span class="kw">return</span> (<span class="num">0</span>);
+    <span class="kw">return</span> (<span class="num">1</span>);
+}</div>
+  </div>
+  <div class="note tip"><b><code>kill(pid, 0)</code> :</b> le signal 0 est <b>spécial</b>. Il ne déclenche AUCUN handler. Mais il fait les vérifications de permission.<br>• retourne 0 si le process existe et on peut lui parler ✅<br>• retourne -1 si le PID n'existe pas (ESRCH) ❌<br>• retourne -1 si on n'a pas le droit (EPERM) ❌<br>C'est <b>l'idiome standard</b> pour valider un PID.</div>
+
+  <h3>4.3 main — validation + boucle envoi</h3>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">src/client.c — main</div></div>
+    <div class="code-body"><span class="kw">int</span>  <span class="fn">main</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    <span class="kw">int</span>  pid;
+    <span class="kw">int</span>  i;
+
+    <span class="kw">if</span> (argc != <span class="num">3</span>)
+        <span class="kw">return</span> (<span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Usage...\n"</span>, <span class="num">32</span>), <span class="num">1</span>);
+    pid = <span class="fn">atoi</span>(argv[<span class="num">1</span>]);
+    <span class="kw">if</span> (!<span class="fn">check_pid</span>(pid))
+        <span class="kw">return</span> (<span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error...\n"</span>, <span class="num">34</span>), <span class="num">1</span>);
+    i = <span class="num">0</span>;
+    <span class="kw">while</span> (argv[<span class="num">2</span>][i])
+        <span class="fn">send_char</span>(pid, argv[<span class="num">2</span>][i++]);
+    <span class="fn">send_char</span>(pid, <span class="str">'\0'</span>);
+    <span class="kw">return</span> (<span class="num">0</span>);
+}</div>
+  </div>
+  <div class="note"><b><code>send_char(pid, '\0')</code> à la fin :</b> envoie 8 bits à 0. Côté server, quand <code>c == 0</code> au moment du <code>bit_count == 8</code>, le server affiche <code>'\n'</code>.</div>
+  <div class="note"><b>Pattern <code>return (write(...), 1)</code> :</b> opérateur virgule pour écrire le message d'erreur ET retourner 1 en une seule expression. Norm-friendly.</div>
+</section>
+
+<section id="makefile">
+  <h2>5. Le Makefile</h2>
+  <div class="code-panel">
+    <div class="code-header"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="title">Makefile</div></div>
+    <div class="code-body">NAME    = server client
+CC      = cc
+CFLAGS  = -Wall -Wextra -Werror -I includes
+OBJS    = src/server.o src/client.o
+
+all: $(NAME)
+
+$(NAME): %: src/%.o
+    $(CC) $(CFLAGS) -o $@ $&lt;
+
+src/%.o: src/%.c includes/minitalk.h
+    $(CC) $(CFLAGS) -c $&lt; -o $@
+
+clean:
+    rm -f $(OBJS)
+
+fclean: clean
+    rm -f $(NAME)
+
+re: fclean all
+
+.PHONY: all clean fclean re</div>
+  </div>
+  <div class="note tip"><b>Static pattern rule <code>$(NAME): %: src/%.o</code> :</b> pour chaque nom dans <code>$(NAME)</code> ("server" et "client"), Make génère une règle qui compile à partir du .o correspondant. Évite de répéter la règle 2 fois.</div>
+  <div class="note"><b>Pas de relinking inutile :</b> la dépendance <code>src/%.o: src/%.c $(HEADER)</code> force la recompilation uniquement si le .c ou le header a changé.</div>
+</section>
+<section id="concepts">
+  <h2>6. Concepts à maîtriser</h2>
+  <h3>6.1 Le binaire — un char = 8 bits</h3>
+  <p style="font-family:'Patrick Hand',cursive; font-size:16px;">Un <code>char</code> en C est un nombre entier sur 8 bits, soit 0 à 255 (en unsigned).</p>
+  <div class="bits-row">
+    <div class="bit-cell zero">0</div><div class="bit-cell one">1</div><div class="bit-cell zero">0</div><div class="bit-cell one">1</div>
+    <div class="bit-cell zero">0</div><div class="bit-cell zero">0</div><div class="bit-cell one">1</div><div class="bit-cell one">1</div>
+  </div>
+  <div class="bits-labels"><span>bit 7</span><span>bit 6</span><span>bit 5</span><span>bit 4</span><span>bit 3</span><span>bit 2</span><span>bit 1</span><span>bit 0</span></div>
+  <p style="font-family:'Patrick Hand',cursive; font-size:16px; text-align:center;">'S' = 83 = 64 + 16 + 2 + 1 = <code>01010011</code></p>
+
+  <h3>6.2 Les opérations bit</h3>
+  <table class="t">
+    <tr><th>Opérateur</th><th>Effet</th><th>Exemple</th></tr>
+    <tr><td><code>a &gt;&gt; n</code></td><td>décale à droite (÷ 2^n)</td><td><code>83 &gt;&gt; 1 = 41</code></td></tr>
+    <tr><td><code>a &lt;&lt; n</code></td><td>décale à gauche (× 2^n)</td><td><code>41 &lt;&lt; 1 = 82</code></td></tr>
+    <tr><td><code>a &amp; b</code></td><td>AND bit à bit</td><td><code>83 &amp; 1 = 1</code></td></tr>
+    <tr><td><code>a | b</code></td><td>OR bit à bit</td><td><code>0 | 1 = 1</code></td></tr>
+  </table>
+  <div class="note tip"><b>Les 2 formules à retenir :</b><br>• <code>(c &gt;&gt; i) &amp; 1</code> → extrait le bit à la position i (client)<br>• <code>(c &lt;&lt; 1) | bit</code> → ajoute un bit à droite (server)</div>
+
+  <h3>6.3 Les fonctions signaux</h3>
+  <table class="t">
+    <tr><th>Fonction</th><th>Rôle</th></tr>
+    <tr><td><code>kill(pid, sig)</code></td><td>envoie <code>sig</code> à <code>pid</code>. Malgré le nom, ça ne tue pas forcément.</td></tr>
+    <tr><td><code>sigaction(sig, &amp;sa, NULL)</code></td><td>enregistre le handler <code>sa</code> pour <code>sig</code></td></tr>
+    <tr><td><code>sigemptyset(&amp;set)</code></td><td>vide le set de signaux</td></tr>
+    <tr><td><code>sigaddset(&amp;set, sig)</code></td><td>ajoute <code>sig</code> au set</td></tr>
+    <tr><td><code>pause()</code></td><td>bloque jusqu'à un signal</td></tr>
+    <tr><td><code>getpid()</code></td><td>retourne le PID courant</td></tr>
+  </table>
+
+  <h3>6.4 struct sigaction — les 3 champs</h3>
+  <ul style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.7; padding-left:30px;">
+    <li><code>sa_handler</code> : pointeur vers la fonction handler (signature <code>void f(int)</code>)</li>
+    <li><code>sa_mask</code> : ensemble des signaux à <b>bloquer</b> pendant l'exécution du handler</li>
+    <li><code>sa_flags</code> : options (ex: <code>SA_RESTART</code> pour restart les syscalls interrompus)</li>
+  </ul>
+
+  <h3>6.5 Pourquoi usleep et pas ACK ?</h3>
+  <p style="font-family:'Patrick Hand',cursive; font-size:16px;">Linux <b>ne fait pas la queue des signaux</b>. Si 2 SIGUSR1 arrivent trop vite, le 2ème est ignoré. Solution mandatory : <code>usleep(700)</code> entre chaque bit. Solution bonus : ACK explicite du server.</p>
+
+  <h3>6.6 Pourquoi <code>unsigned char</code> ?</h3>
+  <p style="font-family:'Patrick Hand',cursive; font-size:16px;">Le shift droit sur un <code>char</code> signé avec bit haut à 1 est <b>comportement indéfini</b> en C. <code>unsigned char</code> garantit que le shift introduit des 0 à gauche (logique pure).</p>
+
+  <h3>6.7 <code>static</code> dans le handler</h3>
+  <ul style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.7; padding-left:30px;">
+    <li>garde sa valeur entre les appels de la fonction</li>
+    <li>auto-init à 0 par le standard C</li>
+    <li><b>n'est pas une variable globale</b> (donc ne compte pas dans la limite du sujet)</li>
+  </ul>
+</section>
+<section id="faq">
+  <h2>7. FAQ defense — questions piège</h2>
+  <div class="qa"><div class="q">Pourquoi <code>unsigned char</code> et pas <code>char</code> ?</div><div class="a">Parce que le shift droit sur un <code>char</code> signé avec bit haut à 1 a un comportement indéfini en C. <code>unsigned char</code> garantit que les shifts se comportent comme on s'y attend.</div></div>
+  <div class="qa"><div class="q">Pourquoi MSB first et pas LSB first ?</div><div class="a">C'est une <b>convention arbitraire</b>. Ce qui compte c'est que client et server soient d'accord. MSB first c'est plus intuitif quand on lit le binaire (de gauche à droite).</div></div>
+  <div class="qa"><div class="q">Comment ça marche si plusieurs clients envoient en même temps ?</div><div class="a">Le sujet dit "plusieurs clients <b>in a row</b>" — séquentiellement, pas en parallèle. Si plusieurs envoient simultanément, les bits se mélangent et le résultat est corrompu. C'est <b>hors scope</b> du mandatory.</div></div>
+  <div class="qa"><div class="q">Que se passe-t-il si le server crash en cours de message ?</div><div class="a">Le client continue à envoyer, mais comme le PID n'existe plus, les <code>kill()</code> retournent -1 et les signaux sont perdus. Pour gérer ça parfaitement, il faudrait checker la valeur de retour de <code>kill()</code> dans <code>send_char</code>.</div></div>
+  <div class="qa"><div class="q">Pourquoi <code>usleep(700)</code> et pas 100 ou 5000 ?</div><div class="a">Trade-off vitesse / fiabilité. Trop court = signaux perdus. Trop long = trop lent (sujet : 100 chars en moins d'1 seconde). 700 donne le meilleur compromis : ~676ms pour 100 chars avec 90%+ de fiabilité.</div></div>
+  <div class="qa"><div class="q">Pourquoi <code>sa_handler</code> et pas <code>sa_sigaction</code> avec <code>SA_SIGINFO</code> ?</div><div class="a"><code>SA_SIGINFO</code> permet de récupérer le PID du sender via <code>siginfo_t</code>. Utile pour répondre au client (bonus ACK), mais pour mandatory pur on n'en a pas besoin. <code>sa_handler</code> suffit.</div></div>
+  <div class="qa"><div class="q">Pourquoi <code>sigaddset</code> les 2 signaux dans <code>sa_mask</code> ?</div><div class="a">Par défaut, seul le signal traité est bloqué pendant le handler. Mais nos 2 signaux modifient les mêmes variables statiques. Sans <code>sigaddset</code>, un SIGUSR2 pourrait interrompre un handler SIGUSR1 et corrompre la reconstruction. On bloque les 2 pour <b>atomiser</b> l'opération.</div></div>
+  <div class="qa"><div class="q">Comment le server sait que le message est fini ?</div><div class="a">Le client envoie <code>'\0'</code> à la fin (8 bits à 0). Quand le server reconstruit un caractère <code>c == 0</code>, il affiche <code>'\n'</code>. C'est le marqueur de fin convenu.</div></div>
+  <div class="qa"><div class="q">Et si le PID est négatif ou 0 ?</div><div class="a"><code>check_pid</code> retourne 0 dans ces cas. On évite ainsi <code>kill(0, ...)</code> qui enverrait le signal au <b>process group entier</b> — dangereux.</div></div>
+  <div class="qa"><div class="q">Le sujet autorise 1 global, tu en utilises 0 — est-ce un problème ?</div><div class="a">Non, c'est même <b>mieux</b>. Le sujet dit "max 1 global, justifiée". Si on peut s'en passer (en utilisant <code>static</code> locales), c'est plus propre. Pas de pollution du namespace global.</div></div>
+  <div class="qa"><div class="q">Linux ne fait pas la queue des signaux, comment tu gères ?</div><div class="a">Avec <code>usleep(700)</code> côté client entre chaque bit. Le server a le temps de traiter avant que le suivant arrive. Le bonus serait un ACK explicite, mais c'est hors scope mandatory.</div></div>
+  <div class="qa"><div class="q">Comment marcherait Unicode (bonus) ?</div><div class="a">UTF-8 encode chaque caractère sur 1 à 4 bytes. Comme on traite déjà en <code>unsigned char</code> byte par byte, Unicode <b>juste marche</b> — le client envoie les bytes UTF-8 dans l'ordre, le server les reconstruit dans l'ordre. Aucune modification nécessaire.</div></div>
+  <div class="qa"><div class="q">Tu n'as pas implémenté l'ACK serveur → client, c'est obligatoire ?</div><div class="a">Non, c'est <b>bonus</b>. Le sujet bonus dit "The server must acknowledge each received <b>message</b>". C'est un ACK par message complet, pas par bit. Pour mandatory, <code>usleep</code> suffit.</div></div>
+  <div class="qa"><div class="q">Pourquoi <code>SA_RESTART</code> ?</div><div class="a">Pour redémarrer automatiquement les syscalls interrompus par un signal. <code>pause()</code> est conçu pour retourner sur signal (pas restartable), donc <code>SA_RESTART</code> n'a pas d'effet ici. C'est défensif — sans effet négatif.</div></div>
+  <div class="qa"><div class="q">Comment tu valides ton code ? (tests, norm, leaks)</div><div class="a">• <b>norminette</b> : 3/3 fichiers OK<br>• <b>compile</b> : 0 warning avec <code>-Wall -Wextra -Werror</code><br>• <b>leaks</b> : pas de <code>malloc</code> = pas de leak possible<br>• <b>timing</b> : 100 chars en 676ms (limite 1000ms)<br>• <b>edge cases</b> : argc != 3, PID invalide, string vide, plusieurs messages</div></div>
+</section>
+
+<section id="checklist">
+  <h2>8. Checklist finale avant defense</h2>
+  <table class="t">
+    <tr><th>Item</th><th>État</th></tr>
+    <tr><td><code>server</code> + <code>client</code> compilent sans warning</td><td>✅</td></tr>
+    <tr><td>Server affiche son PID au lancement</td><td>✅</td></tr>
+    <tr><td>Client prend PID + string en args</td><td>✅</td></tr>
+    <tr><td>Communication via SIGUSR1/SIGUSR2 uniquement</td><td>✅</td></tr>
+    <tr><td>Makefile : <code>$(NAME)</code>, all, clean, fclean, re</td><td>✅</td></tr>
+    <tr><td><code>-Wall -Wextra -Werror</code></td><td>✅</td></tr>
+    <tr><td>Pas de relinking inutile</td><td>✅</td></tr>
+    <tr><td>Norminette OK</td><td>✅</td></tr>
+    <tr><td>Pas de leak (pas de malloc)</td><td>✅</td></tr>
+    <tr><td>Pas de segfault sur cas limites</td><td>✅</td></tr>
+    <tr><td>Plusieurs messages sans restart</td><td>✅</td></tr>
+    <tr><td>100 chars en moins de 1s</td><td>✅</td></tr>
+    <tr><td>Max 1 global par programme</td><td>✅ (0 global)</td></tr>
+    <tr><td>README.md complet</td><td>✅</td></tr>
+  </table>
+  <div class="note tip" style="font-size:18px; text-align:center;"><b>👉 Réponse type "présente ton projet"</b><br>"Minitalk c'est un client et un server qui se parlent uniquement via SIGUSR1 et SIGUSR2. Le client encode chaque caractère en 8 bits, envoie SIGUSR1 pour un 0 et SIGUSR2 pour un 1, avec un <code>usleep(700)</code> entre chaque pour éviter les pertes. Le server reconstruit bit par bit avec <code>(c &lt;&lt; 1) | bit</code>, écrit le caractère quand il a 8 bits, et reset. Fin de message = <code>'\0'</code>."</div>
+</section>
+</main>
+</body>
+</html>
