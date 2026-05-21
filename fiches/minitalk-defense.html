@@ -386,5 +386,6 @@ re: fclean all
   <div class="note tip" style="font-size:18px; text-align:center;"><b>👉 Réponse type "présente ton projet"</b><br>"Minitalk c'est un client et un server qui se parlent uniquement via SIGUSR1 et SIGUSR2. Le client encode chaque caractère en 8 bits, envoie SIGUSR1 pour un 0 et SIGUSR2 pour un 1, avec un <code>usleep(700)</code> entre chaque pour éviter les pertes. Le server reconstruit bit par bit avec <code>(c &lt;&lt; 1) | bit</code>, écrit le caractère quand il a 8 bits, et reset. Fin de message = <code>'\0'</code>."</div>
 </section>
 </main>
+<script src="../zine-night.js"></script>
 </body>
 </html>
