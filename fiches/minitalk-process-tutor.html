@@ -8,71 +8,80 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow-x: hidden; }
-.app { display: flex; flex-direction: column; min-height: 100vh; padding: 16px 24px 70px 24px; gap: 12px; }
-.topbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 10px 16px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; }
-.title-block { font-family: 'Kalam', cursive; font-size: 20px; color: #ffe96b; }
-.msg-input { background: #0f0e1a; border: 2px solid #5c5a75; border-radius: 8px; padding: 6px 12px; color: #ffe96b; font-family: 'JetBrains Mono', monospace; font-size: 14px; min-width: 200px; }
-.btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+.app { display: flex; flex-direction: column; min-height: 100vh; padding: 14px 20px 70px 20px; gap: 10px; }
+.topbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 8px 14px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; }
+.title-block { font-family: 'Kalam', cursive; font-size: 18px; color: #ffe96b; }
+.msg-input { background: #0f0e1a; border: 2px solid #5c5a75; border-radius: 8px; padding: 5px 10px; color: #ffe96b; font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 140px; }
+.btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 5px 11px; cursor: pointer; }
 .btn:hover { background: #ffe96b; color: #0f0e1a; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: #6fb07e; color: #0f0e1a; border-color: #6fb07e; }
 .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.counter { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c0b3e0; }
-.main-grid { display: grid; grid-template-columns: 1fr 280px 1fr; gap: 14px; min-height: 0; }
-.col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-.col-title { font-family: 'Kalam', cursive; font-size: 18px; padding: 6px 12px; border-radius: 6px; text-align: center; }
+.counter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #c0b3e0; }
+.speed-ctrl { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #c0b3e0; }
+.speed-ctrl input { width: 100px; }
+.main-grid { display: grid; grid-template-columns: 1fr 280px 1fr; gap: 12px; min-height: 0; }
+.col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.col-title { font-family: 'Kalam', cursive; font-size: 16px; padding: 5px 10px; border-radius: 6px; text-align: center; }
 .col-title.client { background: rgba(255,159,122,0.15); color: #ff9f7a; border: 2px solid #ff9f7a; }
 .col-title.server { background: rgba(111,176,126,0.15); color: #6fb07e; border: 2px solid #6fb07e; }
-.code-box { background: #1C1A28; border: 2px solid #2a2833; border-radius: 10px; padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; max-height: 320px; overflow-y: auto; }
+.code-box { background: #1C1A28; border: 2px solid #2a2833; border-radius: 10px; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; max-height: 280px; overflow-y: auto; }
 .code-line { padding: 1px 12px 1px 36px; position: relative; white-space: pre; transition: all 0.2s; color: #8f89a6; }
 .code-line .lineno { position: absolute; left: 4px; color: #5c5a75; font-size: 9px; width: 22px; text-align: right; }
 .code-line.hl { background: rgba(255,233,107,0.2); color: #ffe96b; font-weight: 700; box-shadow: inset 3px 0 0 #ffe96b; }
-.kw { color: #ff9f7a; } .fn { color: #79b8d8; } .cm { color: #5c5a75; font-style: italic; } .num { color: #c9a6ff; } .tp { color: #9dd6a8; } .str { color: #ffd88a; }
-.state-box { background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; padding: 10px 14px; }
-.state-title { font-family: 'Kalam', cursive; font-size: 13px; color: #79b8d8; letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; }
-.state-row { display: flex; gap: 8px; align-items: center; padding: 3px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-.state-row .k { color: #5c5a75; min-width: 90px; }
-.state-row .v { color: #ffe96b; font-weight: 700; padding: 1px 8px; background: rgba(255,233,107,0.1); border-radius: 4px; }
+.state-box { background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; padding: 8px 12px; }
+.state-title { font-family: 'Kalam', cursive; font-size: 12px; color: #79b8d8; letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase; }
+.state-row { display: flex; gap: 8px; align-items: center; padding: 2px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.state-row .k { color: #5c5a75; min-width: 86px; }
+.state-row .v { color: #ffe96b; font-weight: 700; padding: 1px 7px; background: rgba(255,233,107,0.1); border-radius: 4px; }
 .state-row .v.calc { background: rgba(255,159,122,0.15); color: #ff9f7a; }
-.center { display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; padding: 20px 10px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; min-height: 380px; }
-.center-label { font-family: 'Kalam', cursive; font-size: 13px; color: #5c5a75; letter-spacing: 2px; text-transform: uppercase; }
-.signal-bubble { padding: 14px 22px; border: 3px solid; border-radius: 14px; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; background: #1C1A28; transition: all 0.4s; opacity: 0.3; }
+.center { display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; padding: 16px 8px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; min-height: 340px; }
+.center-label { font-family: 'Kalam', cursive; font-size: 12px; color: #5c5a75; letter-spacing: 2px; text-transform: uppercase; }
+.signal-bubble { padding: 11px 18px; border: 3px solid; border-radius: 12px; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; background: #1C1A28; transition: all 0.4s; opacity: 0.3; text-align: center; }
 .signal-bubble.usr1 { border-color: #ff9f7a; color: #ff9f7a; }
 .signal-bubble.usr2 { border-color: #79b8d8; color: #79b8d8; }
 .signal-bubble.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 20px currentColor; }
-.bit-display { display: flex; gap: 4px; }
-.bit-cell { width: 32px; height: 32px; border: 2px solid #5c5a75; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #5c5a75; background: #1C1A28; transition: all 0.3s; }
+.bit-display { display: flex; gap: 3px; }
+.bit-cell { width: 28px; height: 28px; border: 2px solid #5c5a75; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #5c5a75; background: #1C1A28; transition: all 0.3s; }
 .bit-cell.zero { color: #ff9f7a; border-color: #ff9f7a; }
 .bit-cell.one { color: #79b8d8; border-color: #79b8d8; }
-.bit-cell.active { transform: scale(1.2); box-shadow: 0 0 12px currentColor; }
+.bit-cell.active { transform: scale(1.2); box-shadow: 0 0 10px currentColor; }
 .bit-cell.empty { color: #3a3849; border-color: #3a3849; }
-.bit-labels { display: flex; gap: 4px; }
-.bit-labels span { width: 32px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5c5a75; }
-.char-display { font-family: 'JetBrains Mono', monospace; font-size: 36px; color: #ffe96b; padding: 6px 16px; background: #1C1A28; border: 3px solid #ffe96b; border-radius: 12px; font-weight: 700; }
+.bit-labels { display: flex; gap: 3px; }
+.bit-labels span { width: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: #5c5a75; }
+.char-display { font-family: 'JetBrains Mono', monospace; font-size: 30px; color: #ffe96b; padding: 4px 14px; background: #1C1A28; border: 3px solid #ffe96b; border-radius: 10px; font-weight: 700; }
 .char-display.empty { color: #3a3849; border-color: #3a3849; }
-.arrow-anim { font-size: 24px; color: #c9a6ff; transition: all 0.4s; opacity: 0.4; }
+.arrow-anim { font-size: 18px; color: #c9a6ff; transition: all 0.4s; opacity: 0.4; font-family: 'JetBrains Mono', monospace; }
 .arrow-anim.active { opacity: 1; }
-.output-box { background: #0f0e1a; border: 2px solid #6fb07e; border-radius: 10px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #6fb07e; min-height: 50px; word-break: break-all; }
-.output-label { font-family: 'Kalam', cursive; font-size: 12px; color: #5c5a75; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.output-box { background: #0f0e1a; border: 2px solid #6fb07e; border-radius: 10px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #6fb07e; min-height: 44px; word-break: break-all; }
+.output-label { font-family: 'Kalam', cursive; font-size: 11px; color: #5c5a75; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; }
 .cursor-blink { animation: blink 0.8s infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-.desc { background: #1a1825; border: 2px solid #2a2833; border-left: 4px solid #ffe96b; border-radius: 8px; padding: 12px 16px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.4; color: #f0e9d8; }
-.desc .tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 6px; }
+.desc { background: #1a1825; border: 2px solid #2a2833; border-left: 4px solid #ffe96b; border-radius: 8px; padding: 12px 18px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; color: #f0e9d8; min-height: 80px; }
+.desc .tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 8px; }
 .desc .tag.client { background: rgba(255,159,122,0.2); color: #ff9f7a; }
 .desc .tag.server { background: rgba(111,176,126,0.2); color: #6fb07e; }
 .desc .tag.kernel { background: rgba(201,166,255,0.2); color: #c9a6ff; }
-.desc code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+.desc .tag.preview { background: rgba(255,233,107,0.2); color: #ffe96b; }
+.desc code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 7px; border-radius: 3px; font-size: 14px; }
 .desc b { color: #ffe96b; }
+.desc .why { display: block; margin-top: 8px; padding: 8px 12px; background: rgba(121,184,216,0.08); border-left: 3px solid #79b8d8; border-radius: 0 6px 6px 0; font-size: 14px; color: #c0b3e0; }
+.desc .why::before { content: 'Pourquoi ? '; color: #79b8d8; font-weight: 700; }
 .progress { position: fixed; bottom: 0; left: 0; height: 3px; background: #ffe96b; transition: width 0.2s; z-index: 100; }
 </style></head>
 <body>
 <div class="app">
 <div class="topbar">
   <div class="title-block">minitalk process tutor</div>
-  <div style="display:flex; gap:8px; align-items:center;">
-    <label style="font-size:12px; color:#5c5a75;">message :</label>
+  <div style="display:flex; gap:6px; align-items:center;">
+    <label style="font-size:11px; color:#5c5a75;">message :</label>
     <input class="msg-input" id="msg-input" value="Hi" maxlength="4">
     <button class="btn primary" onclick="loadMessage()">recharger</button>
+  </div>
+  <div class="speed-ctrl">
+    <span>vitesse :</span>
+    <input type="range" id="speed" min="500" max="4000" step="100" value="2000">
+    <span id="speed-val">2.0s</span>
   </div>
   <div class="btn-row">
     <button class="btn" id="btn-prev" onclick="prev()">prev</button>
@@ -104,8 +113,8 @@ body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive
     </div>
     <div class="center-label">signal envoye</div>
     <div style="display:flex; align-items:center; gap:6px;">
-      <div class="signal-bubble usr1" id="sig-usr1">SIGUSR1<br><small style="font-size:11px;">bit = 0</small></div>
-      <div class="signal-bubble usr2" id="sig-usr2">SIGUSR2<br><small style="font-size:11px;">bit = 1</small></div>
+      <div class="signal-bubble usr1" id="sig-usr1">SIGUSR1<br><small style="font-size:10px;">bit = 0</small></div>
+      <div class="signal-bubble usr2" id="sig-usr2">SIGUSR2<br><small style="font-size:10px;">bit = 1</small></div>
     </div>
     <div class="arrow-anim" id="arrow">kill(pid, sig)</div>
   </div>
@@ -124,7 +133,7 @@ body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive
     </div>
   </div>
 </div>
-<div class="desc" id="desc"><span class="tag client">init</span>Tape un message court et clique sur play ou next pour derouler le process bit par bit.</div>
+<div class="desc" id="desc"></div>
 </div>
 <div class="progress" id="progress"></div>
 <script>
@@ -189,24 +198,94 @@ function hlLine(id, n) {
 function toBin(n) { return n.toString(2).padStart(8, '0'); }
 </script>
 <script>
+const PREVIEW = [
+  { tag: 'preview', cl: null, sl: null,
+    title: 'Bienvenue dans le tutor minitalk',
+    text: 'On va te montrer <b>comment ton code fonctionne</b>, ligne par ligne. D abord le code (client puis server), puis on lance la transmission du message <b>Hi</b>. Clique <b>next</b> pour avancer, ou <b>play</b> pour auto-step.',
+    why: '' },
+  { tag: 'client', cl: 1, sl: null,
+    title: 'send_char — le coeur du client',
+    text: 'Cette fonction prend un PID (le numero du process server) et un char. Elle envoie ce caractere bit par bit.',
+    why: 'On a SEULEMENT 2 signaux disponibles : SIGUSR1 et SIGUSR2. Pour envoyer un char (0 a 255), on doit le decomposer en 8 bits (chaque bit = 0 ou 1).' },
+  { tag: 'client', cl: 6, sl: null,
+    title: 'uc = (unsigned char)c',
+    text: 'On copie c dans uc, mais en <b>unsigned</b>. unsigned char = nombre entre 0 et 255 (pas de signe).',
+    why: 'Si char est signe et que le bit 7 est a 1 (caracteres > 127), les shifts seraient indefinis en C. unsigned char garantit que les shifts marchent toujours correctement.' },
+  { tag: 'client', cl: 7, sl: null,
+    title: 'i = 7',
+    text: 'On part de la position 7 (le bit le plus a gauche, le MSB = Most Significant Bit).',
+    why: 'Convention MSB first : on envoie le bit de poids le plus fort en premier. Server et client doivent etre d accord sur l ordre.' },
+  { tag: 'client', cl: 10, sl: null,
+    title: '(uc >> i) & 1 — la formule magique',
+    text: 'Cette expression extrait le bit en position i. Elle vaut <b>0</b> ou <b>1</b>.',
+    why: 'uc >> i decale les bits de i positions a droite. Le bit cherche arrive en position 0. Puis &amp; 1 garde uniquement cette position 0, efface tout le reste.' },
+  { tag: 'client', cl: 11, sl: null,
+    title: 'kill(pid, SIGUSR2) — envoyer un signal',
+    text: 'Si le bit vaut 1, on envoie SIGUSR2 au server. Si 0, on envoie SIGUSR1 (ligne suivante).',
+    why: 'kill ne tue rien malgre son nom — c est juste la fonction pour envoyer un signal a un process. Le kernel se charge de delivrer le signal.' },
+  { tag: 'client', cl: 14, sl: null,
+    title: 'usleep(700) — pause de 700 microsecondes',
+    text: 'On fait une pause apres chaque envoi de signal.',
+    why: 'Linux ne fait PAS la queue des signaux. Si on envoie 2 SIGUSR1 trop vite, le 2eme est ignore. usleep(700) laisse au server le temps de traiter chaque signal avant le suivant.' },
+  { tag: 'client', cl: 15, sl: null,
+    title: 'i-- — bit suivant',
+    text: 'On decrement i, donc on passe a la position 6, puis 5, etc. Quand i devient -1, on sort de la boucle.',
+    why: 'On traite les 8 bits du MSB (i=7) au LSB (i=0). Apres 8 iterations, le char entier a ete envoye.' },
+  { tag: 'server', cl: null, sl: 1,
+    title: 'handle_signal — le handler du server',
+    text: 'Cette fonction est appelee <b>automatiquement par le kernel</b> a chaque signal recu. On l a enregistree avec sigaction dans le main.',
+    why: 'Au lieu d un appel direct, c est le KERNEL qui declenche la fonction quand un signal arrive. Le server fait while(1) pause() et attend.' },
+  { tag: 'server', cl: null, sl: 3,
+    title: 'static unsigned char c',
+    text: 'Variable <b>static</b> dans la fonction. Elle garde sa valeur entre les appels du handler.',
+    why: 'Sans static, c repartirait a 0 a chaque signal et on perdrait la reconstruction. Avec static, on accumule les bits sur plusieurs appels.' },
+  { tag: 'server', cl: null, sl: 4,
+    title: 'static int bit_count',
+    text: 'Compte combien de bits on a recus pour le caractere en cours. Va de 0 a 8.',
+    why: 'Quand bit_count atteint 8, le caractere est complet et on l affiche. Puis on reset a 0 pour le caractere suivant.' },
+  { tag: 'server', cl: null, sl: 6,
+    title: 'c = c << 1 — faire de la place',
+    text: 'Decale les bits de c d une position vers la gauche. La position 0 (a droite) devient libre.',
+    why: 'Comme on recoit le MSB en premier, chaque nouveau bit doit etre place en position 0. Pour ca, on decale d abord ce qu on a deja vers la gauche, puis on met le nouveau bit a droite.' },
+  { tag: 'server', cl: null, sl: 7,
+    title: 'if (sig == SIGUSR2) c = c | 1',
+    text: 'Si le signal recu est SIGUSR2, le bit etait a 1. On met un 1 en position 0 de c.',
+    why: 'c | 1 fait un OR avec 00000001 — la position 0 devient 1, les autres restent inchangees. Si le signal etait SIGUSR1 (bit = 0), on ne fait rien.' },
+  { tag: 'server', cl: null, sl: 9,
+    title: 'bit_count++ et check 8',
+    text: 'On incremente le compteur. Si on a recu 8 bits, le caractere est complet.',
+    why: 'Apres 8 bits, c contient le caractere reconstruit. On peut alors l afficher avec write et tout reset.' },
+  { tag: 'server', cl: null, sl: 14,
+    title: 'write(1, &c, 1) — afficher',
+    text: 'Ecrit le caractere c sur stdout (fd 1). 1 byte ecrit.',
+    why: 'On utilise write au lieu de printf parce que printf n est pas autorise par le sujet, et write est async-signal-safe (on peut l utiliser dans un handler sans risque).' },
+  { tag: 'preview', cl: null, sl: null,
+    title: 'On lance la transmission de Hi',
+    text: 'Maintenant qu on connait le code, on va derouler une vraie transmission. <b>Hi</b> + le \0 final = 24 bits = beaucoup d etapes !',
+    why: 'Tu vas voir le code s executer pas a pas, les bits transmis, c se construire cote server, et le caractere apparaitre dans l output.' },
+];
+</script>
+<script>
 function buildSteps(msg) {
-  const steps = [];
-  const chars = msg.split('').concat(['\0']);
-  let server_c = 0, server_bc = 0, output = '';
-  steps.push({
-    desc: 'init|On va envoyer le message |' + JSON.stringify(msg) + '| caractere par caractere, 8 bits chacun.',
-    cl: 7, sl: 0, ci: '-', cc: '-', i: '-', bit: '-',
+  const steps = PREVIEW.map(p => ({
+    desc: p.text, why: p.why, tag: p.tag, cl: p.cl, sl: p.sl, title: p.title,
+    ci: '-', cc: '-', i: '-', bit: '-',
     server_c: 0, server_bc: 0, output: '',
     char_dec: null, bit_dec: null, sig: null, bin: null, active_bit: null,
-  });
+  }));
+  const chars = msg.split('').concat(['\0']);
+  let server_c = 0, server_bc = 0, output = '';
   chars.forEach((ch, ci) => {
     const charCode = ch.charCodeAt(0);
     const charBin = toBin(charCode);
     const isNull = ch === '\0';
     const charLabel = isNull ? '\0' : ch;
     steps.push({
-      desc: 'char|Caractere ' + charLabel + ' = ' + charCode + ' = ' + charBin + ' binaire.',
-      cl: 6, sl: 0, ci, cc: charLabel, i: 7, bit: '-',
+      tag: 'client', cl: 6, sl: null,
+      title: 'Nouveau caractere : ' + charLabel,
+      desc: charLabel + ' = ' + charCode + ' en ASCII = <code>' + charBin + '</code> en binaire. On va envoyer ces 8 bits.',
+      why: isNull ? 'Apres le dernier caractere du message, le client envoie \0 (8 bits a 0). Cote server, quand c == 0 il affichera un saut de ligne — c est le marqueur de fin.' : '',
+      ci, cc: charLabel, i: 7, bit: '-',
       server_c, server_bc, output,
       char_dec: charCode, bit_dec: null, sig: null, bin: charBin, active_bit: null,
     });
@@ -214,43 +293,78 @@ function buildSteps(msg) {
       const bit = (charCode >> i) & 1;
       const sig = bit === 0 ? 'SIGUSR1' : 'SIGUSR2';
       steps.push({
-        desc: 'extract|(uc >> ' + i + ') & 1 = ' + bit + '. Le bit en position ' + i + ' vaut ' + bit + '.',
-        cl: 10, sl: 0, ci, cc: charLabel, i, bit,
+        tag: 'client', cl: 10, sl: null,
+        title: 'Extraction du bit ' + i,
+        desc: '<code>(uc >> ' + i + ') &amp; 1 = ' + bit + '</code>. Le bit en position ' + i + ' vaut ' + bit + '.',
+        why: 'On decale ' + i + ' fois a droite (uc >> ' + i + ') pour amener le bit ' + i + ' en position 0, puis on garde uniquement la position 0 avec &amp; 1.',
+        ci, cc: charLabel, i, bit,
         server_c, server_bc, output,
         char_dec: charCode, bit_dec: bit, sig: null, bin: charBin, active_bit: 7 - i,
       });
       steps.push({
-        desc: 'kill|kill(pid, ' + sig + ') envoye au server. Puis usleep(700) pour laisser le server traiter.',
-        cl: bit === 0 ? 13 : 11, sl: 0, ci, cc: charLabel, i, bit,
+        tag: 'client', cl: bit === 0 ? 13 : 11, sl: null,
+        title: 'kill(pid, ' + sig + ')',
+        desc: 'Bit = ' + bit + ', donc on envoie <b>' + sig + '</b> au server. Puis on attend 700 microsecondes (usleep).',
+        why: 'Le kernel marque ' + sig + ' comme pending pour le server. Quand le server est ordonnance, son handler sera appele avec ce signal.',
+        ci, cc: charLabel, i, bit,
         server_c, server_bc, output,
         char_dec: charCode, bit_dec: bit, sig, bin: charBin, active_bit: 7 - i,
       });
       server_c = (server_c << 1) & 0xFF;
       steps.push({
-        desc: 'shift|Server recoit ' + sig + '. c = c << 1 fait de la place. c = ' + server_c + ' = ' + toBin(server_c),
-        cl: 0, sl: 6, ci, cc: charLabel, i, bit,
+        tag: 'server', cl: null, sl: 6,
+        title: 'Server : c = c << 1',
+        desc: 'Le handler est appele. On decale c d une position a gauche pour faire de la place. c = ' + server_c + ' = <code>' + toBin(server_c) + '</code>',
+        why: 'Cette etape se passe AVANT meme de regarder si le signal etait SIGUSR1 ou SIGUSR2. On decale d abord, on remplit le nouveau bit ensuite.',
+        ci, cc: charLabel, i, bit,
         server_c, server_bc, output,
         char_dec: charCode, bit_dec: bit, sig, bin: charBin, active_bit: 7 - i,
       });
       if (bit === 1) {
         server_c = server_c | 1;
         steps.push({
-          desc: 'or|sig == SIGUSR2 donc c = c | 1. c = ' + server_c + ' = ' + toBin(server_c),
-          cl: 0, sl: 8, ci, cc: charLabel, i, bit,
+          tag: 'server', cl: null, sl: 8,
+          title: 'Server : c = c | 1 (SIGUSR2)',
+          desc: 'sig == SIGUSR2, donc on OR avec 1. c = ' + server_c + ' = <code>' + toBin(server_c) + '</code>',
+          why: 'c | 1 met le bit 0 a 1 sans toucher aux autres. Maintenant c a son bit de droite correct.',
+          ci, cc: charLabel, i, bit,
+          server_c, server_bc, output,
+          char_dec: charCode, bit_dec: bit, sig, bin: charBin, active_bit: 7 - i,
+        });
+      } else {
+        steps.push({
+          tag: 'server', cl: null, sl: 7,
+          title: 'Server : pas de OR (SIGUSR1)',
+          desc: 'sig == SIGUSR1 donc on ne fait rien. La position 0 reste a 0 (grace au shift precedent).',
+          why: 'On gere les 0 par absence d action — le shift a deja mis un 0 a droite, donc rien a faire.',
+          ci, cc: charLabel, i, bit,
           server_c, server_bc, output,
           char_dec: charCode, bit_dec: bit, sig, bin: charBin, active_bit: 7 - i,
         });
       }
       server_bc++;
       const isComplete = server_bc === 8;
-      let extra = '';
+      let title, desc, why;
       if (isComplete) {
-        if (server_c === 0) { output += String.fromCharCode(10); extra = ' 8 bits ! c == 0 donc on ecrit NEWLINE.'; }
-        else { output += String.fromCharCode(server_c); extra = ' 8 bits ! On ecrit le char ' + String.fromCharCode(server_c) + ' (= ' + server_c + ').'; }
+        if (server_c === 0) {
+          output += String.fromCharCode(10);
+          title = '8 bits ! c == 0 -> NEWLINE';
+          desc = 'bit_count = 8 et c = 0 (= \0). On affiche un saut de ligne au lieu d un \0 invisible.';
+          why = 'C est le marqueur de fin de message. Le client a envoye \0 pour signaler la fin, et le server traduit ca en \n pour avoir une output lisible.';
+        } else {
+          output += String.fromCharCode(server_c);
+          title = '8 bits ! On affiche ' + String.fromCharCode(server_c);
+          desc = 'bit_count = 8 et c = ' + server_c + '. On affiche le caractere <code>' + String.fromCharCode(server_c) + '</code> avec write(1, &amp;c, 1).';
+          why = 'C est le moment ou le caractere apparait dans le terminal du server. Puis on reset c et bit_count a 0 pour le caractere suivant.';
+        }
+      } else {
+        title = 'bit_count = ' + server_bc + '/8';
+        desc = 'On incremente bit_count. Pas encore 8, on attend les bits suivants.';
+        why = 'Le handler retourne, le server fait pause(), attend le prochain signal du client.';
       }
       steps.push({
-        desc: 'count|bit_count++ = ' + server_bc + '/8.' + extra,
-        cl: 0, sl: isComplete ? (server_c === 0 ? 13 : 15) : 9,
+        tag: 'server', cl: null, sl: isComplete ? (server_c === 0 ? 13 : 15) : 9,
+        title, desc, why,
         ci, cc: charLabel, i, bit,
         server_c: isComplete ? 0 : server_c,
         server_bc: isComplete ? 0 : server_bc,
@@ -261,8 +375,11 @@ function buildSteps(msg) {
     }
   });
   steps.push({
-    desc: 'done|Transmission terminee. Message |' + JSON.stringify(msg) + '| recu + \0 qui marque la fin.',
-    cl: null, sl: null, ci: '-', cc: '-', i: '-', bit: '-',
+    tag: 'kernel', cl: null, sl: null,
+    title: 'Transmission terminee',
+    desc: 'Le server a recu tout le message + le \0 final. Le client a termine, le server attend toujours en pause().',
+    why: 'Apres cette transmission, le client exit avec return (0). Le server reste pret pour un autre client.',
+    ci: '-', cc: '-', i: '-', bit: '-',
     server_c: 0, server_bc: 0, output,
     char_dec: null, bit_dec: null, sig: null, bin: null, active_bit: null,
   });
@@ -270,16 +387,10 @@ function buildSteps(msg) {
 }
 </script>
 <script>
-let steps = [];
-let stepIdx = 0;
-let playing = false;
-let playTimer = null;
-
+let steps = [], stepIdx = 0, playing = false, playTimer = null, playDelay = 2000;
 function render() {
-  const s = steps[stepIdx];
-  if (!s) return;
-  hlLine('client-code', s.cl);
-  hlLine('server-code', s.sl);
+  const s = steps[stepIdx]; if (!s) return;
+  hlLine('client-code', s.cl); hlLine('server-code', s.sl);
   document.getElementById('cs-ci').textContent = s.ci;
   document.getElementById('cs-cc').textContent = s.cc;
   document.getElementById('cs-i').textContent = s.i;
@@ -287,44 +398,30 @@ function render() {
   document.getElementById('ss-cd').textContent = s.server_c;
   document.getElementById('ss-cb').textContent = toBin(s.server_c);
   document.getElementById('ss-bc').textContent = s.server_bc;
-  const charDisp = document.getElementById('current-char');
-  if (s.cc === '-' || s.cc === null) {
-    charDisp.textContent = '?';
-    charDisp.classList.add('empty');
-  } else {
-    charDisp.textContent = s.cc === '\0' ? 'NUL' : s.cc;
-    charDisp.classList.remove('empty');
-  }
-  const bd = document.getElementById('bit-display');
-  bd.innerHTML = '';
+  const cd = document.getElementById('current-char');
+  if (s.cc === '-' || s.cc === null) { cd.textContent = '?'; cd.classList.add('empty'); }
+  else { cd.textContent = s.cc === '\0' ? 'NUL' : s.cc; cd.classList.remove('empty'); }
+  const bd = document.getElementById('bit-display'); bd.innerHTML = '';
   const bin = s.bin || '????????';
   for (let k = 0; k < 8; k++) {
-    const c = bin[k];
-    const cell = document.createElement('div');
+    const c = bin[k]; const cell = document.createElement('div');
     let cls = 'bit-cell';
-    if (c === '?') cls += ' empty';
-    else if (c === '0') cls += ' zero';
-    else cls += ' one';
+    if (c === '?') cls += ' empty'; else if (c === '0') cls += ' zero'; else cls += ' one';
     if (s.active_bit === k) cls += ' active';
-    cell.className = cls;
-    cell.textContent = c;
-    bd.appendChild(cell);
+    cell.className = cls; cell.textContent = c; bd.appendChild(cell);
   }
   document.getElementById('sig-usr1').classList.toggle('active', s.sig === 'SIGUSR1');
   document.getElementById('sig-usr2').classList.toggle('active', s.sig === 'SIGUSR2');
   document.getElementById('arrow').classList.toggle('active', s.sig !== null);
   const output = document.getElementById('output');
-  let outHTML = s.output.replace(/\n/g, '<br>');
-  if (outHTML === '') outHTML = '<span class="cursor-blink">_</span>';
-  else outHTML += '<span class="cursor-blink">_</span>';
+  let outHTML = (s.output || '').replace(/\n/g, '<br>');
+  outHTML = outHTML + '<span class="cursor-blink">_</span>';
   output.innerHTML = outHTML;
-  const parts = s.desc.split('|');
-  const tag = parts[0];
-  const text = parts.slice(1).join('|');
-  let tagClass = 'client';
-  if (tag === 'shift' || tag === 'or' || tag === 'count') tagClass = 'server';
-  if (tag === 'init' || tag === 'done') tagClass = 'kernel';
-  document.getElementById('desc').innerHTML = '<span class="tag ' + tagClass + '">' + tag + '</span>' + text;
+  let html = '<span class="tag ' + s.tag + '">' + s.tag + '</span>';
+  if (s.title) html += '<b>' + s.title + '</b><br>';
+  html += s.desc;
+  if (s.why) html += '<div class="why">' + s.why + '</div>';
+  document.getElementById('desc').innerHTML = html;
   document.getElementById('step-cur').textContent = stepIdx;
   document.getElementById('btn-prev').disabled = stepIdx === 0;
   document.getElementById('btn-next').disabled = stepIdx === steps.length - 1;
@@ -334,22 +431,18 @@ function render() {
 function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } else { stopPlay(); } }
 function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
 function restart() { stepIdx = 0; stopPlay(); render(); }
-function togglePlay() {
-  if (playing) stopPlay();
-  else startPlay();
-}
+function togglePlay() { if (playing) stopPlay(); else startPlay(); }
 function startPlay() {
   playing = true;
   document.getElementById('btn-play').textContent = 'pause';
   playTimer = setInterval(() => {
-    if (stepIdx >= steps.length - 1) stopPlay();
-    else next();
-  }, 600);
+    if (stepIdx >= steps.length - 1) stopPlay(); else next();
+  }, playDelay);
 }
 function stopPlay() {
   playing = false;
   document.getElementById('btn-play').textContent = 'play';
-  if (playTimer) clearInterval(playTimer);
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
 }
 function loadMessage() {
   const msg = document.getElementById('msg-input').value || 'Hi';
@@ -358,7 +451,13 @@ function loadMessage() {
   document.getElementById('step-total').textContent = steps.length - 1;
   render();
 }
+document.getElementById('speed').addEventListener('input', e => {
+  playDelay = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = (playDelay / 1000).toFixed(1) + 's';
+  if (playing) { stopPlay(); startPlay(); }
+});
 document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
   if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
   if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
