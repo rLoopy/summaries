@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — Le sujet et le projet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 minitalk — gitbook</a></div>
+  <div class="breadcrumb">Ch. 01 · Le sujet et le projet</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li class="active"><a href="01-projet.html">Le sujet et le projet</a></li><li><a href="02-process-signaux.html">Process et signaux UNIX</a></li><li><a href="03-binaire.html">Le binaire et les bits</a></li><li><a href="04-bitwise.html">Les opérations bitwise</a></li><li><a href="05-fonctions-c.html">Les fonctions C utilisées</a></li><li><a href="06-client.html">client.c décortiqué</a></li><li><a href="07-server.html">server.c décortiqué</a></li><li><a href="08-makefile.html">Le Makefile</a></li><li><a href="09-pieges.html">Pièges et edge cases</a></li><li><a href="10-faq.html">FAQ defense</a></li><li><a href="11-checklist.html">Checklist finale</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 01</div>
+  <h1>Le sujet et le projet</h1>
+  <div class="ch-sub">ce qu on doit livrer, les contraintes, l architecture choisie</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>1.1 — Le but du projet</h2>
+<p>Minitalk c'est un projet 42 qui te demande de coder <b>deux programmes qui se parlent</b>. Le défi : ils doivent communiquer <b>uniquement via des signaux UNIX</b>, sans utiliser de fichiers, pipes, sockets, ou autre mécanisme classique d'IPC (inter-process communication).</p>
+
+<div class="callout key">
+<div class="lbl">★ En une phrase</div>
+Un <b>client</b> envoie une string à un <b>server</b> en encodant chaque caractère bit par bit via SIGUSR1 (= 0) et SIGUSR2 (= 1).
+</div>
+
+<p>Tu auras donc 2 binaires à compiler :</p>
+<ul>
+  <li><code>./server</code> — se lance en premier, affiche son PID et attend des messages</li>
+  <li><code>./client &lt;PID&gt; &lt;message&gt;</code> — envoie un message au server identifié par PID</li>
+</ul>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.2 — Les contraintes du PDF</h2>
+<p>Le sujet impose plusieurs règles strictes :</p>
+
+<div class="callout warn">
+<div class="lbl">★ Règles du sujet</div>
+<ul>
+<li>Communication via signaux UNIX <b>uniquement</b></li>
+<li>2 signaux autorisés : <b>SIGUSR1</b> et <b>SIGUSR2</b></li>
+<li>Server doit afficher son PID au lancement</li>
+<li>Server doit gérer <b>plusieurs clients</b> en série (pas besoin de restart)</li>
+<li>Affichage <b>sans délai</b> — 100 caractères en moins d'1 seconde</li>
+<li>Pas de segfault, pas de leak, pas de comportement bizarre</li>
+<li>Max <b>1 variable globale par programme</b> (et justifiée)</li>
+<li>Compilation avec <code>-Wall -Wextra -Werror</code></li>
+<li>Norminette OK (sinon = 0)</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.3 — Les fonctions autorisées</h2>
+<p>Le PDF liste précisément quelles fonctions tu peux utiliser. Pas plus, pas moins :</p>
+
+<div class="code-block">
+<pre>write       <span class="cm">// pour afficher (pas printf !)</span>
+ft_printf   <span class="cm">// ou ton équivalent</span>
+signal      <span class="cm">// API legacy, à éviter</span>
+sigemptyset <span class="cm">// pour vider un set de signaux</span>
+sigaddset   <span class="cm">// pour ajouter un signal au set</span>
+sigaction   <span class="cm">// API moderne, à privilégier</span>
+kill        <span class="cm">// pour ENVOYER un signal (mal nommé)</span>
+getpid      <span class="cm">// pour récupérer son propre PID</span>
+malloc      <span class="cm">// alloc dynamique</span>
+free        <span class="cm">// libération</span>
+pause       <span class="cm">// bloquer jusqu'à un signal</span>
+sleep       <span class="cm">// attendre N secondes</span>
+usleep      <span class="cm">// attendre N microsecondes</span>
+exit        <span class="cm">// quitter le programme</span></pre>
+</div>
+
+<div class="callout note">
+<div class="lbl">★ À retenir</div>
+<b>Pas de printf</b> dans le code de prod (sauf si tu as ton ft_printf de libft).
+On utilise <code>write</code> pour tout afficher. Et on utilise <code>sigaction</code> plutôt que <code>signal</code> (plus fiable).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.4 — Notre architecture</h2>
+<p>On a choisi une structure minimale :</p>
+
+<div class="code-block">
+<pre>minitalk/
+├── includes/
+│   └── minitalk.h        <span class="cm">// 4 includes système</span>
+├── src/
+│   ├── server.c          <span class="cm">// 3 fonctions, ~70 lignes</span>
+│   └── client.c          <span class="cm">// 3 fonctions, ~60 lignes</span>
+├── Makefile
+└── README.md</pre>
+</div>
+
+<p><b>Pourquoi 2 fichiers .c seulement ?</b> Le projet est petit (~130 lignes). Pas besoin de splitter en 10 fichiers comme push_swap. Un fichier par binaire, c'est clair et la norminette passe (5 fonctions max par fichier — on en a 3 chacun).</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.5 — Mandatory vs Bonus</h2>
+<p>Le sujet sépare le travail en 2 parties :</p>
+
+<table class="compare">
+<tr><th>Mandatory</th><th>Bonus</th></tr>
+<tr>
+<td>Communication client → server bit par bit. Affichage du message côté server.</td>
+<td>Server accuse réception de chaque message (renvoie un signal au client). Support Unicode (UTF-8 multi-bytes).</td>
+</tr>
+</table>
+
+<div class="callout warn">
+<div class="lbl">★ Notre choix</div>
+On a fait <b>uniquement le mandatory</b>. Pas d'ACK serveur, pas d'Unicode. On utilise <code>usleep(700)</code> côté client pour éviter la perte de signaux. C'est l'approche classique et c'est largement suffisant pour la note de base.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir de ce chapitre</div>
+<ul>
+<li>2 binaires : <code>./server</code> et <code>./client</code></li>
+<li>Communication via SIGUSR1 (= bit 0) et SIGUSR2 (= bit 1)</li>
+<li>Encodage bit par bit (8 bits par char)</li>
+<li>Fonctions autorisées : 14 (mémorise-les)</li>
+<li>Norminette obligatoire, -Wall -Wextra -Werror</li>
+<li>Max 1 global par programme (on en a 0)</li>
+<li>Architecture : 2 fichiers .c + 1 header + Makefile</li>
+</ul>
+</div>
+</section>
+
+<nav class="chapter-nav"><a href="index.html" class="nav-prev">← Sommaire</a><a href="02-process-signaux.html" class="nav-next">Process et signaux UNIX →</a></nav>
+</main>
+</div>
+</body>
+</html>

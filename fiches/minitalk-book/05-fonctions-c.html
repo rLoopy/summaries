@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — Les fonctions C utilisées</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 minitalk — gitbook</a></div>
+  <div class="breadcrumb">Ch. 05 · Les fonctions C utilisées</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet et le projet</a></li><li><a href="02-process-signaux.html">Process et signaux UNIX</a></li><li><a href="03-binaire.html">Le binaire et les bits</a></li><li><a href="04-bitwise.html">Les opérations bitwise</a></li><li class="active"><a href="05-fonctions-c.html">Les fonctions C utilisées</a></li><li><a href="06-client.html">client.c décortiqué</a></li><li><a href="07-server.html">server.c décortiqué</a></li><li><a href="08-makefile.html">Le Makefile</a></li><li><a href="09-pieges.html">Pièges et edge cases</a></li><li><a href="10-faq.html">FAQ defense</a></li><li><a href="11-checklist.html">Checklist finale</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 05</div>
+  <h1>Les fonctions C utilisées</h1>
+  <div class="ch-sub">kill, sigaction, pause, write, et les autres</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>5.1 — kill(pid, sig)</h2>
+<p>Malgré son nom, <code>kill</code> ne tue rien. C est juste la fonction pour <b>envoyer un signal</b> à un process.</p>
+
+<div class="code-block">
+<pre>#include &lt;signal.h&gt;
+
+int kill(pid_t pid, int sig);
+
+<span class="cm">// Retourne 0 si succès, -1 si erreur</span></pre>
+</div>
+
+<p>Côté client minitalk :</p>
+<div class="code-block">
+<pre>kill(server_pid, SIGUSR1);  <span class="cm">// envoie le bit 0</span>
+kill(server_pid, SIGUSR2);  <span class="cm">// envoie le bit 1</span></pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Attention au PID</div>
+Si <code>pid = 0</code>, le signal est envoyé à <b>tous les process du même group</b>. Si <code>pid = -1</code>, à tous les process accessibles. C est pour ça qu on valide le PID avant.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.2 — L astuce kill(pid, 0)</h2>
+<p>Le signal <code>0</code> est <b>spécial</b> : il ne déclenche aucun handler, il ne tue rien. Mais il fait toutes les <b>vérifications de permission</b>.</p>
+
+<div class="code-block">
+<pre>kill(pid, 0);
+
+<span class="cm">// Retour :</span>
+<span class="cm">//   0  → process existe et on peut lui parler</span>
+<span class="cm">//  -1  → ESRCH : process n existe pas</span>
+<span class="cm">//        EPERM : on n a pas le droit</span></pre>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ L idiome standard</div>
+<code>kill(pid, 0)</code> est l idiome <b>standard</b> pour valider qu un PID est joignable avant d envoyer un vrai signal. C est ce qu on fait dans <code>check_pid</code>.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.3 — struct sigaction</h2>
+<p>C est la structure POSIX qui décrit comment gérer un signal. On la remplit, puis on l enregistre via <code>sigaction()</code>.</p>
+
+<div class="code-block">
+<pre>struct sigaction sa;
+
+sa.sa_handler   <span class="cm">// pointeur vers la fonction handler (void f(int))</span>
+sa.sa_sigaction <span class="cm">// version avancée avec siginfo_t (PID du sender, etc.)</span>
+sa.sa_mask      <span class="cm">// signaux à BLOQUER pendant l exécution du handler</span>
+sa.sa_flags     <span class="cm">// options : SA_RESTART, SA_SIGINFO, etc.</span></pre>
+</div>
+
+<p>Dans notre server :</p>
+
+<div class="code-block">
+<pre>struct sigaction sa;
+
+sigemptyset(&amp;sa.sa_mask);          <span class="cm">// vide le masque</span>
+sigaddset(&amp;sa.sa_mask, SIGUSR1);    <span class="cm">// ajoute SIGUSR1 au masque</span>
+sigaddset(&amp;sa.sa_mask, SIGUSR2);    <span class="cm">// ajoute SIGUSR2 au masque</span>
+sa.sa_flags = SA_RESTART;
+sa.sa_handler = handle_signal;
+
+sigaction(SIGUSR1, &amp;sa, NULL);      <span class="cm">// enregistre pour SIGUSR1</span>
+sigaction(SIGUSR2, &amp;sa, NULL);      <span class="cm">// et pour SIGUSR2</span></pre>
+</div>
+
+<div class="callout note">
+<div class="lbl">★ sa_mask</div>
+Quand le handler tourne, par défaut SEUL le signal qui l a déclenché est bloqué. Avec <code>sigaddset</code>, on bloque AUSSI l autre signal. Pour minitalk c est crucial : un SIGUSR2 ne doit pas interrompre un handler SIGUSR1 (race condition sur les variables static c et bit_count).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.4 — pause()</h2>
+<p>Bloque le process jusqu à <b>réception d un signal</b>. Quand un signal arrive, le handler s exécute, puis pause() retourne.</p>
+
+<div class="code-block">
+<pre>#include &lt;unistd.h&gt;
+
+int pause(void);
+
+<span class="cm">// Toujours retourne -1 (errno = EINTR) après réception</span></pre>
+</div>
+
+<p>Dans notre server :</p>
+<div class="code-block">
+<pre>while (1)
+    pause();</pre>
+</div>
+
+<p>Le server boucle indéfiniment dans pause(). Chaque signal le réveille, le handler tourne, puis pause() est ré-appelé.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.5 — usleep()</h2>
+<p>Suspend le process pour N microsecondes (1 µs = 1 millionième de seconde).</p>
+
+<div class="code-block">
+<pre>#include &lt;unistd.h&gt;
+
+int usleep(useconds_t usec);</pre>
+</div>
+
+<p>Dans notre client : <code>usleep(700)</code> = 0.7 milliseconde de pause après chaque signal envoyé.</p>
+
+<div class="callout warn">
+<div class="lbl">★ Pourquoi 700 ?</div>
+Trade-off vitesse / fiabilité. Trop court (ex: 100) → signaux perdus (Linux ne queue pas). Trop long → trop lent (limite sujet : 100 chars en moins d 1 seconde, soit 1.25 ms par bit max). 700 µs c est calibré expérimentalement pour ~676ms pour 100 chars avec ~90% fiabilité.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.6 — write()</h2>
+<p>Écrit N bytes sur un file descriptor. C est l outil de sortie le plus bas niveau de Linux.</p>
+
+<div class="code-block">
+<pre>#include &lt;unistd.h&gt;
+
+ssize_t write(int fd, const void *buf, size_t count);
+
+<span class="cm">// fd : 0 = stdin, 1 = stdout, 2 = stderr</span></pre>
+</div>
+
+<p>Dans notre code :</p>
+<div class="code-block">
+<pre>write(1, &amp;c, 1);                 <span class="cm">// affiche 1 char sur stdout</span>
+write(1, "Server PID: ", 12);    <span class="cm">// affiche le label</span>
+write(2, "Error...", 8);         <span class="cm">// erreur sur stderr</span></pre>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ write vs printf</div>
+write est <b>async-signal-safe</b> — on peut l utiliser dans un handler sans risque. printf NON (utilise malloc internement, donc dangereux dans un handler).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.7 — Les autres fonctions</h2>
+
+<table class="compare">
+<tr><th>Fonction</th><th>Rôle dans minitalk</th></tr>
+<tr><td><code>getpid()</code></td><td>Le server l appelle pour récupérer son PID et l afficher</td></tr>
+<tr><td><code>atoi(str)</code></td><td>Le client convertit argv[1] (le PID en string) en int</td></tr>
+<tr><td><code>sigemptyset(&amp;set)</code></td><td>Vide un sigset_t (utilisé pour sa_mask)</td></tr>
+<tr><td><code>sigaddset(&amp;set, sig)</code></td><td>Ajoute un signal à un sigset_t</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.8 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li><code>kill(pid, sig)</code> envoie un signal — pas tueur malgré le nom</li>
+<li><code>kill(pid, 0)</code> = ping non-destructif, idéal pour valider un PID</li>
+<li><code>sigaction</code> > <code>signal</code> (moderne, déterministe)</li>
+<li><code>sa_mask</code> + <code>sigaddset</code> = bloquer des signaux pendant le handler</li>
+<li><code>pause()</code> bloque jusqu à un signal — la boucle d attente du server</li>
+<li><code>usleep(700)</code> = délai côté client pour éviter pertes</li>
+<li><code>write</code> = sortie bas niveau, async-signal-safe (utilisable dans handler)</li>
+</ul>
+</div>
+</section>
+
+<nav class="chapter-nav"><a href="04-bitwise.html" class="nav-prev">← Les opérations bitwise</a><a href="06-client.html" class="nav-next">client.c décortiqué →</a></nav>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — Les opérations bitwise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 minitalk — gitbook</a></div>
+  <div class="breadcrumb">Ch. 04 · Les opérations bitwise</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet et le projet</a></li><li><a href="02-process-signaux.html">Process et signaux UNIX</a></li><li><a href="03-binaire.html">Le binaire et les bits</a></li><li class="active"><a href="04-bitwise.html">Les opérations bitwise</a></li><li><a href="05-fonctions-c.html">Les fonctions C utilisées</a></li><li><a href="06-client.html">client.c décortiqué</a></li><li><a href="07-server.html">server.c décortiqué</a></li><li><a href="08-makefile.html">Le Makefile</a></li><li><a href="09-pieges.html">Pièges et edge cases</a></li><li><a href="10-faq.html">FAQ defense</a></li><li><a href="11-checklist.html">Checklist finale</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 04</div>
+  <h1>Les opérations bitwise</h1>
+  <div class="ch-sub">shift, mask, et les 2 formules magiques</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>4.1 — Le shift droit &gt;&gt;</h2>
+<p>L opérateur <code>&gt;&gt;</code> décale les bits d un nombre <b>vers la droite</b>. Le bit qui sort à droite est perdu, et un 0 apparaît à gauche.</p>
+
+<div class="code-block">
+<pre>c     = 01010011 = 83
+c &gt;&gt; 1 = 00101001 = 41   <span class="cm">// 1 a sorti à droite, 0 entré à gauche</span>
+c &gt;&gt; 2 = 00010100 = 20
+c &gt;&gt; 7 = 00000000 = 0    <span class="cm">// le bit 7 original est maintenant en position 0</span></pre>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ L astuce</div>
+<code>c &gt;&gt; i</code> amène le bit en position <b>i</b> à la position <b>0</b> (tout à droite).
+</div>
+
+<p>Mathématiquement : <code>c &gt;&gt; 1</code> = <code>c / 2</code> (division entière). C est une opération très rapide pour le CPU.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.2 — Le shift gauche &lt;&lt;</h2>
+<p>L opérateur <code>&lt;&lt;</code> fait l inverse : décale vers la gauche. Le bit qui sort à gauche est perdu, et un 0 apparaît à droite.</p>
+
+<div class="code-block">
+<pre>c     = 00001010 = 10
+c &lt;&lt; 1 = 00010100 = 20   <span class="cm">// 0 entré à droite</span>
+c &lt;&lt; 2 = 00101000 = 40
+c &lt;&lt; 3 = 01010000 = 80</pre>
+</div>
+
+<p>Mathématiquement : <code>c &lt;&lt; 1</code> = <code>c × 2</code>.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.3 — L AND bitwise &amp;</h2>
+<p>L opérateur <code>&amp;</code> compare 2 nombres <b>bit à bit</b>. Pour chaque position, le résultat est 1 <b>seulement si les deux bits sont 1</b>.</p>
+
+<div class="code-block">
+<pre>  10110100
+&amp; 01100110
+─────────────
+  00100100</pre>
+</div>
+
+<p>Position 7 : 1 &amp; 0 = 0<br>
+Position 6 : 0 &amp; 1 = 0<br>
+Position 5 : 1 &amp; 1 = <b>1</b><br>
+... etc</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.4 — Le masque &amp; 1</h2>
+<p>Le nombre <code>1</code> en binaire 8 bits c est <code>00000001</code> — uniquement le bit 0 est à 1. Donc <code>n &amp; 1</code> donne :</p>
+
+<ul>
+<li>1 si le bit 0 de n est à 1</li>
+<li>0 si le bit 0 de n est à 0</li>
+<li>Tous les autres bits sont écrasés à 0</li>
+</ul>
+
+<div class="code-block">
+<pre>  01010011  (= 83)
+&amp; 00000001  (= 1)
+─────────────
+  00000001  (= 1)</pre>
+</div>
+
+<div class="callout note">
+<div class="lbl">★ &amp; 1 = filtre</div>
+<code>n &amp; 1</code> garde uniquement le bit 0 de n. Résultat = 0 ou 1.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.5 — La formule magique (c &gt;&gt; i) &amp; 1</h2>
+<p>En combinant <code>&gt;&gt;</code> et <code>&amp; 1</code>, on obtient une formule pour <b>extraire le bit à n importe quelle position</b> :</p>
+
+<div class="callout key">
+<div class="lbl">★ (c &gt;&gt; i) &amp; 1</div>
+<ol>
+<li><code>c &gt;&gt; i</code> : amène le bit i en position 0</li>
+<li><code>&amp; 1</code> : garde uniquement la position 0</li>
+<li>Résultat : 0 ou 1, c est la valeur du bit i</li>
+</ol>
+</div>
+
+<p>Exemple avec 'H' = 72 = <code>01001000</code> :</p>
+
+<table class="compare">
+<tr><th>i</th><th>(72 >> i) & 1</th><th>Résultat</th></tr>
+<tr><td>7</td><td>(72 >> 7) & 1 = 0 & 1</td><td>0</td></tr>
+<tr><td>6</td><td>(72 >> 6) & 1 = 1 & 1</td><td>1</td></tr>
+<tr><td>5</td><td>(72 >> 5) & 1 = 2 & 1</td><td>0</td></tr>
+<tr><td>4</td><td>(72 >> 4) & 1 = 4 & 1</td><td>0</td></tr>
+<tr><td>3</td><td>(72 >> 3) & 1 = 9 & 1</td><td>1</td></tr>
+<tr><td>2</td><td>(72 >> 2) & 1 = 18 & 1</td><td>0</td></tr>
+<tr><td>1</td><td>(72 >> 1) & 1 = 36 & 1</td><td>0</td></tr>
+<tr><td>0</td><td>(72 >> 0) & 1 = 72 & 1</td><td>0</td></tr>
+</table>
+
+<p>Bits extraits : <code>0 1 0 0 1 0 0 0</code> = 'H' ✓. <b>C est cette formule que le client utilise pour envoyer les bits.</b></p>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.6 — L OR bitwise |</h2>
+<p>L opérateur <code>|</code> compare 2 nombres bit à bit. Résultat = 1 <b>si au moins un des deux bits est 1</b>.</p>
+
+<div class="code-block">
+<pre>  00001010
+| 00000001
+─────────────
+  00001011</pre>
+</div>
+
+<p><code>c | 1</code> met le bit 0 à 1 sans toucher aux autres. C est l opération inverse de <code>&amp; 1</code> qui extrayait — ici on <b>ajoute</b> un 1.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.7 — La formule (c &lt;&lt; 1) | bit</h2>
+<p>Côté server, on doit <b>reconstruire</b> un char à partir des bits reçus. La formule c est :</p>
+
+<div class="callout key">
+<div class="lbl">★ c = (c &lt;&lt; 1) | bit</div>
+<ol>
+<li><code>c &lt;&lt; 1</code> : décale tout d 1 cran à gauche, libère la position 0</li>
+<li><code>| bit</code> : place le nouveau bit en position 0</li>
+<li>Après 8 itérations, c contient le char complet</li>
+</ol>
+</div>
+
+<p>Exemple : on reçoit dans l ordre les bits 0 1 0 0 1 0 0 0 (= 'H') :</p>
+
+<table class="compare">
+<tr><th>Bit reçu</th><th>c &lt;&lt; 1</th><th>| bit</th><th>c final</th></tr>
+<tr><td>0</td><td>0 &lt;&lt; 1 = 0</td><td>| 0</td><td>0 = 00000000</td></tr>
+<tr><td>1</td><td>0 &lt;&lt; 1 = 0</td><td>| 1</td><td>1 = 00000001</td></tr>
+<tr><td>0</td><td>1 &lt;&lt; 1 = 2</td><td>| 0</td><td>2 = 00000010</td></tr>
+<tr><td>0</td><td>2 &lt;&lt; 1 = 4</td><td>| 0</td><td>4 = 00000100</td></tr>
+<tr><td>1</td><td>4 &lt;&lt; 1 = 8</td><td>| 1</td><td>9 = 00001001</td></tr>
+<tr><td>0</td><td>9 &lt;&lt; 1 = 18</td><td>| 0</td><td>18 = 00010010</td></tr>
+<tr><td>0</td><td>18 &lt;&lt; 1 = 36</td><td>| 0</td><td>36 = 00100100</td></tr>
+<tr><td>0</td><td>36 &lt;&lt; 1 = 72</td><td>| 0</td><td>72 = 01001000 ('H') ✓</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.8 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ Les 4 opérateurs</div>
+<ul>
+<li><code>&gt;&gt;</code> shift droit — divise par 2, perd le bit 0</li>
+<li><code>&lt;&lt;</code> shift gauche — multiplie par 2, perd le bit 7</li>
+<li><code>&amp;</code> AND bitwise — 1 si les deux bits sont 1</li>
+<li><code>|</code> OR bitwise — 1 si au moins un bit est 1</li>
+</ul>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ Les 2 formules à retenir</div>
+<ul>
+<li><b>Côté client</b> : <code>(c &gt;&gt; i) &amp; 1</code> extrait le bit à la position i</li>
+<li><b>Côté server</b> : <code>(c &lt;&lt; 1) | bit</code> ajoute un bit à droite</li>
+</ul>
+Si tu peux expliquer ces 2 formules en defense, tu démontres que tu maîtrises la mécanique fondamentale du projet.
+</div>
+</section>
+
+<nav class="chapter-nav"><a href="03-binaire.html" class="nav-prev">← Le binaire et les bits</a><a href="05-fonctions-c.html" class="nav-next">Les fonctions C utilisées →</a></nav>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — Process et signaux UNIX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 minitalk — gitbook</a></div>
+  <div class="breadcrumb">Ch. 02 · Process et signaux UNIX</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet et le projet</a></li><li class="active"><a href="02-process-signaux.html">Process et signaux UNIX</a></li><li><a href="03-binaire.html">Le binaire et les bits</a></li><li><a href="04-bitwise.html">Les opérations bitwise</a></li><li><a href="05-fonctions-c.html">Les fonctions C utilisées</a></li><li><a href="06-client.html">client.c décortiqué</a></li><li><a href="07-server.html">server.c décortiqué</a></li><li><a href="08-makefile.html">Le Makefile</a></li><li><a href="09-pieges.html">Pièges et edge cases</a></li><li><a href="10-faq.html">FAQ defense</a></li><li><a href="11-checklist.html">Checklist finale</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 02</div>
+  <h1>Process et signaux UNIX</h1>
+  <div class="ch-sub">la theorie de base pour comprendre tout le reste</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>2.1 — Qu est-ce qu un process ?</h2>
+<p>Un <b>process</b> c est un programme en cours d execution. Quand tu lances <code>./server</code>, le système crée un process. Quand tu lances <code>./client</code> dans un autre terminal, c est un autre process. Ils sont indépendants.</p>
+
+<p>Linux donne un numéro unique à chaque process : le <b>PID</b> (Process ID). C est ce numéro qui identifie un process. Avec <code>ps aux</code> tu peux voir tous les process et leur PID.</p>
+
+<div class="callout key">
+<div class="lbl">★ Le PID</div>
+Un nombre entier (généralement 1-65535) qui identifie de manière unique un process en cours sur la machine. Quand le process se termine, son PID peut être réattribué à un futur process.
+</div>
+
+<p>Dans notre code :</p>
+<ul>
+<li>Le server affiche son PID avec <code>getpid()</code></li>
+<li>Le client reçoit ce PID en argument et l utilise dans <code>kill(pid, sig)</code></li>
+</ul>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.2 — Qu est-ce qu un signal UNIX ?</h2>
+<p>Un signal c est <b>une notification asynchrone</b> envoyée à un process. Asynchrone = elle peut arriver à n importe quel moment, sans que le process l attende explicitement.</p>
+
+<div class="callout note">
+<div class="lbl">★ Analogie de la sonnette</div>
+Imagine que tu sonnes chez ton voisin. Il sait que quelqu un est là, mais la sonnerie ne dit RIEN d autre — pas de contenu, juste une notification. Un signal UNIX c est pareil : <b>uniquement un type</b>, zéro contenu.
+</div>
+
+<p>Linux a ~30 signaux prédéfinis, chacun avec un sens standard :</p>
+
+<table class="compare">
+<tr><th>Signal</th><th>Sens</th></tr>
+<tr><td><code>SIGINT</code></td><td>CTRL+C dans le terminal — arrête-toi</td></tr>
+<tr><td><code>SIGKILL</code></td><td>kill -9 — meurs maintenant (non bloquable)</td></tr>
+<tr><td><code>SIGTERM</code></td><td>kill — termine proprement</td></tr>
+<tr><td><code>SIGSEGV</code></td><td>segfault (accès mémoire invalide)</td></tr>
+<tr><td><code>SIGUSR1</code></td><td><b>libre pour usage perso</b></td></tr>
+<tr><td><code>SIGUSR2</code></td><td><b>libre pour usage perso</b></td></tr>
+</table>
+
+<p>Le sujet impose qu on utilise <b>uniquement SIGUSR1 et SIGUSR2</b>. Ce sont les seuls signaux laissés libres pour des usages applicatifs perso.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.3 — Comment Linux livre un signal</h2>
+<p>Quand le client appelle <code>kill(server_pid, SIGUSR1)</code>, il ne touche pas directement la RAM du server. C est le <b>kernel Linux</b> qui sert d intermédiaire.</p>
+
+<div class="code-block">
+<pre>CLIENT  ──kill(SERVER_PID, SIGUSR1)──&gt;  KERNEL  ──delivers SIGUSR1──&gt;  SERVER</pre>
+</div>
+
+<p>Le kernel maintient pour chaque process une <b>table des signaux pending</b> — une liste des signaux reçus mais pas encore traités. Quand le process est ordonnancé (= sélectionné par le scheduler pour s exécuter), le kernel vérifie cette table et invoque le handler enregistré pour les signaux pending.</p>
+
+<div class="callout key">
+<div class="lbl">★ Le flux</div>
+<ol>
+<li>Process A appelle <code>kill(B, SIGUSR1)</code></li>
+<li>Le kernel met le bit SIGUSR1 à 1 dans la table pending de B</li>
+<li>Quand B est ordonnancé : kernel vérifie pending → SIGUSR1 actif → invoque le handler de B</li>
+<li>Le handler s exécute, B reprend ce qu il faisait</li>
+</ol>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.4 — Le problème : pas de queue</h2>
+<p><b>Linux ne fait PAS la queue des signaux du même type.</b> La table pending utilise un <b>bit par signal</b>, pas un compteur. Si SIGUSR1 est déjà pending pour le server, un 2ème SIGUSR1 qui arrive est <b>ignoré</b> (le bit est déjà à 1).</p>
+
+<div class="callout warn">
+<div class="lbl">★ Conséquence pour minitalk</div>
+Si le client envoie 2 SIGUSR1 trop vite (avant que le server ait pu traiter le premier), le 2ème est <b>perdu</b>. On perd un bit, et tous les caractères suivants sont décalés et corrompus.
+</div>
+
+<p>C est pour ça qu on utilise <code>usleep(700)</code> côté client après chaque signal — on laisse au server le temps de traiter le signal pending avant d en envoyer un autre.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.5 — Le handler de signal</h2>
+<p>Pour recevoir un signal, un process doit <b>enregistrer un handler</b> — une fonction qui sera appelée automatiquement par le kernel à la réception.</p>
+
+<p>Il y a 2 APIs :</p>
+
+<table class="compare">
+<tr><th>signal()</th><th>sigaction()</th></tr>
+<tr>
+<td>Legacy POSIX. Comportement varie selon les UNIX. Sur certains systèmes le handler est reset après chaque signal (donc il faut le rappeler à chaque fois).</td>
+<td>Moderne POSIX. Comportement déterministe et portable. Permet de configurer un masque de signaux, des flags, et récupérer le PID du sender. <b>À privilégier.</b></td>
+</tr>
+</table>
+
+<p>On utilise <code>sigaction()</code> dans notre code.</p>
+
+<div class="callout key">
+<div class="lbl">★ Le handler est spécial</div>
+Le handler s exécute dans un <b>contexte d interruption</b>. Il peut interrompre n importe quel code en cours (boucle, write, malloc...). Donc :
+<ul>
+<li>Doit être <b>court</b> — fais le minimum dedans</li>
+<li>Doit utiliser uniquement des fonctions <b>async-signal-safe</b> (write OK, printf NON, malloc NON)</li>
+<li>Variables modifiées dedans doivent être <code>volatile sig_atomic_t</code> pour la sécurité (recommandé)</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Un <b>process</b> a un PID unique pour l identifier</li>
+<li>Un <b>signal</b> est une notification asynchrone sans contenu</li>
+<li>Le <b>kernel</b> sert d intermédiaire pour livrer les signaux</li>
+<li>Linux <b>ne queue pas</b> les signaux du même type (1 bit pending par signal)</li>
+<li>SIGUSR1 et SIGUSR2 sont les 2 seuls signaux libres pour usage perso</li>
+<li>Pour recevoir un signal, on enregistre un <b>handler</b> via sigaction</li>
+<li>Le handler doit être <b>court</b> et async-signal-safe</li>
+</ul>
+</div>
+</section>
+
+<nav class="chapter-nav"><a href="01-projet.html" class="nav-prev">← Le sujet et le projet</a><a href="03-binaire.html" class="nav-next">Le binaire et les bits →</a></nav>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — Le Makefile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">📚 minitalk — gitbook</a></div>
+  <div class="breadcrumb">Ch. 08 · Le Makefile</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet et le projet</a></li><li><a href="02-process-signaux.html">Process et signaux UNIX</a></li><li><a href="03-binaire.html">Le binaire et les bits</a></li><li><a href="04-bitwise.html">Les opérations bitwise</a></li><li><a href="05-fonctions-c.html">Les fonctions C utilisées</a></li><li><a href="06-client.html">client.c décortiqué</a></li><li><a href="07-server.html">server.c décortiqué</a></li><li class="active"><a href="08-makefile.html">Le Makefile</a></li><li><a href="09-pieges.html">Pièges et edge cases</a></li><li><a href="10-faq.html">FAQ defense</a></li><li><a href="11-checklist.html">Checklist finale</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 08</div>
+  <h1>Le Makefile</h1>
+  <div class="ch-sub">NAME, static pattern rule, et tout ce qui compile</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>8.1 — Le Makefile complet</h2>
+<div class="code-block">
+<pre>NAME    = server client
+CC      = cc
+CFLAGS  = -Wall -Wextra -Werror -I includes
+HEADER  = includes/minitalk.h
+OBJS    = src/server.o src/client.o
+
+all: 
+
+: %: src/%.o
+	  -o  $&lt;
+
+src/%.o: src/%.c 
+	  -c $&lt; -o 
+
+clean:
+	rm -f 
+
+fclean: clean
+	rm -f 
+
+re: fclean all
+
+.PHONY: all clean fclean re</pre>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.2 — NAME avec une liste</h2>
+<p>Au lieu d avoir un seul nom de binaire, on en a 2. Astuce :</p>
+<div class="code-block">
+<pre>NAME = server client</pre>
+</div>
+<p>NAME est une <b>variable Make</b> qui contient "server client" (2 mots). Quand on écrit <code></code>, ça expand en "server client".</p>
+<p><code>all: </code> devient donc <code>all: server client</code> — pour faire all, on doit construire server ET client.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.3 — Static pattern rule</h2>
+<div class="code-block">
+<pre>: %: src/%.o
+	  -o  $&lt;</pre>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ Comment ça marche</div>
+C est une <b>static pattern rule</b>. La syntaxe est :
+<br><code>cibles: pattern_match: pattern_prereq</code>
+<br><br>
+Pour chaque cible dans NAME (server, client), Make remplace % par le nom de la cible :
+<ul>
+<li>Cible "server" → match % = "server" → prerequis = src/server.o</li>
+<li>Cible "client" → match % = "client" → prerequis = src/client.o</li>
+</ul>
+La recette est appliquée pour chacune avec  = nom de la cible, $&lt; = premier prérequis.
+</div>
+
+<p>Sans static pattern rule, on aurait dû écrire 2 règles séparées :</p>
+<div class="code-block">
+<pre>server: src/server.o
+	$(CC) $(CFLAGS) -o server src/server.o
+client: src/client.o
+	$(CC) $(CFLAGS) -o client src/client.o</pre>
+</div>
+<p>C est plus verbeux. Le static pattern rule c est plus DRY.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.4 — Compilation des .o</h2>
+<div class="code-block">
+<pre>src/%.o: src/%.c 
+	  -c $&lt; -o </pre>
+</div>
+<p>Règle générique : pour fabriquer src/X.o, on a besoin de src/X.c ET du header. La recette compile le .c en .o.</p>
+
+<div class="callout note">
+<div class="lbl">★ Pas de relinking inutile</div>
+La dépendance sur <code></code> fait que si le header change, tous les .o sont recompilés. Si rien n a changé, <code>make</code> ne refait rien — il compare les timestamps. C est la base d un Makefile efficace.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.5 — Les règles de cleanup</h2>
+<div class="code-block">
+<pre>clean:
+	rm -f $(OBJS)
+
+fclean: clean
+	rm -f $(NAME)
+
+re: fclean all</pre>
+</div>
+
+<ul>
+<li><b>clean</b> : supprime les .o</li>
+<li><b>fclean</b> : appelle clean puis supprime les binaires</li>
+<li><b>re</b> : appelle fclean puis all → recompile tout depuis zéro</li>
+</ul>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.6 — .PHONY</h2>
+<div class="code-block">
+<pre>.PHONY: all clean fclean re</pre>
+</div>
+<p><code>.PHONY</code> dit à Make que ces cibles ne sont <b>pas des fichiers</b> mais des commandes. Sans ça, si tu créais un fichier nommé "all" dans le dossier, Make penserait que la cible all est à jour et ne ferait rien.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.7 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ Points clés</div>
+<ul>
+<li>NAME contient une <b>liste</b> (server client) pour fabriquer 2 binaires</li>
+<li><b>Static pattern rule</b> évite de répéter la règle de link</li>
+<li>Dépendance sur HEADER = pas de relinking inutile</li>
+<li>4 règles obligatoires : all, clean, fclean, re</li>
+<li>.PHONY pour les cibles qui ne sont pas des fichiers</li>
+<li><b></b> rule présente — exigence stricte du PDF</li>
+</ul>
+</div>
+</section>
+
+<nav class="chapter-nav"><a href="07-server.html" class="nav-prev">← server.c décortiqué</a><a href="09-pieges.html" class="nav-next">Pièges et edge cases →</a></nav>
+</main>
+</div>
+</body>
+</html>
