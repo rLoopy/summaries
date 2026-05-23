@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le sujet et le projet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 01 · Le sujet et le projet</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li class="active"><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 01</div>
+  <h1>Le sujet et le projet</h1>
+  <div class="ch-sub">ce qu'on doit livrer, les contraintes, les fonctions autorisées</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>1.1 — Le but du projet</h2>
+<p>so_long est un projet 42 du <b>cercle graphique</b>. Le sujet le décrit comme « un petit jeu 2D où un dauphin s'échappe de la Terre après avoir mangé des poissons ». Concrètement, peu importe le thème : tu dois coder un jeu où <b>un personnage parcourt une carte, ramasse tous les objets à collecter, puis sort par la sortie</b>.</p>
+
+<div class="callout key">
+<div class="lbl">★ En une phrase</div>
+Le joueur doit <b>collecter tous les collectibles</b> de la map, puis <b>s'échapper par la sortie</b> en empruntant le chemin le plus court possible. À chaque déplacement, le <b>nombre de mouvements</b> s'affiche dans le terminal.
+</div>
+
+<p>Le projet t'apprend à utiliser une bibliothèque graphique (<b>MiniLibX</b>) : ouvrir une fenêtre, gérer des images/textures, et réagir aux événements clavier et souris. C'est ta première rencontre avec le rendu graphique au cursus.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.2 — La fiche d'identité du projet</h2>
+<table>
+<tr><th>Champ</th><th>Valeur</th></tr>
+<tr><td>Program name</td><td><code>so_long</code></td></tr>
+<tr><td>Fichiers à rendre</td><td><code>Makefile</code>, <code>*.h</code>, <code>*.c</code>, <code>maps</code>, <code>textures</code></td></tr>
+<tr><td>Règles Makefile</td><td><code>NAME</code>, <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code></td></tr>
+<tr><td>Arguments</td><td>une map au format <code>*.ber</code></td></tr>
+<tr><td>libft autorisée</td><td><b>Oui</b></td></tr>
+</table>
+
+<div class="callout note">
+<div class="lbl">★ À noter</div>
+Tu dois rendre les <b>dossiers</b> <code>maps/</code> (tes cartes <code>.ber</code>) et <code>textures/</code> (tes images <code>.xpm</code>) en plus du code. Sans textures, ton jeu ne tourne pas chez l'évaluateur.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.3 — Les fonctions autorisées</h2>
+<p>Le sujet liste précisément ce que tu peux appeler. Rien d'autre :</p>
+
+<div class="code-block">
+<pre class="code"><span class="fn">open, close, read, write</span>   <span class="com">// I/O fichier (lire la map)</span>
+<span class="fn">malloc, free</span>             <span class="com">// alloc dynamique (grille, structs)</span>
+<span class="fn">perror, strerror</span>         <span class="com">// messages d'erreur système</span>
+<span class="fn">exit</span>                     <span class="com">// quitter</span>
+<span class="com">// + toutes les fonctions de la lib math (-lm, man 3 math)</span>
+<span class="com">// + toutes les fonctions de la MiniLibX</span>
+<span class="fn">gettimeofday</span>             <span class="com">// utile pour le timing des anims (bonus)</span>
+<span class="fn">ft_printf</span>                <span class="com">// ou ton équivalent codé</span></pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Piège classique</div>
+Pas de <code>printf</code> de la libc dans le code de prod : utilise <b>ton</b> <code>ft_printf</code> (ou <code>write</code>) pour afficher le compteur de moves. Et pas de <code>get_next_line</code> « magique » non autorisé… en réalité <b>tu peux</b> recoder ta lecture avec <code>read</code> + ta libft, mais GNL n'est pas dans la liste officielle — utilise-le seulement s'il vient de ta libft que tu copies dans le projet.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.4 — Les contraintes communes (cercle commun)</h2>
+<p>Comme tous les projets du tronc commun, so_long est soumis aux règles générales :</p>
+
+<div class="callout warn">
+<div class="lbl">★ Règles non négociables</div>
+<ul>
+<li>Code en <b>C</b>, conforme à la <b>Norme</b> (les fichiers bonus sont aussi normés → 0 si erreur)</li>
+<li><b>Aucun crash</b> : pas de segfault, bus error, double free → sinon projet non-fonctionnel = 0</li>
+<li><b>Zéro leak</b> : toute mémoire <code>malloc</code> doit être libérée. Les leaks ne sont pas tolérés</li>
+<li><code>Makefile</code> compile avec <code>-Wall -Wextra -Werror</code> via <code>cc</code>, et <b>ne relink pas</b> inutilement</li>
+<li>Règles Makefile : <code>$(NAME)</code>, <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code> (+ <code>bonus</code> si bonus)</li>
+<li>Si tu utilises ta <b>libft</b> : copie ses sources + son Makefile dans un dossier <code>libft/</code>, et ton Makefile la compile via son propre Makefile</li>
+<li>Le travail n'est évalué que dans le <b>dépôt Git</b> rendu</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.5 — Une architecture type</h2>
+<p>so_long est plus gros que minitalk mais plus simple que push_swap niveau algo. Une structure claire t'évite de te noyer :</p>
+
+<div class="code-block">
+<pre class="code">so_long/
+├── includes/
+│   └── so_long.h        <span class="com">// structs, prototypes, defines</span>
+├── src/
+│   ├── main.c           <span class="com">// entrée, init, lancement</span>
+│   ├── parse_map.c      <span class="com">// lecture + stockage de la grille</span>
+│   ├── check_map.c      <span class="com">// validation (rect, murs, P/E/C)</span>
+│   ├── flood_fill.c     <span class="com">// vérif chemin valide</span>
+│   ├── render.c         <span class="com">// charge textures + dessine</span>
+│   ├── moves.c          <span class="com">// events clavier + déplacements</span>
+│   └── cleanup.c        <span class="com">// free de tout + exit propre</span>
+├── textures/            <span class="com">// .xpm (mur, sol, joueur, collectible, exit)</span>
+├── maps/                <span class="com">// .ber d'exemple</span>
+├── libft/               <span class="com">// ta libft + son Makefile</span>
+├── Makefile
+└── README.md</pre>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Conseil</div>
+Une <b>seule grosse struct</b> de jeu (souvent appelée <code>t_game</code>) qui contient le pointeur mlx, la fenêtre, la grille de la map, les dimensions, les compteurs (collectibles restants, moves) et les images. Tu la passes partout par pointeur. Ça évite les variables globales (interdites de fait) et simplifie le free final.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>1.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir de ce chapitre</div>
+<ul>
+<li>Jeu 2D : <b>ramasser tous les C</b>, puis sortir par <b>E</b></li>
+<li>Compteur de <b>moves</b> affiché à chaque déplacement</li>
+<li>Argument unique : une map <code>.ber</code></li>
+<li>Rendre aussi les dossiers <code>maps/</code> et <code>textures/</code></li>
+<li>Norme, zéro leak, zéro crash, Makefile sans relink</li>
+<li>Une struct de jeu centrale passée par pointeur</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <span class="placeholder"></span>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="02-minilibx.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">MiniLibX : la lib graphique</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

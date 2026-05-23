@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Pièges &amp; FAQ defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 11 · Pièges &amp; FAQ</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li class="active"><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 11</div>
+  <h1>Pièges &amp; FAQ defense</h1>
+  <div class="ch-sub">les edge cases qui plantent + les questions de l'évaluateur</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>11.1 — Le top des bugs qui coûtent la note</h2>
+<div class="callout warn">
+<div class="lbl">★ La liste noire</div>
+<ul>
+<li><b>Crash</b> sur map invalide au lieu d'un message propre → 0</li>
+<li><b>Flood fill sur la vraie grille</b> → la map est détruite avant l'affichage</li>
+<li><b>Croix rouge non gérée</b> → ne quitte pas proprement / leak</li>
+<li><b>Move compté quand on tape un mur</b> → compteur faux</li>
+<li><b>Texture NULL non testée</b> → segfault au premier <code>put_image</code></li>
+<li><b>Map pas rectangulaire acceptée</b> à cause d'un <code>\n</code> mal géré</li>
+<li><b>Leaks</b> de la grille ou des images à la fermeture</li>
+<li><b>Sortie autorisée</b> alors qu'il reste des collectibles</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>11.2 — Les edge cases à tester avant la defense</h2>
+<table>
+<tr><th>Cas</th><th>Comportement attendu</th></tr>
+<tr><td>aucun argument</td><td>Error + message, pas de crash</td></tr>
+<tr><td>fichier inexistant</td><td>Error + message</td></tr>
+<tr><td>extension <code>.txt</code></td><td>Error (mauvaise extension)</td></tr>
+<tr><td>map vide / 1 ligne</td><td>Error, pas de segfault</td></tr>
+<tr><td>map non fermée</td><td>Error (murs)</td></tr>
+<tr><td>0 collectible</td><td>Error</td></tr>
+<tr><td>2 P ou 2 E</td><td>Error (doublon)</td></tr>
+<tr><td>char interdit (<code>9</code>, <code>X</code>…)</td><td>Error</td></tr>
+<tr><td>C ou E isolé par un mur</td><td>Error (flood fill)</td></tr>
+<tr><td>map valide géante</td><td>fenêtre adaptée, pas de crash</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">§</span>11.3 — FAQ defense — 10 questions piège</h2>
+
+<div class="check">
+<div class="q">Q1 — Pourquoi les images plutôt que mlx_pixel_put ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Parce que <code>pixel_put</code> dessine pixel par pixel (lent, scintille) et que le sujet rend l'usage des <b>images MLX obligatoire</b>. On charge une texture une fois et on la colle en bloc avec <code>mlx_put_image_to_window</code>.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q2 — Comment vérifies-tu qu'un chemin existe ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Flood fill récursif depuis <code>P</code> sur une <b>copie</b> de la map : j'inonde toutes les cases non-mur accessibles, puis je vérifie qu'il ne reste aucun <code>C</code> ni <code>E</code> non visité. S'il en reste un, il était isolé → map invalide.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q3 — Pourquoi une copie de la grille pour le flood fill ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Parce que le flood fill écrase les cases avec un marqueur. Sur la vraie grille, je perdrais mes <code>C/E/P</code> nécessaires au rendu et au jeu. J'inonde la copie, je conclus, puis je la libère.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q4 — Que se passe-t-il si on tape un mur ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Le joueur ne bouge pas <b>et</b> le compteur de moves n'est pas incrémenté. On n'affiche un nouveau move que pour un déplacement réellement effectué.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q5 — Comment gères-tu la croix rouge ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Avec <code>mlx_hook</code> sur l'événement <code>DestroyNotify</code> (17). Il appelle la même fonction de cleanup que ESC : free images + fenêtre + display + grille, puis <code>exit(0)</code>.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q6 — Où libères-tu la mémoire et comment t'en assures-tu ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Une fonction <code>close_game</code> unique, appelée par ESC, la croix et la victoire. Je teste avec Valgrind en sortant par les deux chemins. Je distingue mes leaks (à corriger) des reliquats X11/MLX (connus, hors de mon code).</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q7 — Comment la fenêtre s'adapte-t-elle à la map ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Je calcule <code>cols*TILE</code> × <code>rows*TILE</code> après le parsing. La fenêtre colle donc exactement à la taille de la map, quelle qu'elle soit.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q8 — Pourquoi valider la map avant d'ouvrir la fenêtre ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Pour ne jamais lancer MLX sur une map invalide : si le parsing échoue, j'affiche <code>Error</code> + message et je quitte, sans avoir alloué quoi que ce soit côté graphique.</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q9 — Que vérifie ton Makefile pour "ne pas relink" ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">La règle <code>%.o : %.c</code> ne recompile que les fichiers modifiés, et <code>$(NAME)</code> dépend des <code>.o</code>. Un deuxième <code>make</code> d'affilée affiche « Nothing to be done ».</div>
+</details>
+</div>
+
+<div class="check">
+<div class="q">Q10 — On te demande une petite modif en live (ex. changer une touche). Tu fais quoi ?</div>
+<details><summary>Voir la réponse</summary>
+<div class="answer">Le sujet prévoit ça : une modif mineure peut être demandée en eval pour prouver que je comprends mon code. Je sais où sont mes <code>#define</code> de keycodes et ma fonction <code>handle_key</code>, donc je modifie, recompile et démontre en quelques minutes.</div>
+</details>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>11.4 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Teste systématiquement tous les cas d'erreur avant la defense</li>
+<li>Sois prêt à expliquer le flood fill sur copie</li>
+<li>Connais ton code : keycodes, cleanup, calcul de fenêtre</li>
+<li>Anticipe la « petite modif en live » demandée par l'évaluateur</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="10-bonus.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le bonus</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="12-checklist.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Checklist &amp; README</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

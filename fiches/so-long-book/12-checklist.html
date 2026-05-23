@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Checklist &amp; README</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 12 · Checklist &amp; README</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li class="active"><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 12</div>
+  <h1>Checklist &amp; README</h1>
+  <div class="ch-sub">à cocher avant de rendre, et le README que le sujet exige</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>12.1 — Checklist mandatory</h2>
+<div class="callout hint">
+<div class="lbl">★ Avant de dire "c'est fini"</div>
+<ul>
+<li>☐ <code>make</code> compile sans warning (<code>-Wall -Wextra -Werror</code>)</li>
+<li>☐ <code>make</code> deux fois → « Nothing to be done » (pas de relink)</li>
+<li>☐ <code>norminette</code> OK sur tous les <code>.c</code> et <code>.h</code></li>
+<li>☐ La fenêtre s'ouvre et affiche la map avec des <b>images</b></li>
+<li>☐ Déplacement <b>WASD</b> dans les 4 directions</li>
+<li>☐ On ne traverse pas les murs</li>
+<li>☐ Compteur de moves affiché dans le <b>shell</b> à chaque pas</li>
+<li>☐ On ramasse les <code>C</code> ; sortie possible <b>seulement</b> quand tous ramassés</li>
+<li>☐ <b>ESC</b> ferme proprement</li>
+<li>☐ <b>Croix rouge</b> ferme proprement</li>
+<li>☐ Toutes les maps invalides → <code>Error\n</code> + message, jamais de crash</li>
+<li>☐ <b>Valgrind</b> clean (hors reliquats MLX/X11 connus), via ESC <b>et</b> croix</li>
+<li>☐ Dossiers <code>maps/</code> et <code>textures/</code> présents dans le repo</li>
+<li>☐ <code>README.md</code> conforme (§ 12.2)</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>12.2 — Le README obligatoire (v5.0)</h2>
+<p>Le sujet (chapitre VI) impose un <code>README.md</code> à la racine avec un contenu minimal précis :</p>
+
+<div class="callout key">
+<div class="lbl">★ Sections exigées</div>
+<ul>
+<li><b>Première ligne en italique</b>, exactement : <i>This project has been created as part of the 42 curriculum by &lt;login&gt;</i></li>
+<li>Une section <b>Description</b> : le but du projet + un aperçu</li>
+<li>Une section <b>Instructions</b> : compilation, installation, exécution</li>
+<li>Une section <b>Resources</b> : références (docs, tutos) <b>+ comment l'IA a été utilisée</b>, pour quelles tâches et quelles parties</li>
+<li>Sections additionnelles au besoin (exemples d'usage, choix techniques…)</li>
+</ul>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ La section "usage de l'IA"</div>
+La v5.0 du sujet (chapitre IV + VI) demande explicitement de <b>documenter ton usage de l'IA</b>. Sois honnête et précis : « j'ai utilisé l'IA pour comprendre le flood fill / débugger le link MLX », pas « l'IA a écrit mon projet ». Et surtout : tu dois pouvoir <b>tout expliquer</b> en defense (chapitre IV : du code que tu ne sais pas justifier = échec).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>12.3 — Squelette de README</h2>
+<div class="code-block">
+<pre class="code"><span class="com">*This project has been created as part of the 42 curriculum by rrohrer.*</span>
+
+# so_long
+
+## Description
+Petit jeu 2D en MiniLibX : ...
+
+## Instructions
+make
+./so_long maps/map.ber
+
+## Resources
+- MiniLibX documentation (...)
+- Flood fill (...)
+- Usage IA : ... (quelles tâches, quelles parties)</pre>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>12.4 — Le mot de la fin</h2>
+<div class="callout note">
+<div class="lbl">★ Stratégie gagnante</div>
+Fais le mandatory <b>parfait</b> avant tout : c'est la seule façon que ton bonus soit même regardé. La difficulté de so_long n'est pas l'algo, c'est la <b>rigueur</b> — parsing robuste, flood fill correct, zéro leak. Coche toute la liste du § 12.1 et tu rentres en defense serein.
+</div>
+<p class="center muted">Bon courage 🐬 — et n'oublie pas : <b>tu dois pouvoir expliquer chaque ligne.</b></p>
+</section>
+
+<nav class="nav-bottom">
+  <a href="11-pieges-faq.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Pièges &amp; FAQ</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <span class="placeholder"></span>
+</nav>
+</main>
+</div>
+</body>
+</html>

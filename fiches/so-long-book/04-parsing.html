@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Parsing &amp; validation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 04 · Parsing &amp; validation</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li class="active"><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 04</div>
+  <h1>Parsing &amp; validation de la map</h1>
+  <div class="ch-sub">lire le fichier, stocker la grille, tout vérifier avant d'afficher</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>4.1 — L'ordre des opérations</h2>
+<p>La règle d'or : <b>tout valider avant d'ouvrir la moindre fenêtre</b>. Si la map est invalide, on affiche l'erreur et on quitte — on n'a même pas appelé <code>mlx_init</code>.</p>
+
+<div class="flow">
+  <div class="step">1. vérifier l'argument (1 seul, finit par <code>.ber</code>)</div>
+  <div class="arrow">↓</div>
+  <div class="step">2. lire le fichier → grille en mémoire</div>
+  <div class="arrow">↓</div>
+  <div class="step">3. valider (rect, murs, chars, compteurs)</div>
+  <div class="arrow">↓</div>
+  <div class="step">4. flood fill (chemin valide — chap. 05)</div>
+  <div class="arrow">↓</div>
+  <div class="step">5. seulement maintenant : MLX + rendu</div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.2 — Stocker la grille</h2>
+<p>La représentation classique : un <code>char **map</code> — un tableau de strings, une par ligne. C'est exactement ce que renvoie un <code>get_next_line</code> en boucle, ou une lecture <code>read</code> + un split sur <code>\n</code>.</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// idée de struct (à toi de l'écrire)</span>
+<span class="type">typedef struct</span> s_map
+{
+    <span class="type">char</span> **grid;     <span class="com">// les lignes</span>
+    <span class="type">int</span>  rows;       <span class="com">// hauteur</span>
+    <span class="type">int</span>  cols;       <span class="com">// largeur</span>
+    <span class="type">int</span>  collectibles;
+    <span class="type">int</span>  players;
+    <span class="type">int</span>  exits;
+}   t_map;</pre>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Astuce lecture</div>
+Lis <b>toute</b> la map d'abord, puis valide. Lire ligne par ligne <i>en validant à la volée</i> complique le free en cas d'erreur au milieu. Plus simple : tout charger, valider, et si invalide → free + erreur.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.3 — Les checks, un par un</h2>
+
+<h4>Rectangulaire</h4>
+<p>Compare la longueur de chaque ligne à celle de la première. Une seule différente → erreur. Attention au <code>\n</code> final de la dernière ligne et à une éventuelle ligne vide à la fin du fichier.</p>
+
+<h4>Entourée de murs</h4>
+<p>La <b>première</b> et la <b>dernière</b> ligne ne doivent contenir que des <code>1</code>. Pour les lignes du milieu, le <b>premier</b> et le <b>dernier</b> caractère doivent être <code>1</code>.</p>
+
+<div class="ascii">ligne 0      → 11111111  (tout 1)
+lignes 1..n-1 → 1......1  (bords = 1)
+ligne n      → 11111111  (tout 1)</div>
+
+<h4>Caractères &amp; compteurs</h4>
+<p>Une seule boucle sur toute la grille suffit : pour chaque case, soit c'est un char autorisé (on incrémente le bon compteur), soit erreur immédiate.</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// pseudo-code — pas la solution finale</span>
+pour chaque (y, x) de la grille:
+    c = grid[y][x]
+    si c == 'P': players++
+    sinon si c == 'E': exits++
+    sinon si c == 'C': collectibles++
+    sinon si c != '0' et c != '1': ERREUR (char interdit)
+
+à la fin: exiger players==1 ET exits==1 ET collectibles&gt;=1</pre>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.4 — Les pièges du parsing</h2>
+<div class="callout warn">
+<div class="lbl">★ Ce qui fait planter</div>
+<ul>
+<li><b>Ligne vide</b> au milieu ou à la fin du fichier → souvent prise pour une ligne de largeur 0, casse le check rectangulaire</li>
+<li><b>Espaces</b> invisibles en fin de ligne → char interdit, mais difficile à voir à l'œil</li>
+<li><b>Map d'une seule ligne</b> ou vide → ton code doit gérer sans segfault</li>
+<li><b>Dernière ligne sans <code>\n</code></b> → elle n'a pas la même « forme » que les autres, gère les deux cas</li>
+<li><b>Fichier inexistant / pas les droits</b> → <code>open</code> renvoie -1, gère-le proprement</li>
+</ul>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Conseil de test</div>
+Prépare un dossier <code>maps/bad/</code> rempli de cas tordus (pas fermée, 2 E, char interdit, vide, 1 ligne…). En defense, tu montres que <b>chacun</b> sort proprement avec un message clair. Ça impressionne et c'est exactement ce que l'évaluateur teste.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>4.5 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Valider <b>tout</b> avant d'ouvrir la fenêtre</li>
+<li>Grille = <code>char **</code> (une string par ligne)</li>
+<li>Checks : rectangulaire, murs, chars autorisés, compteurs P/E/C</li>
+<li>Une boucle unique compte P/E/C et détecte les chars interdits</li>
+<li>Pièges : lignes vides, espaces, <code>\n</code> final, fichier introuvable</li>
+<li>Garde un dossier de maps cassées pour la defense</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="03-map-ber.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le format .ber</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="05-flood-fill.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Le flood fill</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

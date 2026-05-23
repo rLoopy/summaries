@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le Makefile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 09 · Le Makefile</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li class="active"><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 09</div>
+  <h1>Le Makefile</h1>
+  <div class="ch-sub">compiler ton code + libft + MiniLibX, et linker tout ça</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>9.1 — Ce que le sujet exige</h2>
+<div class="callout key">
+<div class="lbl">★ Contraintes Makefile</div>
+<ul>
+<li>Règles obligatoires : <code>$(NAME)</code>, <code>all</code>, <code>clean</code>, <code>fclean</code>, <code>re</code></li>
+<li>Compilation avec <code>-Wall -Wextra -Werror</code></li>
+<li><b>Ne doit pas relink</b> inutilement (pas de recompil si rien n'a changé)</li>
+<li>Compile ta <b>libft</b> via son propre Makefile (dossier <code>libft/</code>)</li>
+<li>Une règle <code>bonus</code> si tu fais le bonus (fichiers <code>_bonus.c/h</code>)</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>9.2 — Le défi : 3 choses à compiler</h2>
+<p>so_long n'est pas qu'un seul code : il faut assembler <b>trois</b> briques avant de produire le binaire.</p>
+
+<div class="flow">
+  <div class="step"><b>libft</b> → <code>libft.a</code> (via son Makefile)</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>MiniLibX</b> → <code>libmlx.a</code> (via son Makefile)</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>tes .c</b> → <code>.o</code></div>
+  <div class="arrow">↓</div>
+  <div class="step">link les <code>.o</code> + les <code>.a</code> + libs système → <code>so_long</code></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>9.3 — Le linking, là où ça coince</h2>
+<p>La MiniLibX dépend de bibliothèques système. Sur <b>Linux</b>, l'ordre et les flags comptent :</p>
+
+<div class="code-block">
+<pre class="code"><span class="com"># flags de link typiques (Linux, minilibx-linux)</span>
+MLX_FLAGS = -L./minilibx-linux -lmlx -lXext -lX11 -lm</pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Erreurs de link fréquentes</div>
+<ul>
+<li><code>undefined reference to XOpenDisplay</code> → il manque <code>-lX11</code></li>
+<li><code>undefined reference to XShm...</code> → il manque <code>-lXext</code></li>
+<li>référence math non résolue → il manque <code>-lm</code></li>
+<li>libft non trouvée → vérifie <code>-L./libft -lft</code> et que <code>libft.a</code> existe</li>
+</ul>
+Sur macOS les flags diffèrent (<code>-framework OpenGL -framework AppKit</code>). Adapte selon ta machine de rendu.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>9.4 — La structure d'un Makefile propre</h2>
+<p>Sans te donner le fichier complet, voici les <b>blocs</b> à assembler toi-même :</p>
+
+<div class="code-block">
+<pre class="code"><span class="com"># 1. Variables : NAME, CC, CFLAGS, dossiers, SRC, OBJ</span>
+<span class="com"># 2. Règle all : dépend de $(NAME)</span>
+<span class="com"># 3. Règle $(NAME) :</span>
+<span class="com">#      - make -C libft        (compile la libft)</span>
+<span class="com">#      - make -C minilibx-linux (compile la mlx)</span>
+<span class="com">#      - $(CC) $(OBJ) -L libs... -o $(NAME)</span>
+<span class="com"># 4. Règle %.o : %.c   (compilation incrémentale → pas de relink)</span>
+<span class="com"># 5. clean   : rm les .o (et ceux des libs si tu veux)</span>
+<span class="com"># 6. fclean  : clean + rm $(NAME) + les .a</span>
+<span class="com"># 7. re      : fclean puis all</span>
+<span class="com"># 8. .PHONY  : all clean fclean re bonus</span></pre>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Le secret du "pas de relink"</div>
+La règle de motif <code>%.o : %.c</code> ne recompile qu'un <code>.c</code> modifié. La clé : la cible <code>$(NAME)</code> dépend des <code>$(OBJ)</code>, qui dépendent de leurs <code>.c</code>. Si rien ne change, <code>make</code> dit « Nothing to be done » — c'est exactement ce que l'évaluateur vérifie en lançant <code>make</code> deux fois de suite.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>9.5 — La règle bonus</h2>
+<p>Si tu fais le bonus, le sujet impose une règle <code>bonus</code> séparée et des fichiers <code>*_bonus.c</code> / <code>*_bonus.h</code>. Mandatory et bonus sont évalués <b>séparément</b> — souvent on duplique l'arbo en <code>_bonus</code>. Attention : ne pas mélanger, sinon l'évaluation mandatory voit du code bonus.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>9.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Règles : <code>$(NAME) all clean fclean re</code> (+ <code>bonus</code>)</li>
+<li>Compile libft <b>et</b> mlx via leurs propres Makefiles (<code>make -C</code>)</li>
+<li>Link Linux : <code>-lmlx -lXext -lX11 -lm</code></li>
+<li>Règle <code>%.o : %.c</code> → compilation incrémentale, pas de relink</li>
+<li><code>.PHONY</code> pour les cibles qui ne sont pas des fichiers</li>
+<li>Bonus = règle + fichiers <code>_bonus</code> séparés</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="08-memoire.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Mémoire</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="10-bonus.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Le bonus</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

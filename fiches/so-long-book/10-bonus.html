@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le bonus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 10 · Le bonus</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li class="active"><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 10</div>
+  <h1>Le bonus</h1>
+  <div class="ch-sub">3 features qui rapportent — mais seulement si le mandatory est parfait</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>10.1 — La règle d'or du bonus</h2>
+<div class="callout warn">
+<div class="lbl">★ Condition bloquante</div>
+<span class="hl">« The bonus part will only be assessed if the mandatory part is PERFECT. »</span> Si le mandatory n'est pas <b>intégralement</b> fait et <b>sans le moindre dysfonctionnement</b>, le bonus n'est <b>même pas regardé</b>. Conclusion : ne touche pas au bonus tant que ton mandatory n'est pas blindé (Norme, leaks, edge cases).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>10.2 — Les 3 bonus qui rapportent</h2>
+<table>
+<tr><th>Bonus</th><th>Idée</th></tr>
+<tr><td>Ennemis qui patrouillent</td><td>des sprites se déplacent ; toucher un ennemi = <b>game over</b></td></tr>
+<tr><td>Animation de sprites</td><td>le joueur (ou l'eau, etc.) s'anime sur plusieurs frames</td></tr>
+<tr><td>Compteur à l'écran</td><td>afficher le nombre de moves <b>dans la fenêtre</b> (pas dans le shell)</td></tr>
+</table>
+
+<div class="callout note">
+<div class="lbl">★ Fonctions en plus autorisées</div>
+Pour le bonus, tu peux utiliser d'autres fonctions <b>si tu les justifies</b> en defense. C'est là que <code>gettimeofday()</code> sert : cadencer les animations dans le temps.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>10.3 — Comment animer (concept)</h2>
+<p>MLX n'a pas de « moteur d'animation ». L'idée : utiliser <code>mlx_loop_hook</code>, qui appelle ta fonction <b>en continu</b> dans la boucle. Tu y mesures le temps écoulé (<code>gettimeofday</code>) et tu changes de frame toutes les ~150 ms.</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// pseudo-code d'anim</span>
+loop_hook(game):
+    maintenant = gettimeofday()
+    si maintenant - dernier_frame &gt; 150ms:
+        frame = (frame + 1) % nb_frames
+        redessiner le joueur avec game.player[frame]
+        dernier_frame = maintenant</pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Ne pas saturer le CPU</div>
+Sans garde temporelle, <code>loop_hook</code> redessine des milliers de fois par seconde → 100% CPU. La condition « toutes les N ms » est indispensable.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>10.4 — Le compteur à l'écran</h2>
+<p>Utilise <code>mlx_string_put(mlx, win, x, y, color, str)</code> après chaque redraw. Comme le texte se dessine <b>par-dessus</b> la map, il faut le ré-afficher à chaque mouvement (sinon les anciens chiffres se superposent). Convertis l'entier en string avec ton <code>ft_itoa</code> de libft.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>10.5 — Les ennemis</h2>
+<p>Concept : un ou plusieurs ennemis bougent (souvent un aller-retour simple sur une ligne ou colonne). À chaque frame, on teste la collision joueur/ennemi : si même case → message de défaite + fermeture propre. Note que les ennemis ne sont <b>pas</b> dans les 5 chars de map standard ; à toi de définir comment tu les places (souvent un 6ᵉ char dans une map bonus, ou des positions codées).</p>
+
+<div class="callout hint">
+<div class="lbl">★ Garde la barre basse</div>
+Le sujet dit lui-même : « don't spend too much time on this assignment ». Un aller-retour d'ennemi + une anim 2 frames + le compteur à l'écran suffisent à empocher les bonus. Pas besoin d'une IA.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>10.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Bonus évalué <b>seulement</b> si mandatory parfait → finis le mandatory d'abord</li>
+<li>3 bonus : ennemis (game over au contact), anims, compteur à l'écran</li>
+<li>Anims via <code>mlx_loop_hook</code> + garde temporelle (<code>gettimeofday</code>)</li>
+<li>Compteur écran via <code>mlx_string_put</code>, ré-affiché à chaque move</li>
+<li>Fichiers <code>_bonus.c/h</code> + règle <code>bonus</code> au Makefile</li>
+<li>Reste simple — le sujet le dit explicitement</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="09-makefile.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le Makefile</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="11-pieges-faq.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Pièges &amp; FAQ</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

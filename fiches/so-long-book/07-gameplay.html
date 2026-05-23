@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Déplacements, events &amp; compteur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 07 · Gameplay</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li class="active"><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 07</div>
+  <h1>Déplacements, events &amp; compteur</h1>
+  <div class="ch-sub">le cœur du jeu : bouger, collecter, gagner, compter</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>7.1 — Les touches à gérer</h2>
+<p>Le sujet impose <b>W A S D</b> pour bouger dans les 4 directions. ZQSD et les flèches sont <b>autorisés en plus</b> (note du sujet) — un bon réflexe sur clavier AZERTY/français.</p>
+
+<table>
+<tr><th>Action</th><th>Touches</th></tr>
+<tr><td>haut</td><td><code>W</code> / <code>Z</code> / flèche ↑</td></tr>
+<tr><td>bas</td><td><code>S</code> / flèche ↓</td></tr>
+<tr><td>gauche</td><td><code>A</code> / <code>Q</code> / flèche ←</td></tr>
+<tr><td>droite</td><td><code>D</code> / flèche →</td></tr>
+<tr><td>quitter</td><td><code>ESC</code></td></tr>
+</table>
+
+<div class="callout note">
+<div class="lbl">★ Les keycodes</div>
+Les touches arrivent dans ton callback sous forme de <b>keycode</b> (un <code>int</code>). Ils diffèrent entre Linux et macOS (ex. ESC = 65307 sur Linux, 53 sur macOS). Définis-les en <code>#define</code> en haut de ton header pour un code lisible.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>7.2 — La logique d'un déplacement</h2>
+<p>Chaque touche directionnelle calcule une <b>case cible</b> (la case voisine). Ce qu'on y trouve décide de la suite :</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// pseudo-code d'un move</span>
+cible = case voisine selon la direction
+
+si cible == '1' (mur):
+    ne rien faire   <span class="com">// le joueur ne bouge pas, pas de move compté</span>
+sinon:
+    si cible == 'C': collectibles_restants--   <span class="com">// on ramasse</span>
+    si cible == 'E':
+        si collectibles_restants == 0: VICTOIRE   <span class="com">// on sort</span>
+        sinon: on marche dessus mais on ne gagne pas encore
+    déplacer le joueur sur la cible
+    moves++
+    afficher moves
+    redessiner</pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Mur = pas de move</div>
+Le sujet dit : « the player should not be able to move into walls ». Si la cible est un mur, le joueur reste sur place <b>et</b> le compteur n'augmente pas. Incrémenter le compteur même quand on tape un mur est une erreur fréquente.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>7.3 — Le compteur de mouvements</h2>
+<div class="callout key">
+<div class="lbl">★ La règle</div>
+<span class="hl">« At every move, the current number of movements must be displayed in the shell. »</span> À chaque déplacement <b>valide</b>, tu affiches le total dans le terminal (avec ton <code>ft_printf</code> ou <code>write</code>).
+</div>
+
+<p>Deux styles d'affichage acceptés :</p>
+<div class="code-block">
+<pre class="code">Moves: 1
+Moves: 2
+Moves: 3        <span class="com">// une ligne par move (simple, clair)</span></pre>
+</div>
+<p>L'essentiel : le compteur est visible <b>dans le shell</b> à chaque pas. (L'afficher <i>sur la fenêtre</i> est un <b>bonus</b>, pas le mandatory — voir chap. 10.)</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>7.4 — La condition de victoire</h2>
+<p>On gagne quand le joueur atteint <code>E</code> <b>après</b> avoir ramassé tous les collectibles. Tant qu'il reste un <code>C</code>, marcher sur <code>E</code> ne fait rien de spécial (on passe dessus).</p>
+
+<div class="flow">
+  <div class="step">joueur arrive sur <b>E</b></div>
+  <div class="arrow">↓</div>
+  <div class="step">collectibles_restants == 0 ?</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>oui</b> → message de victoire + fermeture propre</div>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ À la victoire</div>
+Affiche un petit message (« You won in N moves! ») puis ferme la fenêtre et quitte <b>proprement</b> (même chemin de cleanup que ESC / croix — chap. 08). Pas de <code>exit()</code> sauvage qui leak.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>7.5 — Brancher les events</h2>
+<p>Deux callbacks au minimum :</p>
+<ul>
+  <li><b>clavier</b> : <code>mlx_hook(win, KeyPress, ...)</code> ou <code>mlx_key_hook</code> → ta fonction <code>handle_key</code></li>
+  <li><b>croix rouge</b> : <code>mlx_hook(win, DestroyNotify, ...)</code> → ta fonction de fermeture</li>
+</ul>
+
+<div class="callout warn">
+<div class="lbl">★ ESC et croix : même sortie</div>
+ESC (dans <code>handle_key</code>) et la croix (dans le hook <code>DestroyNotify</code>) doivent appeler la <b>même</b> fonction de cleanup. Sinon tu dupliques la logique de free et tu en oublies la moitié.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>7.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>WASD obligatoire ; ZQSD + flèches en bonus de confort</li>
+<li>Définis les keycodes en <code>#define</code></li>
+<li>Mur → pas de déplacement, pas de move compté</li>
+<li>Compteur affiché dans le <b>shell</b> à chaque move valide</li>
+<li>Victoire = sortie <code>E</code> avec 0 collectible restant</li>
+<li>ESC + croix → même fonction de fermeture propre</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="06-rendu.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le rendu</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="08-memoire.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Mémoire &amp; sortie propre</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

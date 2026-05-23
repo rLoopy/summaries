@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Mémoire &amp; sortie propre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 08 · Mémoire</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li class="active"><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 08</div>
+  <h1>Mémoire &amp; sortie propre</h1>
+  <div class="ch-sub">zéro leak toléré — c'est ici qu'on gagne ou qu'on perd des points</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>8.1 — Pourquoi c'est critique</h2>
+<p>Le sujet est ferme : <span class="hl">« Memory leaks will not be tolerated. »</span> et <span class="hl">« quit in a clean way »</span>. so_long alloue beaucoup (grille, copie du flood fill, images MLX, fenêtre, connexion). Si tu en oublies un, tu leakes. Et un leak ou un crash à la fermeture peut coûter la validation.</p>
+
+<div class="callout warn">
+<div class="lbl">★ MLX leak « connu »</div>
+Sur <code>minilibx-linux</code>, la connexion display laisse un petit reliquat même bien fermée. La pratique standard : <code>mlx_destroy_display(mlx)</code> puis <code>free(mlx)</code>. Sache l'expliquer si l'évaluateur lance Valgrind et voit ça — c'est documenté comme un comportement de la lib, pas de ton code.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.2 — L'inventaire de ce qu'il faut libérer</h2>
+<table>
+<tr><th>Ressource</th><th>Comment la libérer</th></tr>
+<tr><td>la grille <code>char **</code></td><td><code>free</code> chaque ligne, puis le tableau</td></tr>
+<tr><td>la copie du flood fill</td><td>idem, juste après le check (avant le jeu)</td></tr>
+<tr><td>chaque image <code>.xpm</code></td><td><code>mlx_destroy_image(mlx, img)</code></td></tr>
+<tr><td>la fenêtre</td><td><code>mlx_destroy_window(mlx, win)</code></td></tr>
+<tr><td>le display (Linux)</td><td><code>mlx_destroy_display(mlx)</code> puis <code>free(mlx)</code></td></tr>
+</table>
+
+<div class="callout hint">
+<div class="lbl">★ Une seule fonction de cleanup</div>
+Centralise tout dans une fonction <code>close_game(t_game *g)</code> qui libère <b>dans le bon ordre</b> (images → fenêtre → display → grille → struct) puis <code>exit(0)</code>. ESC, croix rouge et victoire l'appellent tous. Un seul endroit à maintenir = aucun oubli.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.3 — Le bon ordre de libération</h2>
+<div class="flow">
+  <div class="step">1. <code>mlx_destroy_image</code> × chaque texture</div>
+  <div class="arrow">↓</div>
+  <div class="step">2. <code>mlx_destroy_window(mlx, win)</code></div>
+  <div class="arrow">↓</div>
+  <div class="step">3. <code>mlx_destroy_display(mlx)</code> + <code>free(mlx)</code></div>
+  <div class="arrow">↓</div>
+  <div class="step">4. free de la grille + de la struct</div>
+  <div class="arrow">↓</div>
+  <div class="step">5. <code>exit(0)</code> (ou message d'erreur + <code>exit(1)</code>)</div>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Le piège du free partiel</div>
+Quand une erreur survient <b>au milieu</b> de l'init (ex. la 3ᵉ texture est NULL), il faut libérer ce qui a <b>déjà</b> été alloué. Écris des helpers de free robustes aux pointeurs <code>NULL</code> (un <code>free(NULL)</code> est sûr ; un <code>mlx_destroy_image(mlx, NULL)</code> ne l'est pas → teste avant).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.4 — Tester ses leaks</h2>
+<p>Sur Linux, l'outil de référence c'est <b>Valgrind</b> :</p>
+<div class="code-block">
+<pre class="code">valgrind --leak-check=full --show-leak-kinds=all ./so_long maps/valid.ber</pre>
+</div>
+<div class="callout note">
+<div class="lbl">★ Lire le rapport</div>
+Sépare <b>tes</b> leaks (dans ton code — à corriger absolument) des reliquats <b>de la MLX/X11</b> (souvent « still reachable », hors de ton contrôle). Tu dois pouvoir pointer chaque bloc et dire d'où il vient. Quitte le jeu via ESC <b>et</b> via la croix pendant le test : les deux chemins doivent être clean.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>8.5 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Zéro leak, zéro crash à la fermeture = non négociable</li>
+<li>Une fonction <code>close_game</code> unique, appelée par ESC, croix, victoire</li>
+<li>Ordre : images → window → display+free(mlx) → grille → struct → exit</li>
+<li>Helpers de free robustes aux <code>NULL</code> (pour les erreurs en cours d'init)</li>
+<li>Tester avec Valgrind, en sortant par ESC <b>et</b> par la croix</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="07-gameplay.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Gameplay</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="09-makefile.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Le Makefile</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

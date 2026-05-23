@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — MiniLibX : la lib graphique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 02 · MiniLibX</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li class="active"><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 02</div>
+  <h1>MiniLibX : la lib graphique</h1>
+  <div class="ch-sub">window, image, hooks — les briques de base à comprendre</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>2.1 — C'est quoi MiniLibX ?</h2>
+<p>La <b>MiniLibX (MLX)</b> est une mini-bibliothèque graphique développée en interne à 42. Elle te donne le strict nécessaire : ouvrir une fenêtre, dessiner des pixels/images dedans, et écouter le clavier et la souris. Elle s'appuie sur X11 (Linux) ou OpenGL (macOS).</p>
+
+<div class="callout note">
+<div class="lbl">★ Deux versions</div>
+Sur les machines de l'école elle est préinstallée. Sinon tu clones les <b>sources</b> et tu compiles. Sur Linux on utilise généralement <code>minilibx-linux</code> (la version maintenue), qui se link avec <code>-lXext -lX11 -lm</code>.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.2 — Le cycle de vie d'un programme MLX</h2>
+<div class="flow">
+  <div class="step"><b>mlx_init()</b><br>connexion au serveur graphique</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>mlx_new_window()</b><br>crée la fenêtre</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>charger images + dessiner</b><br>textures → image → fenêtre</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>mlx_hook / key_hook</b><br>brancher clavier + croix</div>
+  <div class="arrow">↓</div>
+  <div class="step"><b>mlx_loop()</b><br>boucle infinie d'événements</div>
+</div>
+
+<p><code>mlx_loop()</code> ne rend jamais la main : c'est lui qui appelle tes fonctions de callback quand un événement arrive (touche pressée, fenêtre fermée…). Tout ce qui doit réagir au joueur vit dans ces callbacks.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.3 — Les fonctions clés</h2>
+<table>
+<tr><th>Fonction</th><th>Rôle</th></tr>
+<tr><td><code>mlx_init()</code></td><td>initialise la connexion, retourne le pointeur <code>mlx</code></td></tr>
+<tr><td><code>mlx_new_window(mlx, w, h, title)</code></td><td>ouvre une fenêtre de taille <code>w×h</code></td></tr>
+<tr><td><code>mlx_xpm_file_to_image(...)</code></td><td>charge un fichier <code>.xpm</code> en image MLX</td></tr>
+<tr><td><code>mlx_put_image_to_window(...)</code></td><td>colle une image à la position (x, y) dans la fenêtre</td></tr>
+<tr><td><code>mlx_string_put(...)</code></td><td>écrit du texte (utile bonus : compteur à l'écran)</td></tr>
+<tr><td><code>mlx_hook(win, event, mask, fn, param)</code></td><td>branche un callback générique (ex : la croix rouge)</td></tr>
+<tr><td><code>mlx_key_hook / mlx_loop_hook</code></td><td>callbacks clavier / boucle (anims bonus)</td></tr>
+<tr><td><code>mlx_loop(mlx)</code></td><td>lance la boucle d'événements (bloquante)</td></tr>
+<tr><td><code>mlx_destroy_window / _image / _display</code></td><td>libèrent les ressources MLX (chap. 08)</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.4 — Image vs pixel : pourquoi les images sont obligatoires</h2>
+<p>Le sujet exige explicitement : <span class="hl">« The use of the images of the MiniLibX is mandatory »</span>. Pourquoi ?</p>
+
+<div class="compare">
+  <div class="col bad">
+    <h4>✗ pixel par pixel</h4>
+    <code>mlx_pixel_put</code> dessine directement dans la fenêtre, un pixel à la fois. C'est <b>très lent</b> et ça scintille. Interdit comme méthode principale ici.
+  </div>
+  <div class="col good">
+    <h4>✓ images / textures</h4>
+    On charge une <b>image</b> une fois (depuis un <code>.xpm</code>), puis on la <b>colle</b> en bloc avec <code>mlx_put_image_to_window</code>. Rapide, propre, et exigé par le sujet.
+  </div>
+</div>
+
+<div class="callout key">
+<div class="lbl">★ Le concept .xpm</div>
+Un <code>.xpm</code> est un format d'image en texte (un tableau de couleurs) que MLX sait lire nativement via <code>mlx_xpm_file_to_image</code>. Tu prépares une texture par type de case : <b>mur, sol, joueur, collectible, sortie</b>. Toutes à la même taille (ex. 64×64).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.5 — Les events à gérer</h2>
+<p>Le sujet impose un comportement précis sur deux événements :</p>
+<ul>
+  <li><b>Touche ESC</b> → ferme la fenêtre et quitte <b>proprement</b></li>
+  <li><b>Clic sur la croix rouge</b> de la fenêtre → ferme et quitte <b>proprement</b></li>
+</ul>
+
+<div class="callout warn">
+<div class="lbl">★ La croix rouge piège tout le monde</div>
+La croix n'est <b>pas</b> une touche : c'est l'événement <code>DestroyNotify</code> (code 17) qu'on branche avec <code>mlx_hook</code>. Beaucoup d'étudiants gèrent ESC mais oublient la croix → le programme leak ou ne quitte pas proprement. Les deux doivent appeler ta même fonction de fermeture (chap. 08).
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>2.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Cycle : <code>init</code> → <code>new_window</code> → images → hooks → <code>mlx_loop</code></li>
+<li><code>mlx_loop</code> est bloquant : toute la logique vit dans les callbacks</li>
+<li>Images <b>obligatoires</b> (pas <code>pixel_put</code> en méthode principale)</li>
+<li>Une texture <code>.xpm</code> par type de case, même taille</li>
+<li>ESC <b>et</b> croix rouge → fermeture propre via la même fonction</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="01-projet.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le sujet &amp; le projet</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="03-map-ber.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Le format de map .ber</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

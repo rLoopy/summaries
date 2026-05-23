@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le format de map .ber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 03 · Le format .ber</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li class="active"><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 03</div>
+  <h1>Le format de map .ber</h1>
+  <div class="ch-sub">les 5 caractères et les règles de validité</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>3.1 — Les 5 caractères autorisés</h2>
+<p>Une map est un fichier texte avec l'extension <code>.ber</code>. Elle ne peut contenir que <b>5 caractères</b> (plus les retours à la ligne) :</p>
+
+<table>
+<tr><th>Char</th><th>Signification</th></tr>
+<tr><td><code>0</code></td><td>espace vide (le sol, on peut marcher dessus)</td></tr>
+<tr><td><code>1</code></td><td>un mur (infranchissable)</td></tr>
+<tr><td><code>C</code></td><td>un collectible (à ramasser)</td></tr>
+<tr><td><code>E</code></td><td>la sortie (map exit)</td></tr>
+<tr><td><code>P</code></td><td>la position de départ du joueur (player)</td></tr>
+</table>
+
+<div class="callout warn">
+<div class="lbl">★ Aucun autre caractère</div>
+Tout caractère qui n'est pas dans cette liste (espace, lettre, chiffre autre…) rend la map <b>invalide</b>. Ton parsing doit refuser <code>./so_long maps/azerty.ber</code> si la grille contient un <code>9</code> ou un <code>X</code>.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>3.2 — Une map valide minimale</h2>
+<div class="ascii">1111111111111
+1001000000C11
+1000011110001
+1P0011E0000 1   ← (exemple inspiré du sujet)
+1111111111111</div>
+
+<p>Lecture : un rectangle entièrement <b>entouré de murs</b> <code>1</code>, avec un <code>P</code> (départ), un <code>E</code> (sortie) et au moins un <code>C</code> à l'intérieur. Le joueur part de <code>P</code> et doit pouvoir atteindre le <code>C</code> puis le <code>E</code> sans traverser de mur.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>3.3 — Les 5 règles de validité</h2>
+<p>Pour qu'une map soit acceptée, <b>toutes</b> ces conditions doivent être vraies :</p>
+
+<div class="callout key">
+<div class="lbl">★ Les règles du sujet</div>
+<ol>
+<li>Exactement <b>1 sortie</b> <code>E</code></li>
+<li>Exactement <b>1 départ</b> <code>P</code></li>
+<li><b>Au moins 1</b> collectible <code>C</code></li>
+<li>La map est <b>rectangulaire</b> (toutes les lignes de même longueur)</li>
+<li>La map est <b>entièrement entourée de murs</b> <code>1</code></li>
+</ol>
+</div>
+
+<p>Et deux conditions « algorithmiques » en plus :</p>
+<ul>
+  <li>La map ne contient <b>que</b> les 5 caractères autorisés</li>
+  <li>Il existe un <b>chemin valide</b> : depuis <code>P</code>, on peut atteindre <code>E</code> et <b>tous</b> les <code>C</code> (→ chap. 05, le flood fill)</li>
+</ul>
+
+<div class="callout note">
+<div class="lbl">★ Doublons</div>
+Le sujet précise : si la map contient des <b>caractères en double</b> qui devraient être uniques (plusieurs <code>P</code> ou plusieurs <code>E</code>), il faut afficher une erreur. Donc on compte : <code>P == 1</code>, <code>E == 1</code>, <code>C &gt;= 1</code>.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>3.4 — Galerie d'invalides</h2>
+<p>Savoir ce qui doit <b>échouer</b> est aussi important que le cas qui marche. Voici des maps à rejeter :</p>
+
+<h4>✗ Pas fermée (trou dans le mur)</h4>
+<div class="ascii">11111
+10C0<span class="hl">0</span>   ← bord droit pas un mur
+1P0E1
+11111</div>
+
+<h4>✗ Pas rectangulaire</h4>
+<div class="ascii">1111111
+1P0C001
+10E11      ← ligne plus courte
+1111111</div>
+
+<h4>✗ Pas de collectible</h4>
+<div class="ascii">11111
+1P0E1
+11111   ← aucun C → invalide</div>
+
+<h4>✗ Deux joueurs</h4>
+<div class="ascii">1111111
+1P0C0P1   ← 2 P → invalide
+100E001
+1111111</div>
+
+<h4>✗ Chemin bloqué par un mur</h4>
+<div class="ascii">1111111
+1P011C1   ← C inaccessible (mur entre P et C)
+10011E1
+1111111</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>3.5 — La gestion d'erreur attendue</h2>
+<div class="callout warn">
+<div class="lbl">★ Format imposé</div>
+En cas de map invalide (ou d'argument foireux), le programme doit <b>quitter proprement</b> et afficher <code>"Error\n"</code> suivi d'un <b>message explicite de ton choix</b> sur la ligne suivante. Exemple :
+<div class="code-block" style="margin-top:8px;">
+<pre class="code">Error
+Map is not rectangular</pre>
+</div>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Détail souvent oublié</div>
+Vérifie aussi l'<b>extension</b> du fichier : l'argument doit finir par <code>.ber</code>. Un argument <code>map.txt</code> ou sans argument du tout doit produire une erreur propre, pas un crash.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>3.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>5 chars seulement : <code>0 1 C E P</code></li>
+<li><b>1</b> P, <b>1</b> E, <b>≥1</b> C</li>
+<li>Rectangulaire + entourée de murs</li>
+<li>Chemin valide vers E et tous les C (chap. 05)</li>
+<li>Erreur = <code>"Error\n"</code> + message explicite, sortie propre</li>
+<li>Vérifier aussi l'extension <code>.ber</code></li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="02-minilibx.html" class="nav-link"><span class="dir">← précédent</span><span class="name">MiniLibX</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="04-parsing.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Parsing &amp; validation</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

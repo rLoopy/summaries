@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le flood fill : chemin valide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 05 · Le flood fill</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li class="active"><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 05</div>
+  <h1>Le flood fill : vérifier le chemin</h1>
+  <div class="ch-sub">l'algo qui fait galérer — explication, pas solution</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>5.1 — Le problème</h2>
+<p>Le sujet impose : <span class="hl">« You must verify if there is a valid path in the map. »</span> Une map peut être parfaitement rectangulaire, fermée, avec 1 P, 1 E et des C… et rester <b>injouable</b> si un mur isole un collectible ou la sortie.</p>
+
+<div class="callout key">
+<div class="lbl">★ Ce qu'on doit prouver</div>
+Depuis la case <code>P</code>, en se déplaçant uniquement sur des cases <b>non-mur</b> (haut/bas/gauche/droite), on doit pouvoir atteindre <b>la sortie E</b> ET <b>chacun des collectibles C</b>.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.2 — L'idée du flood fill</h2>
+<p>« Flood fill » = remplissage par diffusion, comme le pot de peinture de Paint. On part de <code>P</code> et on « inonde » toutes les cases accessibles de proche en proche. À la fin, ce qui n'est pas inondé est <b>inaccessible</b>.</p>
+
+<div class="flow">
+  <div class="step">on part de la position de <b>P</b></div>
+  <div class="arrow">↓</div>
+  <div class="step">on marque la case comme « visitée »</div>
+  <div class="arrow">↓</div>
+  <div class="step">on récurse sur les 4 voisins (haut, bas, gauche, droite)</div>
+  <div class="arrow">↓</div>
+  <div class="step">on s'arrête sur un mur <code>1</code> ou une case déjà visitée</div>
+</div>
+
+<p>Pendant l'inondation, on peut soit <b>compter</b> les C et E atteints, soit, après coup, vérifier qu'il ne reste plus aucun C ni E non-visité.</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.3 — Le pattern récursif (pseudo-code)</h2>
+<div class="code-block">
+<pre class="code"><span class="com">// PSEUDO-CODE — à toi de l'implémenter en C</span>
+flood(copie, y, x):
+    si hors limites: return
+    si copie[y][x] == '1' (mur): return
+    si copie[y][x] == 'V' (déjà visité): return
+
+    marque copie[y][x] = 'V'
+
+    flood(copie, y - 1, x)   <span class="com">// haut</span>
+    flood(copie, y + 1, x)   <span class="com">// bas</span>
+    flood(copie, y, x - 1)   <span class="com">// gauche</span>
+    flood(copie, y, x + 1)   <span class="com">// droite</span></pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Travaille sur une COPIE</div>
+Le flood fill <b>écrase</b> les cases avec un marqueur (<code>'V'</code>). Si tu le fais sur la vraie grille, tu détruis tes C/E/P et ta map est inutilisable pour le rendu. <b>Duplique la grille</b> (un <code>char **</code> tout neuf), inonde la copie, puis libère-la. La vraie map reste intacte.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.4 — Vérifier le résultat</h2>
+<p>Deux stratégies, choisis-en une :</p>
+
+<div class="compare">
+  <div class="col good">
+    <h4>A — compter pendant l'inondation</h4>
+    Avant le flood, tu connais le total : <code>nb_C</code> et 1 <code>E</code>. Pendant l'inondation, à chaque case <code>C</code> ou <code>E</code> visitée, tu décrémentes. À la fin, si tout est à 0 → chemin valide.
+  </div>
+  <div class="col good">
+    <h4>B — scanner après coup</h4>
+    Après le flood, tu re-parcours la copie : s'il reste un <code>C</code> ou un <code>E</code> non transformé en <code>'V'</code>, c'est qu'il était inaccessible → invalide.
+  </div>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Recommandation</div>
+La méthode <b>B</b> est souvent plus simple à défendre : « j'inonde, puis je cherche s'il reste un C ou un E ; s'il en reste un, il était isolé ». Une seule logique, facile à expliquer à l'évaluateur.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.5 — Exemple visuel</h2>
+<p>Map de départ (P en bas à gauche) :</p>
+<div class="ascii">11111
+1P0C1
+10011
+1E0C1
+11111</div>
+
+<p>Après flood depuis P (V = inondé) — le E et un C en bas sont <b>coupés</b> par la ligne de murs <code>10011</code> :</p>
+<div class="ascii">11111
+1VVV1   ← P, sol et le C du haut atteints
+1VV11
+1E0C1   ← E et ce C restent NON visités
+11111</div>
+
+<div class="callout warn">
+<div class="lbl">★ Verdict</div>
+Il reste un <code>E</code> et un <code>C</code> non inondés → <b>map invalide</b>. Le programme affiche <code>Error</code> + message et quitte, sans ouvrir de fenêtre.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.6 — Les pièges du flood fill</h2>
+<div class="callout warn">
+<div class="lbl">★ Attention</div>
+<ul>
+<li><b>Oublier la copie</b> → tu détruis ta map (le bug n°1)</li>
+<li><b>Oublier de libérer la copie</b> → leak</li>
+<li><b>Récursion sans garde « hors limites »</b> → segfault sur les bords (mais comme la map est entourée de murs, le mur stoppe avant… à condition que le check « murs autour » soit passé <b>avant</b>)</li>
+<li><b>Stack overflow</b> sur une map énorme : la récursion peut être profonde. En pratique les maps d'eval sont raisonnables, mais sache l'expliquer</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>5.7 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Flood fill = inonder depuis <code>P</code> les cases accessibles</li>
+<li>Récursion sur les 4 directions, stop sur mur ou case visitée</li>
+<li>Toujours sur une <b>copie</b> de la grille (puis la free)</li>
+<li>Valide si on atteint <b>E et tous les C</b></li>
+<li>Vérif simple : après flood, s'il reste un C ou E → invalide</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="04-parsing.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Parsing &amp; validation</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="06-rendu.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Le rendu</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>

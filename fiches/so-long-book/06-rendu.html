@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long — Le rendu : afficher la map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+<script defer src="theme.js?v=6"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="title"><a href="index.html">🐬 so_long — gitbook</a></div>
+  <div class="breadcrumb">Ch. 06 · Le rendu</div>
+</div>
+<div class="page">
+<aside class="sidebar"><h3>📖 Sommaire</h3><ol><li><a href="01-projet.html">Le sujet &amp; le projet</a></li><li><a href="02-minilibx.html">MiniLibX : la lib graphique</a></li><li><a href="03-map-ber.html">Le format de map .ber</a></li><li><a href="04-parsing.html">Parsing &amp; validation</a></li><li><a href="05-flood-fill.html">Le flood fill : chemin valide</a></li><li class="active"><a href="06-rendu.html">Le rendu : afficher la map</a></li><li><a href="07-gameplay.html">Déplacements, events &amp; compteur</a></li><li><a href="08-memoire.html">Mémoire &amp; sortie propre</a></li><li><a href="09-makefile.html">Le Makefile</a></li><li><a href="10-bonus.html">Le bonus</a></li><li><a href="11-pieges-faq.html">Pièges &amp; FAQ defense</a></li><li><a href="12-checklist.html">Checklist &amp; README</a></li></ol></aside>
+<main>
+<header class="chapter-header">
+  <div class="ch-num">CHAPITRE 06</div>
+  <h1>Le rendu : afficher la map</h1>
+  <div class="ch-sub">des textures .xpm à la fenêtre, case par case</div>
+</header>
+
+<section>
+<h2><span class="num">§</span>6.1 — La taille de la fenêtre</h2>
+<p>Chaque case de la map fait <code>TILE × TILE</code> pixels (souvent 32, 48 ou 64). La fenêtre se dimensionne donc à partir de la map :</p>
+
+<div class="code-block">
+<pre class="code">largeur_fenetre = map.cols * TILE
+hauteur_fenetre = map.rows * TILE</pre>
+</div>
+
+<div class="callout note">
+<div class="lbl">★ Pourquoi calculer ?</div>
+La fenêtre doit coller exactement à la map, peu importe sa taille. Une fenêtre fixe (ex. 1280×720) couperait les grandes maps ou laisserait du vide sur les petites. On la calcule donc dynamiquement.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>6.2 — Charger les textures une fois</h2>
+<p>Au lancement (après la validation), tu charges chaque <code>.xpm</code> en image MLX <b>une seule fois</b>, et tu gardes les pointeurs dans ta struct :</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// 5 textures de base (mandatory)</span>
+img.wall  = mlx_xpm_file_to_image(mlx, <span class="str">"textures/wall.xpm"</span>, &amp;w, &amp;h);
+img.floor = mlx_xpm_file_to_image(mlx, <span class="str">"textures/floor.xpm"</span>, &amp;w, &amp;h);
+img.player= mlx_xpm_file_to_image(mlx, <span class="str">"textures/player.xpm"</span>, &amp;w, &amp;h);
+img.coll  = mlx_xpm_file_to_image(mlx, <span class="str">"textures/collect.xpm"</span>, &amp;w, &amp;h);
+img.exit  = mlx_xpm_file_to_image(mlx, <span class="str">"textures/exit.xpm"</span>, &amp;w, &amp;h);</pre>
+</div>
+
+<div class="callout warn">
+<div class="lbl">★ Toujours tester le retour</div>
+<code>mlx_xpm_file_to_image</code> renvoie <code>NULL</code> si le fichier manque ou est mal formé. Si tu ne testes pas, tu colles une image NULL → crash. Vérifie chaque chargement et quitte proprement sinon. C'est pour ça que <code>textures/</code> doit être dans le repo.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>6.3 — La boucle de dessin</h2>
+<p>Pour afficher la map, on parcourt la grille et, pour chaque case, on colle la bonne image à la position pixel correspondante :</p>
+
+<div class="code-block">
+<pre class="code"><span class="com">// pseudo-code</span>
+pour y de 0 à rows-1:
+    pour x de 0 à cols-1:
+        <span class="com">// le sol d'abord, partout (sauf murs)</span>
+        choisir l'image selon grid[y][x]:
+            '1' → wall
+            '0' → floor
+            'C' → collectible
+            'E' → exit
+            'P' → player
+        mlx_put_image_to_window(mlx, win, image, x*TILE, y*TILE)</pre>
+</div>
+
+<div class="callout hint">
+<div class="lbl">★ Sol sous les objets</div>
+Le joueur, les collectibles et la sortie se posent <b>sur</b> du sol. Une approche propre : dessiner le <code>floor</code> partout d'abord, puis re-coller le joueur/collectible/exit par-dessus aux bonnes cases. Avec des textures sans transparence, tu peux aussi mapper directement chaque char à une image pleine — au choix.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>6.4 — Coordonnées : (x, y) vs (col, row)</h2>
+<div class="callout key">
+<div class="lbl">★ Le piège d'inversion</div>
+Dans la grille, on indexe <code>grid[y][x]</code> : <b>y = ligne (row)</b>, <b>x = colonne (col)</b>. Mais <code>mlx_put_image_to_window</code> attend <code>(x_pixel, y_pixel)</code> dans l'ordre <b>x puis y</b>. Donc on colle à <code>(x*TILE, y*TILE)</code>. Inverser les deux est l'erreur classique : la map s'affiche en miroir/transposée.
+</div>
+</section>
+
+<section>
+<h2><span class="num">§</span>6.5 — Quand redessiner ?</h2>
+<p>so_long n'est <b>pas en temps réel</b> (le sujet le dit). On ne redessine que <b>quand le joueur bouge</b>. Le flux :</p>
+
+<div class="flow">
+  <div class="step">touche pressée (callback clavier)</div>
+  <div class="arrow">↓</div>
+  <div class="step">on met à jour la position dans la grille</div>
+  <div class="arrow">↓</div>
+  <div class="step">on redessine (au moins la zone qui change)</div>
+</div>
+
+<p>Le plus simple pour commencer : tout redessiner à chaque move. C'est suffisant pour le mandatory. Tu peux optimiser plus tard (ne redessiner que l'ancienne et la nouvelle case du joueur).</p>
+</section>
+
+<section>
+<h2><span class="num">§</span>6.6 — Récap</h2>
+<div class="callout key">
+<div class="lbl">★ À retenir</div>
+<ul>
+<li>Fenêtre dimensionnée : <code>cols*TILE × rows*TILE</code></li>
+<li>Charger chaque <code>.xpm</code> une fois, garder les pointeurs</li>
+<li>Tester le retour de <code>mlx_xpm_file_to_image</code> (NULL = erreur)</li>
+<li>Double boucle : coller la bonne image à <code>(x*TILE, y*TILE)</code></li>
+<li>Ne pas inverser x et y dans <code>put_image_to_window</code></li>
+<li>Redessiner à chaque déplacement (pas de temps réel)</li>
+</ul>
+</div>
+</section>
+
+<nav class="nav-bottom">
+  <a href="05-flood-fill.html" class="nav-link"><span class="dir">← précédent</span><span class="name">Le flood fill</span></a>
+  <a href="index.html" class="home-link">Sommaire</a>
+  <a href="07-gameplay.html" class="nav-link next"><span class="dir">suivant →</span><span class="name">Déplacements &amp; events</span></a>
+</nav>
+</main>
+</div>
+</body>
+</html>
