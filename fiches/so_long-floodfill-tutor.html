@@ -562,7 +562,14 @@ function renderFrame(f) {
     const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
     if (line) {
       line.classList.add('active');
-      line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const panel = document.querySelector('.code-panel');
+      if (panel) {
+        const lineTop = line.offsetTop;
+        const lineH = line.offsetHeight;
+        const panelH = panel.clientHeight;
+        const target = lineTop - panelH / 2 + lineH / 2;
+        panel.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      }
     }
   }
 
