@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — main flow (narré)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 1220px !important; }
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 18px 22px; box-shadow: 5px 5px 0 var(--ink); margin: 20px 0; }
+.intro h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin: 0 0 10px; }
+.intro p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 8px 0; }
+.intro code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+.ex-chip.ok { border-color: #2f8b4d; }
+.ex-chip.ko { border-color: #c1272d; }
+.ex-chip.silent { border-color: #5c92bf; }
+
+.top-banner { background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; box-shadow: 3px 3px 0 var(--accent); flex-wrap: wrap; }
+.top-banner .tag { background: var(--hl-yellow); color: var(--ink); font-weight: 700; padding: 4px 10px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; min-width: 90px; text-align: center; }
+.top-banner .tag.ok { background: #9DD6A8; }
+.top-banner .tag.err { background: #FF8B6B; color: #fff; }
+.top-banner .tag.silent { background: #BDD7F0; }
+.top-banner .tag.inside { background: #D9CAF0; }
+.top-banner .scope { font-size: 12px; font-family: 'Patrick Hand', cursive; opacity: 0.85; }
+
+.grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 14px; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.code-panel { background: #1C1A28; border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.85; color: #E9E5F0; }
+.code-panel h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 15px; color: var(--hl-yellow); margin: 0 0 10px; text-align: center; letter-spacing: 1px; }
+.code-line { padding: 2px 10px 2px 44px; position: relative; border-radius: 3px; margin: 1px 0; white-space: pre; }
+.code-line::before { content: attr(data-lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.28); border-left: 3px solid var(--hl-yellow); padding-left: 41px; font-weight: 700; }
+.code-line.active.ok { background: rgba(157,214,168,0.28); border-left-color: #9DD6A8; }
+.code-line.active.err { background: rgba(255,120,120,0.28); border-left-color: #ff7878; }
+.code-line.active.silent { background: rgba(189,215,240,0.28); border-left-color: #BDD7F0; }
+.code-line.active.inside { background: rgba(217,202,240,0.22); border-left-color: #D9CAF0; }
+.kw { color: #A5D8A8; } .fn { color: #C0B3E0; } .tp { color: #79B8D8; } .num { color: #FFB380; } .str { color: #FFD88A; } .cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 10px; }
+.state-box { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--ink); padding: 10px 14px; }
+.state-box h4 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; margin: 0 0 6px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+.state-box.highlight { box-shadow: 4px 4px 0 var(--accent); transform: translate(-1px,-1px); }
+.state-box .val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink); }
+.state-box .val.empty { color: var(--muted); font-style: italic; }
+
+.slot-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.slot { padding: 3px 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; min-width: 28px; text-align: center; box-shadow: 1px 1px 0 var(--ink); }
+.slot.ok { background: #BFE6CC; }
+.slot.bad { background: #FFCACA; }
+.slot.new { animation: pulse 0.5s ease; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); background: var(--hl-yellow); } 100% { transform: scale(1); } }
+.slot.null-marker { background: var(--paper-e); color: var(--muted); font-style: italic; font-size: 11px; }
+
+.stdio-box { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #1C1A28; color: #E9E5F0; padding: 6px 10px; border-radius: 5px; min-height: 22px; }
+.stdio-box.stderr { color: #FF8B6B; }
+.stdio-box.empty { color: #5C5A75; font-style: italic; }
+
+.exit-code { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; text-align: center; padding: 5px; border-radius: 5px; }
+.exit-code.ok { background: #BFE6CC; color: #2f8b4d; }
+.exit-code.err { background: #FFCACA; color: #c1272d; }
+.exit-code.pending { background: var(--paper-e); color: var(--muted); font-size: 15px; }
+
+.narration { background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 16px 20px; box-shadow: 4px 4px 0 var(--accent); margin-bottom: 14px; }
+.narration .nhead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px dashed var(--ink-soft); }
+.narration .nhead .nstep { font-family: 'Kalam', cursive; font-weight: 700; font-size: 15px; color: var(--accent-d); }
+.narration .nhead .nscope { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--paper-d); padding: 2px 8px; border: 1.5px solid var(--ink); border-radius: 4px; color: var(--ink); text-transform: uppercase; letter-spacing: 1px; }
+.narration .ntext { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.55; color: var(--ink); }
+.narration .ntext code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; font-weight: 600; }
+.narration .ntext b { color: var(--accent-d); }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft); text-align: center; margin-top: 12px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap — main flow (narré)</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">main flow</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">version narrée : main.c + explications détaillées ↓</div>
+</section>
+
+<main>
+
+<div class="intro">
+  <h2>🎯 Version narrée (juste milieu)</h2>
+  <p>Le code panel reste <b>toujours sur main.c</b>. Mais cette fois on passe par <b>~15-20 frames</b> par scénario, avec une <b>narration détaillée</b> (3-4 lignes d'explication par étape) qui te dit exactement ce qui se passe — même quand c'est invisible dans main.c (genre pendant que parse_args travaille).</p>
+  <p>Quand on est "à l'intérieur de parse_args", un <b>badge violet "inside parse_args"</b> apparaît, et la ligne 8 (l'appel) reste highlightée.</p>
+</div>
+
+<div class="debugger">
+  <div class="examples" id="examples"></div>
+
+  <div class="top-banner">
+    <div class="tag" id="phase-tag">ready</div>
+    <span class="scope" id="phase-scope"></span>
+  </div>
+
+  <div class="narration">
+    <div class="nhead">
+      <span class="nstep" id="nstep">étape 0</span>
+      <span class="nscope" id="nscope">main</span>
+    </div>
+    <div class="ntext" id="ntext">Choisis un scénario et clique next.</div>
+  </div>
+
+  <div class="grid">
+    <div class="code-panel">
+      <h3>main.c</h3>
+      <div id="code"></div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-box" id="box-argv">
+        <h4>argv</h4>
+        <div class="slot-row" id="argv-slots"></div>
+      </div>
+
+      <div class="state-box" id="box-n">
+        <h4>n (dans main)</h4>
+        <div class="val" id="n-val">?</div>
+      </div>
+
+      <div class="state-box" id="box-values">
+        <h4>values (int *)</h4>
+        <div id="values-content"><div class="val empty">(pas encore alloué)</div></div>
+      </div>
+
+      <div class="state-box" id="box-stderr">
+        <h4>stderr (fd 2)</h4>
+        <div class="stdio-box empty" id="stderr-out">(vide)</div>
+      </div>
+
+      <div class="state-box" id="box-exit">
+        <h4>exit code</h4>
+        <div class="exit-code pending" id="exit-val">?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctrls">
+    <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+    <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+    <button class="ctrl-btn" id="btn-play">▶ play</button>
+    <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+    <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+      vitesse : <input type="range" id="speed" min="300" max="3000" value="1400" step="100">
+    </label>
+  </div>
+
+  <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">main flow narré ✌</div>
+  <div class="footer-meta">push_swap · <a href="push_swap-simple-tutor.html">version simple</a> · <a href="push_swap-full-tutor.html">full tutor</a> · <a href="../../index.html">dashboard</a></div>
+</footer>
+
+<script>
+const CODE = [
+  '<span class="tp">int</span>\t<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+  '{',
+  '\t<span class="tp">int</span>\tn;',
+  '\t<span class="tp">int</span>\t*values;',
+  '',
+  '\t<span class="kw">if</span> (argc &lt; <span class="num">2</span>)',
+  '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '\tvalues = <span class="fn">parse_args</span>(argc, argv, &amp;n);',
+  '\t<span class="kw">if</span> (!values)',
+  '\t{',
+  '\t\t<span class="fn">write</span>(<span class="num">2</span>, <span class="str">"Error\\n"</span>, <span class="num">6</span>);',
+  '\t\t<span class="kw">return</span> (<span class="num">1</span>);',
+  '\t}',
+  '\t<span class="fn">free</span>(values);',
+  '\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '}',
+];
+
+function simulate(scenario) {
+  const frames = [];
+  const argv = scenario.argv;
+  let n = null, values = null, valuesFreed = false;
+  let stderr = '', exitCode = null;
+
+  const snap = (line, scope, tag, text, opts = {}) => {
+    frames.push({
+      line, scope, tag, text,
+      argv: [...argv], n, values: values ? [...values] : null, valuesFreed,
+      stderr, exitCode,
+      focus: opts.focus || null,
+      newValueIdx: opts.newValueIdx ?? null,
+    });
+  };
+
+  snap(1, 'main', 'enter',
+    `<b>Programme démarre.</b> Le système a appelé <code>main</code> avec les arguments qu'on lui a donnés.<br>`
+    + `<code>argc = ${argv.length}</code>, <code>argv = ${JSON.stringify(argv)}</code>.`,
+    { focus: 'argv' });
+
+  snap(3, 'main', 'declare',
+    `<code>int n;</code> — on déclare une variable qui va recevoir le <b>nombre d'éléments</b>.<br>`
+    + `Pour l'instant elle contient du garbage (valeur non initialisée). Elle sera remplie par parse_args via un pointeur.`);
+
+  snap(4, 'main', 'declare',
+    `<code>int *values;</code> — on déclare un <b>pointeur</b> qui va recevoir le tableau d'ints retourné par parse_args.<br>`
+    + `Pas encore alloué, c'est juste un pointeur vide.`);
+
+  snap(6, 'main', 'check',
+    `<code>if (argc < 2)</code> ?<br>`
+    + (argv.length < 2
+      ? `<b>OUI</b> — argc = ${argv.length}, il n'y a que le nom du programme, pas d'arguments à trier.`
+      : `<b>NON</b> — argc = ${argv.length}, il y a des arguments. On continue.`));
+
+  if (argv.length < 2) {
+    exitCode = 0;
+    snap(7, 'main', 'silent',
+      `<code>return (0);</code> — <b>Silent exit.</b><br>`
+      + `Le sujet demande explicitement "If no parameters are specified, the program must not display anything and should return to the prompt". Donc on sort avec code 0, aucun output.`,
+      { focus: 'exit' });
+    return frames;
+  }
+
+  // Calling parse_args
+  snap(8, 'main', 'call',
+    `<code>values = parse_args(argc, argv, &n);</code><br>`
+    + `On appelle parse_args en lui passant <b>l'adresse de n</b> (avec le <code>&</code>) pour qu'il puisse écrire dedans.<br>`
+    + `Le résultat (un <code>int *</code> ou NULL en cas d'erreur) sera stocké dans values.`);
+
+  // ── Inside parse_args: tokenize ──
+  snap(8, 'parse', 'inside',
+    `<b>🔍 À l'intérieur de parse_args (étape 1/5)</b> : <b>tokenize</b>.<br>`
+    + `tokenize normalise argv en un tableau de strings. Si argc = 2 (single-string), elle splite sur les espaces. Sinon, elle copie chaque arg avec ft_strdup.`);
+
+  snap(8, 'parse', 'inside',
+    `tokenize a terminé : <code>tokens = [${scenario.tokens.slice(0, -1).map(t => '"' + t + '"').join(', ')}, NULL]</code>.<br>`
+    + `Ce tableau vit sur le <b>heap</b>. Chaque string est une copie allouée.`);
+
+  // count_tokens → sets *n
+  const nReal = scenario.tokens.filter(t => t !== null).length;
+  if (nReal === 0) {
+    snap(8, 'parse', 'inside',
+      `<b>count_tokens retourne 0</b> — l'utilisateur a passé "" ou "   ".<br>`
+      + `parse_args libère tokens et retourne <code>NULL</code>.`);
+    snap(8, 'main', 'parse-err',
+      `<b>Retour dans main.</b> <code>values = NULL</code> à cause de l'erreur de parsing.`,
+      { focus: 'values' });
+    snap(9, 'main', 'check',
+      `<code>if (!values)</code> ? → <b>OUI</b>, values est NULL. On entre dans le bloc d'erreur.`);
+    stderr = 'Error\n';
+    snap(11, 'main', 'err-write',
+      `<code>write(2, "Error\\n", 6);</code><br>`
+      + `On écrit <code>"Error\\n"</code> (6 octets) sur <b>stderr</b> (fd 2). Conforme au sujet.`,
+      { focus: 'stderr' });
+    exitCode = 1;
+    snap(12, 'main', 'err',
+      `<code>return (1);</code> — le programme sort avec code d'erreur 1.`,
+      { focus: 'exit' });
+    return frames;
+  }
+
+  n = nReal;
+  snap(8, 'parse', 'inside',
+    `<b>count_tokens</b> compte jusqu'au NULL et retourne <code>${nReal}</code>.<br>`
+    + `parse_args écrit ce nombre dans <code>*n</code>. <b>Ton n de main passe de <code>?</code> à <code>${nReal}</code></b> via le pointeur.`,
+    { focus: 'n' });
+
+  // convert_tokens
+  if (scenario.parseOk) {
+    snap(8, 'parse', 'inside',
+      `<b>convert_tokens</b> alloue <code>values</code> (${nReal} ints), puis pour chaque token appelle <code>is_number</code> (check format + range) et <code>ft_atol</code> (conversion).`);
+
+    // Show progressive filling
+    values = [];
+    for (let i = 0; i < scenario.values.length; i++) {
+      values.push(scenario.values[i]);
+      snap(8, 'parse', 'inside',
+        `<code>values[${i}] = ${scenario.values[i]}</code>. Le token <code>"${scenario.tokens[i]}"</code> a été validé puis converti.`,
+        { focus: 'values', newValueIdx: i });
+    }
+
+    snap(8, 'parse', 'inside',
+      `<b>free_tokens</b> libère les strings. On n'a plus besoin d'elles maintenant qu'on a les ints.`);
+
+    snap(8, 'parse', 'inside',
+      `<b>has_duplicates</b> check toutes les paires <code>(i, j)</code> avec <code>j > i</code>. <b>Aucun doublon trouvé.</b>`);
+
+    snap(8, 'parse', 'inside',
+      `parse_args retourne <code>values = [${scenario.values.join(', ')}]</code>.`);
+
+    // Back in main
+    snap(8, 'main', 'parse-ok',
+      `<b>Retour dans main.</b> <code>values</code> pointe vers le tableau. <code>n</code> vaut ${nReal} (mis à jour pendant l'appel).`,
+      { focus: 'values' });
+
+    snap(9, 'main', 'check',
+      `<code>if (!values)</code> ? → <b>NON</b>, tout s'est bien passé.`);
+
+    snap(14, 'main', 'free',
+      `<code>free(values);</code> — on libère le tableau avant de quitter. Pas de memory leak.`,
+      { focus: 'values' });
+    values = null; valuesFreed = true;
+    exitCode = 0;
+
+    snap(15, 'main', 'ok',
+      `<code>return (0);</code> — <b>Success.</b> Le programme sort avec exit code 0.`,
+      { focus: 'exit' });
+    return frames;
+  }
+
+  // Error path (not OK)
+  if (scenario.errType === 'notnum') {
+    // Show progressive conversion until bad token
+    values = [];
+    for (let i = 0; i < scenario.badIdx; i++) {
+      values.push(scenario.partialValues[i]);
+      snap(8, 'parse', 'inside',
+        `<code>values[${i}] = ${scenario.partialValues[i]}</code>. Token <code>"${scenario.tokens[i]}"</code> OK.`,
+        { focus: 'values', newValueIdx: i });
+    }
+    snap(8, 'parse', 'inside',
+      `<b>Check token <code>"${scenario.tokens[scenario.badIdx]}"</code> avec is_number...</b>`);
+    values = null;
+    snap(8, 'parse', 'inside',
+      `❌ <code>"${scenario.tokens[scenario.badIdx]}"</code> <b>n'est pas un nombre</b>. <code>convert_tokens</code> libère values et retourne NULL.<br>`
+      + `<code>free_tokens(tokens)</code> est aussi appelé. <code>parse_args</code> retourne NULL.`,
+      { focus: 'values' });
+  } else if (scenario.errType === 'dup') {
+    values = [];
+    for (let i = 0; i < scenario.values.length; i++) {
+      values.push(scenario.values[i]);
+      snap(8, 'parse', 'inside',
+        `<code>values[${i}] = ${scenario.values[i]}</code>. Token OK.`,
+        { focus: 'values', newValueIdx: i });
+    }
+    snap(8, 'parse', 'inside',
+      `<b>free_tokens</b> libère les strings.<br>`
+      + `<b>has_duplicates</b> check les paires...`);
+    snap(8, 'parse', 'inside',
+      `❌ <b>Doublon trouvé</b> : <code>values[${scenario.dupI}]</code> == <code>values[${scenario.dupJ}]</code> == <code>${scenario.values[scenario.dupI]}</code>.<br>`
+      + `<code>parse_args</code> libère values et retourne NULL.`,
+      { focus: 'values' });
+    values = null;
+  } else if (scenario.errType === 'overflow') {
+    values = [];
+    snap(8, 'parse', 'inside',
+      `<b>Check token <code>"${scenario.tokens[0]}"</code> avec is_number...</b>`);
+    snap(8, 'parse', 'inside',
+      `❌ <code>"${scenario.tokens[0]}"</code> <b>dépasse INT_MAX</b> (overflow).<br>`
+      + `<code>convert_tokens</code> libère values, <code>parse_args</code> retourne NULL.`,
+      { focus: 'values' });
+    values = null;
+  }
+
+  snap(8, 'main', 'parse-err',
+    `<b>Retour dans main.</b> <code>values = NULL</code> à cause de l'erreur détectée par parse_args.`,
+    { focus: 'values' });
+
+  snap(9, 'main', 'check',
+    `<code>if (!values)</code> ? → <b>OUI</b>, values est NULL. On entre dans le bloc d'erreur.`);
+
+  stderr = 'Error\n';
+  snap(11, 'main', 'err-write',
+    `<code>write(2, "Error\\n", 6);</code><br>`
+    + `On écrit <code>"Error\\n"</code> (6 octets) sur <b>stderr</b> (fd 2). Le sujet impose stderr pour les erreurs.`,
+    { focus: 'stderr' });
+  exitCode = 1;
+
+  snap(12, 'main', 'err',
+    `<code>return (1);</code> — exit avec code d'erreur non-zéro.`,
+    { focus: 'exit' });
+
+  return frames;
+}
+
+const SCENARIOS = [
+  {
+    label: '(no args) 🔵',
+    argv: ['./push_swap'],
+    tokens: [],
+    parseOk: null,
+    cat: 'silent',
+  },
+  {
+    label: '3 1 4 2 ✅',
+    argv: ['./push_swap', '3', '1', '4', '2'],
+    tokens: ['3', '1', '4', '2', null],
+    parseOk: true,
+    values: [3, 1, 4, 2],
+    cat: 'ok',
+  },
+  {
+    label: '3 abc 4 ❌',
+    argv: ['./push_swap', '3', 'abc', '4'],
+    tokens: ['3', 'abc', '4', null],
+    parseOk: false,
+    errType: 'notnum',
+    badIdx: 1,
+    partialValues: [3],
+    cat: 'ko',
+  },
+  {
+    label: '3 1 4 1 ❌ dup',
+    argv: ['./push_swap', '3', '1', '4', '1'],
+    tokens: ['3', '1', '4', '1', null],
+    parseOk: false,
+    errType: 'dup',
+    values: [3, 1, 4, 1],
+    dupI: 1, dupJ: 3,
+    cat: 'ko',
+  },
+  {
+    label: '9999999999 ❌ overflow',
+    argv: ['./push_swap', '9999999999'],
+    tokens: ['9999999999', null],
+    parseOk: false,
+    errType: 'overflow',
+    cat: 'ko',
+  },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = SCENARIOS.map((s, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''} ${s.cat}" data-idx="${idx}">${s.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadScenario(SCENARIOS[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode() {
+  document.getElementById('code').innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-lineno="${String(idx + 1).padStart(2, ' ')}" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderArgv(f) {
+  document.getElementById('argv-slots').innerHTML = f.argv.map((v, i) =>
+    `<div class="slot ${i === 0 ? 'null-marker' : ''}">"${v}"</div>`).join('');
+}
+
+function renderValues(f) {
+  const el = document.getElementById('values-content');
+  if (f.valuesFreed) {
+    el.innerHTML = '<div class="val empty">(freed)</div>';
+    return;
+  }
+  if (!f.values) {
+    el.innerHTML = '<div class="val empty">(NULL ou pas alloué)</div>';
+    return;
+  }
+  el.innerHTML = '<div class="slot-row">' + f.values.map((v, i) => {
+    let cls = 'slot ok';
+    if (f.newValueIdx === i) cls += ' new';
+    return `<div class="${cls}">${v}</div>`;
+  }).join('') + '</div>';
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active', 'err', 'ok', 'silent', 'inside'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    if (['err', 'err-write', 'parse-err'].includes(f.tag)) line.classList.add('err');
+    if (['ok', 'parse-ok', 'free'].includes(f.tag)) line.classList.add('ok');
+    if (f.tag === 'silent') line.classList.add('silent');
+    if (f.tag === 'inside') line.classList.add('inside');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  renderArgv(f);
+  document.getElementById('n-val').textContent = f.n === null ? '?' : f.n;
+  renderValues(f);
+
+  const sErr = document.getElementById('stderr-out');
+  if (f.stderr) { sErr.textContent = f.stderr.replace(/\n/g, '⏎'); sErr.className = 'stdio-box stderr'; }
+  else { sErr.textContent = '(vide)'; sErr.className = 'stdio-box empty'; }
+
+  const exit = document.getElementById('exit-val');
+  if (f.exitCode === null) { exit.textContent = '(en cours)'; exit.className = 'exit-code pending'; }
+  else { exit.textContent = f.exitCode === 0 ? '0 (success)' : `${f.exitCode} (error)`; exit.className = 'exit-code ' + (f.exitCode === 0 ? 'ok' : 'err'); }
+
+  ['box-argv', 'box-n', 'box-values', 'box-stderr', 'box-exit'].forEach(id => {
+    document.getElementById(id).classList.remove('highlight');
+  });
+  const focusMap = { argv: 'box-argv', n: 'box-n', values: 'box-values', stderr: 'box-stderr', exit: 'box-exit' };
+  if (focusMap[f.focus]) document.getElementById(focusMap[f.focus]).classList.add('highlight');
+
+  const tagEl = document.getElementById('phase-tag');
+  tagEl.textContent = f.tag;
+  tagEl.className = 'tag';
+  if (['ok', 'parse-ok', 'free'].includes(f.tag)) tagEl.classList.add('ok');
+  if (['err', 'err-write', 'parse-err'].includes(f.tag)) tagEl.classList.add('err');
+  if (f.tag === 'silent') tagEl.classList.add('silent');
+  if (f.tag === 'inside') tagEl.classList.add('inside');
+
+  document.getElementById('phase-scope').textContent = f.scope === 'parse' ? '↳ inside parse_args (main.c line 8 active)' : '(in main)';
+
+  document.getElementById('nstep').textContent = `étape ${cur + 1}`;
+  document.getElementById('nscope').textContent = f.scope === 'parse' ? 'inside parse_args' : 'main';
+  document.getElementById('ntext').innerHTML = f.text;
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadScenario(s) {
+  frames = simulate(s);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 3300 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+renderCode();
+renderExamples();
+loadScenario(SCENARIOS[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

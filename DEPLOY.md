@@ -13,7 +13,11 @@
 ├── _template.html          ← squelette pour futures fiches
 ├── zine.css                ← styles partagés
 ├── README.md
-├── fiches/                 ← 6 fiches projets + guides
+├── fiches/                 ← fiches par projet
+│   ├── push_swap/          ← gitbook + tutors + simulateurs
+│   ├── so_long/
+│   ├── minitalk/
+│   └── skills/             ← exam, pointeurs, fondations C
 ├── exams/                  ← 19 fiches exam rank 02 + 2 récaps
 ├── ole/                    ← 6 fiches self-audit Claude
 └── skills/                 ← 3 fiches agentic/skills

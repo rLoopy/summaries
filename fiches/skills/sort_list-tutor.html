@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sort_list — step debugger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 1400px !important; }
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.dbg-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 1100px) { .dbg-grid { grid-template-columns: 1fr; } }
+.code-panel { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); overflow: hidden; box-shadow: 3px 3px 0 var(--ink); max-height: 720px; overflow-y: auto; }
+.code-header { background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 2; }
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5); font-size: 12px; }
+.code-body { padding: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #E9E5F0; counter-reset: lineno; overflow-x: auto; }
+.code-line { padding: 2px 20px 2px 44px; position: relative; white-space: pre; transition: background 0.15s; min-width: max-content; }
+.code-line::before { counter-increment: lineno; content: counter(lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255, 233, 107, 0.22); border-left: 3px solid var(--hl-yellow); padding-left: 41px; }
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+.vars-box, .list-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; background: var(--paper); }
+.vars-title, .list-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.var-row { display: flex; align-items: center; gap: 8px; padding: 5px 7px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 7px; margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 65px; }
+.var-eq { color: var(--muted); }
+.var-val { color: var(--ink); font-weight: 700; padding: 2px 7px; background: var(--hl-yellow); border: 1.5px solid var(--ink); border-radius: 4px; min-width: 28px; text-align: center; }
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+.var-val.ptr { background: #B3D8F7; }
+
+.nodes { display: flex; gap: 2px; flex-wrap: wrap; padding: 22px 4px 6px; align-items: center; }
+.node { position: relative; min-width: 46px; height: 42px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 8px; color: var(--ink); transition: all 0.18s; padding: 0 10px; }
+.node .label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-family: 'Caveat', cursive; font-size: 13px; color: var(--ink-soft); font-weight: 400; white-space: nowrap; }
+.node.cur { background: var(--hl-yellow); box-shadow: 2px 2px 0 var(--ink); transform: translate(-1px, -1px); }
+.node.next { background: #B3D8F7; }
+.node.swap { background: #A8E0B0; animation: pulse 0.3s ease; }
+@keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+.arrow { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--ink-soft); padding: 0 2px; }
+.node.null-node { background: var(--paper-e); color: var(--muted); font-style: italic; border-style: dashed; }
+.list-legend { font-family: 'Caveat', cursive; font-size: 14px; color: var(--ink-soft); margin-top: 10px; }
+.list-legend span { display: inline-block; width: 10px; height: 10px; border: 1.5px solid var(--ink); border-radius: 2px; margin: 0 3px 0 8px; vertical-align: middle; }
+
+.desc-box { background: var(--ink); color: var(--paper); border-radius: 12px; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent); padding: 12px 14px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.4; min-height: 50px; }
+.desc-box .tag { display: inline-block; background: var(--hl-yellow); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 7px; text-transform: uppercase; letter-spacing: 1px; }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft); text-align: center; margin-top: 12px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.note-card { background: var(--paper); border: 3px dashed #6FAF84; border-radius: 14px; padding: 16px 20px; margin: 20px 0; }
+.note-card h3 { font-family: 'Kalam', cursive; color: #2f8b4d; margin: 0 0 10px; font-size: 22px; }
+.note-card ol { margin: 6px 0 0 22px; padding: 0; font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; }
+.note-card li { margin-bottom: 8px; }
+.note-card code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ sort_list — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">sort_list</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">debug mode ↓</div>
+  <p class="hero-sub">Bubble sort sur liste chaînée, pas à pas. <span class="hl">cmp = ascendant</span> (<code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">return (a &lt;= b)</code>) pour tous les exemples. On swap <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">->data</code>, les nœuds ne bougent jamais.</p>
+</section>
+
+<main>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="dbg-grid">
+      <div class="code-panel">
+        <div class="code-header">
+          <div class="dot" style="background:#FF6B6B"></div>
+          <div class="dot" style="background:#FFD26A"></div>
+          <div class="dot" style="background:#7ECE7E"></div>
+          <div class="title">sort_list.c</div>
+        </div>
+        <div class="code-body" id="code-body"></div>
+      </div>
+
+      <div class="state-panel">
+        <div class="vars-box">
+          <div class="vars-title">variables</div>
+          <div class="var-row"><span class="var-name">lst</span><span class="var-eq">=</span><span class="var-val ptr" id="v-lst">-</span></div>
+          <div class="var-row"><span class="var-name">cur</span><span class="var-eq">=</span><span class="var-val null" id="v-cur">-</span></div>
+          <div class="var-row"><span class="var-name">swapped</span><span class="var-eq">=</span><span class="var-val null" id="v-swapped">-</span></div>
+          <div class="var-row"><span class="var-name">tmp</span><span class="var-eq">=</span><span class="var-val null" id="v-tmp">-</span></div>
+        </div>
+
+        <div class="list-box">
+          <div class="list-title">liste chaînée (data)</div>
+          <div class="nodes" id="nodes"></div>
+          <div class="list-legend"><span style="background:var(--hl-yellow)"></span>cur <span style="background:#B3D8F7"></span>cur-&gt;next <span style="background:#A8E0B0"></span>swap</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desc-box" id="desc-box">
+      <span class="tag" id="desc-tag">ready</span>
+      <span id="desc-text">Choisis un exemple et clique next.</span>
+    </div>
+
+    <div class="ctrls" style="margin-top:14px;">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="150" max="1800" value="700" step="50">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+
+  <div class="note-card">
+    <h3>🧠 Ce que fait ce code à chaque passe</h3>
+    <ol>
+      <li><b><code>swapped = 0</code></b> : hypothèse "rien ne bougera cette passe". Un swap la remettra à 1.</li>
+      <li><b><code>cur = lst</code></b> : le pointeur repart au début de la liste.</li>
+      <li>Inner : tant que <code>cur->next</code> existe, compare <code>cur->data</code> et <code>cur->next->data</code>.</li>
+      <li>Si <code>!cmp(a, b)</code> → swap des <b>data</b> via <code>tmp</code>. Les <code>->next</code> ne sont JAMAIS modifiés.</li>
+      <li><b><code>cur = cur->next</code></b> toujours, swap ou pas.</li>
+    </ol>
+    <div style="margin-top:12px;font-family:'Caveat',cursive;font-size:18px;color:var(--ink-soft);">🎯 Parce qu'on swap les data, la tête <code>lst</code> ne bouge jamais → <code>return (lst);</code> simple.</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">sort_list en action ✌</div>
+  <div class="footer-meta">rank 02 · level 4 · <a href="../../index.html">dashboard</a> · <a href="sort_list-revision.html">fiche de révision</a></div>
+</footer>
+
+<script>
+const CODE = [
+  '<span class="tp">t_list</span> *<span class="fn">sort_list</span>(<span class="tp">t_list</span> *lst, <span class="tp">int</span> (*cmp)(<span class="tp">int</span>, <span class="tp">int</span>))',
+  '{',
+  '\t<span class="tp">int</span>     swapped;',
+  '\t<span class="tp">int</span>     tmp;',
+  '\t<span class="tp">t_list</span>  *cur;',
+  '',
+  '\t<span class="kw">if</span> (!lst || !lst-&gt;next)',
+  '\t\t<span class="kw">return</span> (lst);',
+  '\tswapped = <span class="num">1</span>;',
+  '\t<span class="kw">while</span> (swapped)',
+  '\t{',
+  '\t\tswapped = <span class="num">0</span>;',
+  '\t\tcur = lst;',
+  '\t\t<span class="kw">while</span> (cur-&gt;next)',
+  '\t\t{',
+  '\t\t\t<span class="kw">if</span> (!cmp(cur-&gt;data, cur-&gt;next-&gt;data))',
+  '\t\t\t{',
+  '\t\t\t\ttmp = cur-&gt;data;',
+  '\t\t\t\tcur-&gt;data = cur-&gt;next-&gt;data;',
+  '\t\t\t\tcur-&gt;next-&gt;data = tmp;',
+  '\t\t\t\tswapped = <span class="num">1</span>;',
+  '\t\t\t}',
+  '\t\t\tcur = cur-&gt;next;',
+  '\t\t}',
+  '\t}',
+  '\t<span class="kw">return</span> (lst);',
+  '}',
+];
+
+const LN = {
+  sig: 1,
+  declSwapped: 3, declTmp: 4, declCur: 5,
+  guardIf: 7, guardRet: 8,
+  swappedInit: 9,
+  outerW: 10,
+  swappedReset: 12,
+  curReset: 13,
+  innerW: 14,
+  ifCmp: 16,
+  tmpAssign: 18, curData: 19, curNextData: 20, swappedSet: 21,
+  curAdv: 23,
+  retFinal: 26,
+};
+
+// cmp used for all examples = ascending (a <= b) → returns !=0 when well-ordered.
+function genFrames(initialList) {
+  const frames = [];
+  const list = [...initialList];
+  const size = list.length;
+  // cur holds index into list (or null when we'd fall off the end)
+  let cur = null, tmp = null, swapped = null;
+  let passCount = 0;
+  const lstStr = size === 0 ? 'NULL' : '&node[0]';
+
+  const snap = (line, tag, desc, hi = {}) => frames.push({
+    line, tag, desc,
+    vars: { lst: lstStr, cur, swapped, tmp },
+    list: [...list],
+    curHi: hi.cur ?? null, nextHi: hi.next ?? null, swapHi: hi.swap ?? false,
+    finished: hi.finished ?? false,
+  });
+
+  snap(LN.sig, 'enter', `Entrée sort_list(lst=[${list.join('→') || 'NULL'}], cmp=ascending)`);
+  snap(LN.declSwapped, 'assign', `int swapped (pas encore assigné)`);
+  snap(LN.declTmp, 'assign', `int tmp`);
+  snap(LN.declCur, 'assign', `t_list *cur (pas encore assigné)`);
+
+  // Guard
+  const guardFail = size === 0 || size === 1;
+  snap(LN.guardIf, 'check',
+    `!lst || !lst->next ? → ${guardFail ? 'OUI (vide ou 1 seul nœud)' : 'non'}`);
+  if (guardFail) {
+    snap(LN.guardRet, 'exit', `return (lst); (rien à trier, sort direct)`);
+    snap(LN.retFinal, 'exit', `Fin. liste=[${list.join('→') || 'NULL'}]. Aucune modification.`, { finished: true });
+    return frames;
+  }
+
+  swapped = 1;
+  snap(LN.swappedInit, 'assign', `swapped = 1 (force l'entrée dans le while extérieur)`);
+
+  while (swapped) {
+    passCount++;
+    snap(LN.outerW, 'check', `OUTER passe #${passCount} : while(swapped=${swapped}) → OUI, on entre`);
+
+    swapped = 0;
+    snap(LN.swappedReset, 'assign',
+      `swapped = 0 — hypothèse : rien ne bougera cette passe.`);
+
+    cur = 0;
+    snap(LN.curReset, 'assign', `cur = lst — le pointeur repart sur node[0] (data=${list[0]}).`, { cur });
+
+    while (cur + 1 < size) {
+      snap(LN.innerW, 'check',
+        `INNER : cur->next != NULL (node[${cur+1}] existe) → OUI`,
+        { cur, next: cur + 1 });
+
+      const a = list[cur], b = list[cur+1];
+      // ascending cmp: return (a <= b). Non-zero = well ordered. !cmp = a > b.
+      const wellOrdered = a <= b;
+      const needSwap = !wellOrdered;
+      snap(LN.ifCmp, 'check',
+        `cmp(${a}, ${b}) = ${wellOrdered ? 1 : 0} → !cmp = ${needSwap ? 'VRAI, swap' : 'faux, on passe'}`,
+        { cur, next: cur + 1 });
+
+      if (needSwap) {
+        tmp = list[cur];
+        snap(LN.tmpAssign, 'assign', `tmp = cur->data = ${tmp}`, { cur, next: cur + 1 });
+        list[cur] = list[cur+1];
+        snap(LN.curData, 'assign', `cur->data = cur->next->data = ${list[cur]}`, { cur, next: cur + 1, swap: true });
+        list[cur+1] = tmp;
+        snap(LN.curNextData, 'assign', `cur->next->data = tmp = ${tmp} · swap fait ✓`, { cur, next: cur + 1, swap: true });
+        swapped = 1;
+        snap(LN.swappedSet, 'assign', `swapped = 1 (qqch a bougé cette passe)`, { cur, next: cur + 1 });
+      }
+
+      cur = cur + 1;
+      const stillInner = (cur + 1) < size;
+      snap(LN.curAdv, 'exec',
+        `cur = cur->next → cur pointe ${cur < size ? `node[${cur}] (data=${list[cur]})` : 'NULL'}`,
+        { cur: cur < size ? cur : null, next: stillInner ? cur + 1 : null });
+    }
+
+    snap(LN.innerW, 'check',
+      `INNER sort : cur->next == NULL → on sort. Passe #${passCount} terminée, swapped=${swapped}.`,
+      { cur: cur < size ? cur : null });
+  }
+
+  snap(LN.outerW, 'check', `OUTER : while(swapped=${swapped}) → non, aucun swap → on sort.`);
+  snap(LN.retFinal, 'exit',
+    `return (lst). Liste triée : [${list.join('→')}] ✅ en ${passCount} passe${passCount>1?'s':''}.`,
+    { finished: true });
+
+  return frames;
+}
+
+const EXAMPLES = [
+  { label: '[3,1,2]  (2 passes)', list: [3,1,2] },
+  { label: '[2,1,3]  (2 passes)', list: [2,1,3] },
+  { label: '[5,4,3,2,1]  (worst)', list: [5,4,3,2,1] },
+  { label: '[1,2,3,4]  (déjà trié)', list: [1,2,3,4] },
+  { label: '[42]  (1 seul nœud)', list: [42] },
+  { label: 'NULL  (liste vide)', list: [] },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = EXAMPLES.map((e, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''}" data-idx="${idx}">${e.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadExample(EXAMPLES[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode() {
+  document.getElementById('code-body').innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderNodes(f) {
+  const el = document.getElementById('nodes');
+  if (f.list.length === 0) {
+    el.innerHTML = `<div class="node null-node">NULL</div>`;
+    return;
+  }
+  const parts = [];
+  f.list.forEach((v, k) => {
+    let cls = 'node';
+    if (k === f.curHi) cls += ' cur';
+    if (k === f.nextHi) cls += ' next';
+    if (f.swapHi && (k === f.curHi || k === f.nextHi)) cls += ' swap';
+    const label = (k === f.curHi) ? 'cur' : (k === f.nextHi ? 'cur→next' : `node[${k}]`);
+    parts.push(`<div class="${cls}"><span class="label">${label}</span>${v}</div>`);
+    if (k < f.list.length - 1) parts.push(`<span class="arrow">→</span>`);
+  });
+  parts.push(`<span class="arrow">→</span><div class="node null-node">NULL</div>`);
+  el.innerHTML = parts.join('');
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    const panel = line.closest('.code-panel');
+    if (panel) {
+      const pr = panel.getBoundingClientRect();
+      const lr = line.getBoundingClientRect();
+      const offset = (lr.top - pr.top) - (panel.clientHeight / 2) + (line.clientHeight / 2);
+      panel.scrollBy({ top: offset, behavior: 'smooth' });
+    }
+  }
+  setVar('v-lst', f.vars.lst, 'ptr');
+  setVarIdx('v-cur', f.vars.cur, f.list);
+  setVar('v-swapped', f.vars.swapped);
+  setVar('v-tmp', f.vars.tmp);
+  renderNodes(f);
+
+  const dt = document.getElementById('desc-tag');
+  dt.textContent = f.tag;
+  document.getElementById('desc-text').textContent = f.desc;
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function setVar(id, val, kind) {
+  const el = document.getElementById(id);
+  el.classList.remove('ptr');
+  if (val === null || val === undefined) { el.textContent = '-'; el.classList.add('null'); }
+  else { el.textContent = val; el.classList.remove('null'); if (kind === 'ptr') el.classList.add('ptr'); }
+}
+
+function setVarIdx(id, idx, list) {
+  const el = document.getElementById(id);
+  el.classList.remove('ptr');
+  if (idx === null || idx === undefined) { el.textContent = '-'; el.classList.add('null'); }
+  else {
+    el.textContent = `&node[${idx}]`;
+    el.classList.remove('null');
+    el.classList.add('ptr');
+  }
+}
+
+function loadExample(ex) {
+  frames = genFrames(ex.list);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2000 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+renderCode();
+renderExamples();
+loadExample(EXAMPLES[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

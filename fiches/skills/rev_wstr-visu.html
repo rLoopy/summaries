@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rev_wstr — visualiser l'algo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=2">
+<style>
+/* ───────── visualizer ───────── */
+.visu {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 28px 24px;
+  box-shadow: 6px 6px 0 var(--ink);
+  margin: 20px 0;
+  transform: rotate(-0.2deg);
+}
+
+.visu-title {
+  font-family: 'Kalam', cursive;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* string boxes */
+.str-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.ch {
+  width: 52px;
+  height: 64px;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  background: var(--paper);
+  position: relative;
+  transition: all 0.3s;
+}
+.ch.space { background: var(--paper-d); }
+.ch .chr {
+  font-size: 26px;
+  color: var(--ink);
+}
+.ch.space .chr {
+  color: var(--muted);
+  font-size: 22px;
+}
+.ch .idx {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* highlight states */
+.ch.current { background: var(--hl-yellow); transform: translateY(-4px); box-shadow: 2px 6px 0 var(--ink); }
+.ch.in-word { background: var(--hl-mint); }
+.ch.stopped-on { background: var(--hl-pink); }
+.ch.out-of-bounds { opacity: 0.3; }
+
+/* pointer arrow below */
+.pointer-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+.ptr-slot {
+  width: 52px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ptr {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--accent-d);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.ptr.active { opacity: 1; animation: bounce 0.6s ease-in-out infinite alternate; }
+.ptr-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--accent-d);
+  font-weight: 700;
+}
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* state panel */
+.state {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  margin-top: 14px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--accent);
+  min-height: 70px;
+}
+.state-line { margin: 3px 0; }
+.state-k { color: var(--hl-yellow); }
+.state-v { color: #B8C9E0; }
+.state-desc {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 17px;
+  color: #E9E5F0;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* terminal output */
+.out-box {
+  background: #1C1A28;
+  color: #E9E5F0;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  margin-top: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+  min-height: 60px;
+}
+.out-label {
+  color: #9DD6A8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.out-content {
+  font-size: 18px;
+  color: #FF9F7A;
+  font-weight: 700;
+  white-space: pre;
+  min-height: 24px;
+}
+
+/* controls */
+.ctrls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.ctrl-btn {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 22px;
+  padding: 8px 18px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ctrl-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.ctrl-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.ctrl-btn.mint { background: var(--hl-mint); }
+
+/* step counter */
+.step-counter {
+  font-family: 'Caveat', cursive;
+  font-size: 22px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 14px;
+  font-weight: 700;
+}
+.step-counter .num { color: var(--accent-d); font-size: 28px; }
+
+/* legend */
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.legend-item2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+}
+.legend-dot {
+  width: 20px; height: 20px;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+}
+.legend-dot.yellow { background: var(--hl-yellow); }
+.legend-dot.mint { background: var(--hl-mint); }
+.legend-dot.pink { background: var(--hl-pink); }
+
+/* input example selector */
+.examples {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.ex-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.1s;
+}
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+@media (max-width: 600px) {
+  .ch { width: 38px; height: 50px; }
+  .ch .chr { font-size: 20px; }
+  .ptr-slot { width: 38px; }
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ rev_wstr — visualiseur interactif</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <span class="hero-stars s3">✧</span>
+  <span class="hero-stars s4">✦</span>
+
+  <div class="hero-title">
+    <span class="word">l'algo</span>
+    <svg class="underline-draw" viewBox="0 0 300 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M3,6 Q30,2 60,6 T120,6 T180,6 T240,6 T297,6" stroke="#D54F2F" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#rough)"/>
+    </svg>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;margin-bottom:8px;">en mouvement ↓</div>
+
+  <p class="hero-sub">Regarde <span class="hl">`i` descendre</span> case par case. Play, step, ou reset. <strong>Impossible de boucler</strong> : i fait que décroître.</p>
+</section>
+
+<main>
+
+<!-- VISU -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#FFE96B" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(-6 40 40)">▶</text>
+    </svg>
+    <h2>clique sur une string et <span class="hl">regarde</span>.</h2>
+  </div>
+
+  <div class="visu">
+    <div class="examples">
+      <button class="ex-chip active" data-str="hi bye">"hi bye"</button>
+      <button class="ex-chip" data-str="one two three">"one two three"</button>
+      <button class="ex-chip" data-str="Wingardium Leviosa">"Wingardium Leviosa"</button>
+      <button class="ex-chip" data-str="a	b">"a\tb" (tab)</button>
+    </div>
+
+    <div class="visu-title" id="visu-title">./rev_wstr "hi bye"</div>
+
+    <div class="str-row" id="str-row"></div>
+    <div class="pointer-row" id="ptr-row"></div>
+
+    <div class="state" id="state-box">
+      <div class="state-line"><span class="state-k">i</span>=<span class="state-v" id="s-i">-</span>  ·  <span class="state-k">end</span>=<span class="state-v" id="s-end">-</span>  ·  <span class="state-k">step</span>=<span class="state-v" id="s-step">ready</span></div>
+      <div class="state-desc" id="s-desc">Clique ▶ pour lancer l'algo.</div>
+    </div>
+
+    <div class="out-box">
+      <div class="out-label">output</div>
+      <div class="out-content" id="out">—</div>
+    </div>
+
+    <div class="ctrls">
+      <button class="ctrl-btn primary" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-step">⏭ step</button>
+      <button class="ctrl-btn mint" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:15px;">
+        vitesse:
+        <input type="range" id="speed" min="300" max="2000" value="900" step="100">
+      </label>
+    </div>
+
+    <div class="step-counter">
+      étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span>
+    </div>
+
+    <div class="legend-grid">
+      <div class="legend-item2"><span class="legend-dot yellow"></span>case où est <code>i</code></div>
+      <div class="legend-item2"><span class="legend-dot mint"></span>mot en cours de lecture</div>
+      <div class="legend-item2"><span class="legend-dot pink"></span>séparateur atteint (stop)</div>
+    </div>
+  </div>
+</section>
+
+<!-- CLÉ -->
+<section class="section fade">
+  <div class="section-head">
+    <svg class="bignum-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="34" fill="#BFE6CC" stroke="#222030" stroke-width="3" filter="url(#rough)"/>
+      <text x="40" y="54" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="42" fill="#222030" transform="rotate(3 40 40)">!</text>
+    </svg>
+    <h2>la clé : <span class="hl-mint">i ne fait que descendre</span>.</h2>
+  </div>
+
+  <div class="trick">
+    <div class="trick-badge">✦ pourquoi ça boucle pas ✦</div>
+    <h4>Chaque opération <code>i--</code>, jamais <code>i++</code>.</h4>
+    <p>Que ce soit dans <strong>Step A</strong> (skip séparateurs) ou <strong>Step C</strong> (walk back dans un mot), on ne fait que décrémenter <code>i</code>. Donc au bout de <code>len</code> étapes max, <code>i &lt; 0</code> et on sort.</p>
+    <p>Le "danger" qu'on imagine (rester bloqué sur un séparateur) n'existe pas : <strong>Step A du tour suivant saute ce séparateur</strong> en décrémentant. Ton <code>i</code> passe à travers.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">t'attaques quand tu veux ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="rev_wstr.html">retour au zine rev_wstr</a></div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// rev_wstr algorithm visualizer
+// ═══════════════════════════════════════════════════════════════════
+
+const SEP = (c) => c === ' ' || c === '\t';
+
+// Generate full sequence of "frames" for a given string
+function generateFrames(str) {
+  const frames = [];
+  let i = str.length - 1;
+  let output = '';
+  let firstWordPrinted = false;
+
+  const push = (state) => frames.push({
+    i: state.i,
+    end: state.end ?? null,
+    desc: state.desc,
+    step: state.step,
+    highlights: state.highlights || {},
+    output: state.output ?? output,
+  });
+
+  push({
+    i, end: null, step: 'init',
+    desc: `départ : i = ${i} (dernière case)`,
+    highlights: { current: i },
+  });
+
+  while (i >= 0) {
+    // Step A: skip separators
+    while (i >= 0 && SEP(str[i])) {
+      push({
+        i, step: 'A-skip',
+        desc: `str[${i}] = " " → séparateur, on décrémente (skip)`,
+        highlights: { current: i, sep: true },
+      });
+      i--;
+      push({
+        i, step: 'A-skip',
+        desc: `i descendu à ${i}`,
+        highlights: { current: i },
+      });
+    }
+    if (i < 0) {
+      push({
+        i, step: 'exit',
+        desc: `i < 0 → on sort du gros while`,
+        highlights: {},
+      });
+      break;
+    }
+
+    // Step B: mark end
+    const end = i;
+    push({
+      i, end, step: 'B-end',
+      desc: `str[${i}] = "${str[i]}" → pas séparateur. end = ${end}`,
+      highlights: { current: i, end: end },
+    });
+
+    // Step C: walk back
+    while (i >= 0 && !SEP(str[i])) {
+      push({
+        i, end, step: 'C-walk',
+        desc: `str[${i}] = "${str[i]}" → pas séparateur, i--`,
+        highlights: { current: i, end: end, inWord: [i, end] },
+      });
+      i--;
+    }
+    push({
+      i, end, step: 'C-stop',
+      desc: i < 0
+        ? `i < 0 → on sort du walk-back (début de string)`
+        : `str[${i}] = " " → séparateur, stop walk-back`,
+      highlights: { current: i, end: end, stopped: i >= 0 ? i : null, inWord: [i + 1, end] },
+    });
+
+    // Step D: write word
+    const word = str.substring(i + 1, end + 1);
+    const prefix = firstWordPrinted ? ' ' : '';
+    output += prefix + word;
+    firstWordPrinted = true;
+    push({
+      i, end, step: 'D-write',
+      desc: `write(1, &str[${i + 1}], ${end - i}) → "${prefix}${word}"`,
+      highlights: { current: i, end: end, inWord: [i + 1, end], stopped: i >= 0 ? i : null },
+      output,
+    });
+  }
+
+  // Final newline
+  output += '\n';
+  push({
+    i: -1, end: null, step: 'done',
+    desc: `write(1, "\\n", 1) → done !`,
+    highlights: {},
+    output,
+  });
+
+  return frames;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// rendering
+// ═══════════════════════════════════════════════════════════════════
+
+let currentStr = 'hi bye';
+let frames = [];
+let currentFrame = 0;
+let playing = false;
+let playTimer = null;
+
+function renderString(str) {
+  const row = document.getElementById('str-row');
+  const pRow = document.getElementById('ptr-row');
+  row.innerHTML = '';
+  pRow.innerHTML = '';
+  for (let k = 0; k < str.length; k++) {
+    const ch = document.createElement('div');
+    ch.className = 'ch' + (SEP(str[k]) ? ' space' : '');
+    ch.dataset.idx = k;
+    const display = str[k] === ' ' ? '␣' : (str[k] === '\t' ? '→' : str[k]);
+    ch.innerHTML = `<div class="chr">${display}</div><div class="idx">${k}</div>`;
+    row.appendChild(ch);
+
+    const ps = document.createElement('div');
+    ps.className = 'ptr-slot';
+    ps.dataset.idx = k;
+    ps.innerHTML = `<div class="ptr">↑</div><div class="ptr-label">i</div>`;
+    pRow.appendChild(ps);
+  }
+}
+
+function renderFrame(f) {
+  const chs = document.querySelectorAll('.ch');
+  chs.forEach((c, idx) => {
+    c.classList.remove('current', 'in-word', 'stopped-on');
+    if (f.highlights.inWord && idx >= f.highlights.inWord[0] && idx <= f.highlights.inWord[1]) {
+      c.classList.add('in-word');
+    }
+    if (f.highlights.current === idx) c.classList.add('current');
+    if (f.highlights.stopped === idx) c.classList.add('stopped-on');
+  });
+
+  const ptrs = document.querySelectorAll('.ptr');
+  ptrs.forEach((p, idx) => {
+    p.classList.toggle('active', f.i === idx);
+  });
+
+  document.getElementById('s-i').textContent = f.i;
+  document.getElementById('s-end').textContent = f.end !== null ? f.end : '-';
+  document.getElementById('s-step').textContent = f.step;
+  document.getElementById('s-desc').textContent = f.desc;
+  document.getElementById('out').textContent = f.output || '—';
+  document.getElementById('step-n').textContent = currentFrame;
+  document.getElementById('step-total').textContent = frames.length - 1;
+}
+
+function loadString(str) {
+  currentStr = str;
+  frames = generateFrames(str);
+  currentFrame = 0;
+  stopPlay();
+  renderString(str);
+  renderFrame(frames[0]);
+  document.getElementById('visu-title').textContent = `./rev_wstr "${str.replace(/\t/g, '\\t')}"`;
+  document.getElementById('step-total').textContent = frames.length - 1;
+}
+
+function stepForward() {
+  if (currentFrame < frames.length - 1) {
+    currentFrame++;
+    renderFrame(frames[currentFrame]);
+  } else {
+    stopPlay();
+  }
+}
+
+function startPlay() {
+  if (currentFrame >= frames.length - 1) currentFrame = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2300 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => {
+    if (currentFrame < frames.length - 1) {
+      stepForward();
+    } else {
+      stopPlay();
+    }
+  }, speed);
+}
+
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+function reset() {
+  stopPlay();
+  currentFrame = 0;
+  renderFrame(frames[0]);
+}
+
+// bindings
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (playing) stopPlay();
+  else startPlay();
+});
+document.getElementById('btn-step').addEventListener('click', () => {
+  stopPlay();
+  stepForward();
+});
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('speed').addEventListener('input', () => {
+  if (playing) { stopPlay(); startPlay(); }
+});
+document.querySelectorAll('.ex-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    loadString(chip.dataset.str);
+  });
+});
+
+// progress bar
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// fade in
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+// init
+loadString('hi bye');
+</script>
+
+</body>
+</html>

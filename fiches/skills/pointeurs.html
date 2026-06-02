@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointeurs en C — la fiche anti-doute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 940px !important; padding-top: 20px !important; }
+.card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 22px 26px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 22px; }
+.card.a { transform: rotate(-0.15deg); }
+.card.mint { background: var(--hl-mint); transform: rotate(0.15deg); }
+.card.pink { background: var(--hl-pink); transform: rotate(-0.2deg); }
+.card.blue { background: var(--hl-blue); transform: rotate(0.2deg); }
+.card.purple { background: var(--hl-purple); transform: rotate(-0.1deg); }
+.card h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 24px; margin: 0 0 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.card h2 .emoji { font-size: 28px; }
+.card h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px; margin: 16px 0 8px; color: var(--ink); }
+.card p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.55; margin: 8px 0; }
+.card strong { color: var(--accent-d); }
+.card code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; font-weight: 600; }
+.mem-block { background: #1C1A28; color: #E9E5F0; padding: 14px 18px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; margin: 12px 0; }
+.mem-block .addr { color: #79B8D8; }
+.mem-block .val { color: #FFD88A; }
+.mem-block .cm { color: #7D7B95; font-style: italic; }
+.mem-block .hl { background: rgba(255,233,107,0.22); padding: 0 3px; border-radius: 2px; }
+.mem-block .kw { color: #A5D8A8; }
+.mem-block .tp { color: #79B8D8; }
+.mem-block .fn { color: #C0B3E0; }
+.mem-block .num { color: #FFB380; }
+
+.cmp-table { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+@media (max-width: 780px) { .cmp-table { grid-template-columns: 1fr; } }
+.cmp-col { background: var(--paper-d); border: 2px solid var(--ink); border-radius: 10px; padding: 12px 14px; }
+.cmp-col.good { background: #D4F4DE; }
+.cmp-col.bad { background: #FFD4D4; }
+body.night .cmp-col.good { background: #1e4028; color: var(--ink); }
+body.night .cmp-col.bad { background: #4a1e1e; color: var(--ink); }
+body.night .cmp-col.good .title,
+body.night .cmp-col.bad .title,
+body.night .cmp-col.good p,
+body.night .cmp-col.bad p { color: var(--ink); }
+.cmp-col .title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+
+.quiz { background: var(--paper-e); border: 2px dashed var(--ink); border-radius: 10px; padding: 14px 16px; margin: 14px 0; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.quiz .q { font-weight: 700; margin-bottom: 10px; }
+.quiz details summary { cursor: pointer; font-family: 'Kalam', cursive; font-weight: 700; color: var(--accent-d); padding: 6px 10px; background: var(--hl-yellow); border: 2px solid var(--ink); border-radius: 6px; display: inline-block; list-style: none; user-select: none; }
+.quiz details summary::-webkit-details-marker { display: none; }
+.quiz details[open] summary { background: var(--hl-mint); }
+.quiz details .answer { margin-top: 10px; padding: 10px 14px; background: var(--paper); border-left: 3px solid var(--accent-d); border-radius: 6px; }
+
+.rules { font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.55; padding-left: 0; list-style: none; }
+.rules li { padding: 7px 10px 7px 30px; position: relative; border-bottom: 1px dashed rgba(34,32,48,0.2); }
+.rules li:last-child { border-bottom: none; }
+.rules li::before { content: "→"; position: absolute; left: 10px; color: var(--accent-d); font-weight: 700; }
+
+.summary-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
+.summary-row code { min-width: 160px; }
+.summary-row .desc { font-family: 'Patrick Hand', cursive; font-size: 15px; flex: 1; }
+
+.final-cheat { background: var(--ink); color: var(--paper); padding: 20px 24px; border-radius: 14px; box-shadow: 6px 6px 0 var(--accent); font-family: 'Kalam', cursive; font-size: 18px; line-height: 1.5; }
+.final-cheat h2 { color: var(--paper); border: none; }
+.final-cheat code { background: var(--hl-yellow); color: var(--ink); border: 1.5px solid var(--paper); }
+.final-cheat ul { list-style: none; padding: 0; margin: 8px 0; }
+.final-cheat li { padding: 6px 0 6px 24px; position: relative; font-family: 'Patrick Hand', cursive; font-size: 17px; }
+.final-cheat li::before { content: "✦"; position: absolute; left: 4px; color: var(--hl-yellow); }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ pointeurs en c — la fiche anti-doute</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">pointeurs</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">tout ce qui te fait douter ↓</div>
+  <p class="hero-sub">Le modèle mental, les pièges, les quiz. Relis ça avant <span class="hl">push_swap</span>, <span class="hl">minishell</span>, ou chaque fois que <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">*p</code> te déroute.</p>
+</section>
+
+<main>
+
+<!-- ============ 1. Le modèle mental ============ -->
+<div class="card a">
+  <h2><span class="emoji">🧠</span> 1. Le modèle mental</h2>
+  <p>La mémoire = une <strong>rue avec des maisons numérotées</strong>. Chaque maison peut contenir une valeur.</p>
+
+  <div class="mem-block"><span class="cm">// après : int a = 42;</span>
+<span class="addr">0x100</span> : [ <span class="val">42</span> ]     <span class="cm">← a vit ici</span>
+<span class="addr">0x104</span> : [ ... ]
+<span class="addr">0x108</span> : [ ... ]</div>
+
+  <p>Un <strong>pointeur</strong> = une variable qui, au lieu de stocker une valeur, stocke <strong>l'adresse</strong> d'une autre variable.</p>
+
+  <div class="mem-block"><span class="cm">// après : int a = 42; int *p = &a;</span>
+<span class="addr">0x100</span> : [ <span class="val">42</span>    ]   <span class="cm">← a</span>
+<span class="addr">0x108</span> : [ <span class="val">0x100</span> ]   <span class="cm">← p, contient l'adresse de a</span></div>
+
+  <p>📝 <strong>Donc</strong> : p ne contient pas 42. p contient 0x100 (l'adresse de a). Pour obtenir la valeur 42, il faut <strong>déréférencer</strong> p.</p>
+</div>
+
+<!-- ============ 2. Les 2 opérateurs ============ -->
+<div class="card mint">
+  <h2><span class="emoji">🔧</span> 2. Les 2 opérateurs magiques — <code>&amp;</code> et <code>*</code></h2>
+
+  <h3><code>&amp;x</code> — "donne-moi l'ADRESSE de x"</h3>
+  <p>S'utilise sur une variable. Retourne un pointeur.</p>
+  <div class="mem-block"><span class="tp">int</span> a = <span class="num">42</span>;
+<span class="tp">int</span> *p = &amp;a;   <span class="cm">// p reçoit l'adresse de a</span>
+<span class="fn">printf</span>(<span class="val">"%p"</span>, &amp;a);  <span class="cm">// affiche 0x7ffeef3a1c28 (ou autre)</span></div>
+
+  <h3><code>*p</code> — "donne-moi la VALEUR à l'adresse stockée dans p"</h3>
+  <p>S'utilise sur un pointeur. C'est le <strong>déréférencement</strong>. Ouvre la maison pointée.</p>
+  <div class="mem-block"><span class="tp">int</span> a = <span class="num">42</span>;
+<span class="tp">int</span> *p = &amp;a;
+<span class="fn">printf</span>(<span class="val">"%d"</span>, *p);  <span class="cm">// affiche 42 (va à l'adresse dans p, lit la valeur)</span>
+*p = <span class="num">99</span>;              <span class="cm">// écrit 99 à l'adresse dans p → a devient 99</span></div>
+
+  <p>🎯 <strong>Règle mnémotechnique</strong> : <code>&amp;</code> et <code>*</code> sont des <strong>inverses</strong>.
+  <br>Si <code>p = &amp;a</code>, alors <code>*p == a</code> et <code>&amp;(*p) == p</code>. Toujours.</p>
+</div>
+
+<!-- ============ 3. L'étoile — déclaration vs utilisation ============ -->
+<div class="card pink">
+  <h2><span class="emoji">⭐</span> 3. L'étoile — LE piège qui fait douter</h2>
+  <p>L'étoile <code>*</code> fait <strong>deux choses très différentes</strong> selon où elle est.</p>
+
+  <div class="cmp-table">
+    <div class="cmp-col good">
+      <div class="title">Dans une DÉCLARATION</div>
+      <div class="mem-block"><span class="tp">int</span> *p;</div>
+      <p style="margin:4px 0;">= "p est un pointeur vers int".<br>L'étoile fait partie du <strong>type</strong>.</p>
+    </div>
+    <div class="cmp-col good">
+      <div class="title">Dans le code après</div>
+      <div class="mem-block">*p = <span class="num">99</span>;</div>
+      <p style="margin:4px 0;">= "déréférence p, écris 99 là-bas".<br>L'étoile est l'<strong>opérateur</strong> deref.</p>
+    </div>
+  </div>
+
+  <h3>Les 2 sources de confusion</h3>
+
+  <div class="cmp-table">
+    <div class="cmp-col">
+      <div class="title"><code>int *p = &amp;a;</code></div>
+      <p style="margin:4px 0;">Déclare p comme pointeur, l'init avec l'adresse de a.<br>L'étoile ici = <strong>je suis un pointeur</strong>.</p>
+    </div>
+    <div class="cmp-col">
+      <div class="title"><code>*p = 99;</code></div>
+      <p style="margin:4px 0;">Utilise p (déjà déclaré), écris 99 à l'adresse dans p.<br>L'étoile ici = <strong>déréférence</strong>.</p>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <div class="q">🤔 Quiz : quelle ligne déclare un pointeur ?</div>
+    <div class="mem-block">(A) <span class="tp">int</span> *p = &amp;a;
+(B) *p = <span class="num">99</span>;
+(C) p = &amp;a;
+(D) <span class="tp">int</span> p;</div>
+    <details><summary>voir la réponse</summary>
+      <div class="answer">
+        <strong>A</strong> déclare un pointeur (<code>int *</code> est le type).<br>
+        <strong>B</strong> utilise un pointeur déjà déclaré (deref).<br>
+        <strong>C</strong> réassigne un pointeur existant (change l'adresse dans p).<br>
+        <strong>D</strong> déclare un int normal — pas un pointeur (pas d'étoile).
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ============ 4. Les 4 trucs possibles ============ -->
+<div class="card blue">
+  <h2><span class="emoji">🎯</span> 4. Les 4 opérations avec un pointeur</h2>
+  <p>Étant donné <code>int a = 5; int b = 10; int *p = &amp;a;</code></p>
+
+  <div class="mem-block"><span class="cm">// opération 1 : changer la VALEUR pointée (modifie a)</span>
+*p = <span class="num">99</span>;          <span class="cm">// a devient 99, p intact, b intact</span>
+
+<span class="cm">// opération 2 : changer l'ADRESSE dans p (p pointe ailleurs)</span>
+p = &amp;b;           <span class="cm">// p pointe maintenant sur b, a intact</span>
+
+<span class="cm">// opération 3 : LIRE la valeur pointée</span>
+<span class="tp">int</span> x = *p;       <span class="cm">// x reçoit la valeur à l'adresse dans p</span>
+
+<span class="cm">// opération 4 : LIRE l'adresse dans p</span>
+<span class="fn">printf</span>(<span class="val">"%p"</span>, p); <span class="cm">// affiche l'adresse contenue dans p</span></div>
+
+  <p><strong>La confusion classique</strong> : <code>*p = 99</code> vs <code>p = 99</code>.</p>
+
+  <div class="cmp-table">
+    <div class="cmp-col good">
+      <div class="title"><code>*p = 99;</code> ✅</div>
+      <p style="margin:4px 0;">Déréférence p, écris 99 à l'adresse pointée. <code>a</code> devient 99.</p>
+    </div>
+    <div class="cmp-col bad">
+      <div class="title"><code>p = 99;</code> 💥</div>
+      <p style="margin:4px 0;">Met 99 dans p (comme si c'était une adresse). <strong>Compile error</strong> avec <code>-Werror</code>. Forcé → segfault à la prochaine deref.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5. int p vs int *p ============ -->
+<div class="card purple">
+  <h2><span class="emoji">🔍</span> 5. <code>int p</code> vs <code>int *p</code> — la distinction fondamentale</h2>
+
+  <div class="cmp-table">
+    <div class="cmp-col good">
+      <div class="title"><code>int p;</code> — un entier simple</div>
+      <p style="margin:6px 0;">Taille : <strong>4 octets</strong> (sur la plupart des systèmes).<br>Contient un <strong>nombre</strong>.<br>Ops permises : <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, etc.<br>Pas de deref possible.</p>
+    </div>
+    <div class="cmp-col good">
+      <div class="title"><code>int *p;</code> — un pointeur</div>
+      <p style="margin:6px 0;">Taille : <strong>8 octets</strong> (sur 64-bit).<br>Contient une <strong>adresse</strong>.<br>Ops permises : <code>*p</code> (deref), <code>p = &amp;x</code> (réassigner).<br>Arithmétique spéciale : <code>p + 1</code> avance de <code>sizeof(int)</code> octets.</p>
+    </div>
+  </div>
+
+  <h3>⚠️ Le piège des déclarations multiples</h3>
+  <p>Attention à <strong>où tu mets l'étoile</strong> quand tu déclares plusieurs variables sur la même ligne :</p>
+
+  <div class="mem-block"><span class="tp">int</span>* p, q;     <span class="cm">// PIÈGE : p est int*, q est int (PAS pointeur)</span>
+<span class="tp">int</span> *p, *q;    <span class="cm">// OK : 2 pointeurs. Style 42 / K&R.</span></div>
+
+  <p>Convention 42 : toujours écrire <code>int *p</code> (étoile <strong>collée au nom</strong>), pour éviter ce piège.</p>
+</div>
+
+<!-- ============ 6. Pourquoi les pointeurs existent ============ -->
+<div class="card a">
+  <h2><span class="emoji">💡</span> 6. Pourquoi les pointeurs existent — passage par valeur vs référence</h2>
+  <p>En C, quand tu passes un argument à une fonction, c'est <strong>par valeur</strong>. La fonction reçoit une <strong>copie</strong>.</p>
+
+  <div class="mem-block"><span class="tp">void</span> <span class="fn">try_modify</span>(<span class="tp">int</span> x)
+{
+    x = <span class="num">999</span>;
+}
+
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">void</span>)
+{
+    <span class="tp">int</span> a = <span class="num">5</span>;
+    <span class="fn">try_modify</span>(a);
+    <span class="fn">printf</span>(<span class="val">"a = %d\n"</span>, a);  <span class="cm">// affiche 5, PAS 999</span>
+}</div>
+
+  <p>Pourquoi ? La fonction a reçu une <strong>copie</strong> de 5, l'a modifiée en 999. Mais le <code>a</code> de main est une autre boîte, intacte.</p>
+
+  <h3>La solution : passer l'ADRESSE, pas la valeur</h3>
+
+  <div class="mem-block"><span class="tp">void</span> <span class="fn">modify_via_ptr</span>(<span class="tp">int</span> *x)
+{
+    *x = <span class="num">999</span>;   <span class="cm">// écris à l'adresse reçue</span>
+}
+
+<span class="tp">int</span> <span class="fn">main</span>(<span class="tp">void</span>)
+{
+    <span class="tp">int</span> a = <span class="num">5</span>;
+    <span class="fn">modify_via_ptr</span>(&amp;a);   <span class="cm">// on passe l'adresse de a</span>
+    <span class="fn">printf</span>(<span class="val">"a = %d\n"</span>, a);  <span class="cm">// affiche 999</span>
+}</div>
+
+  <p>Là, la fonction reçoit une copie de l'<strong>adresse</strong> de a. Elle déréférence, écrit à cette adresse → le vrai <code>a</code> de main est modifié.</p>
+
+  <p>🎯 <strong>C'est pour ça que les pointeurs existent</strong> : permettre à une fonction de modifier une variable de l'appelant. Sans pointeurs, impossible (sauf via des valeurs de retour).</p>
+</div>
+
+<!-- ============ 7. Double pointeur ============ -->
+<div class="card mint">
+  <h2><span class="emoji">⚡</span> 7. Double pointeur — <code>int **pp</code></h2>
+  <p>Juste un pointeur qui pointe sur un autre pointeur. Pareil, mais un niveau de plus.</p>
+
+  <div class="mem-block"><span class="tp">int</span> a = <span class="num">42</span>;
+<span class="tp">int</span> *p = &amp;a;       <span class="cm">// p pointe sur a</span>
+<span class="tp">int</span> **pp = &amp;p;     <span class="cm">// pp pointe sur p</span>
+
+<span class="cm">// la chaîne d'indirection :</span>
+<span class="fn">printf</span>(<span class="val">"%d"</span>, a);          <span class="cm">// 42</span>
+<span class="fn">printf</span>(<span class="val">"%d"</span>, *p);         <span class="cm">// 42 (déréférence une fois)</span>
+<span class="fn">printf</span>(<span class="val">"%d"</span>, **pp);       <span class="cm">// 42 (déréférence deux fois)</span></div>
+
+  <h3>Quand t'en as besoin ?</h3>
+  <ul class="rules">
+    <li>Quand une fonction doit modifier un <strong>pointeur</strong> de l'appelant (genre faire pointer la tête de liste ailleurs). Exemple : <code>ft_list_push_front(t_list **head, void *data)</code> — le <code>**</code> permet à la fonction de changer ce sur quoi <code>head</code> pointe.</li>
+    <li>Tableaux de strings : <code>char **argv</code> (tableau de pointeurs sur char).</li>
+    <li>Grilles 2D allouées dynamiquement.</li>
+  </ul>
+
+  <p>📝 Pour push_swap : tu vas voir <code>t_list **stack_a</code> si tu implémentes des fonctions qui peuvent remplacer la tête de pile (ex: <code>pa</code>, <code>pb</code>).</p>
+</div>
+
+<!-- ============ 8. Les pièges ============ -->
+<div class="card pink">
+  <h2><span class="emoji">⚠️</span> 8. Les pièges classiques</h2>
+
+  <h3>Pointeur non initialisé</h3>
+  <div class="mem-block"><span class="tp">int</span> *p;         <span class="cm">// p contient UNE ADRESSE ALÉATOIRE (garbage)</span>
+*p = <span class="num">42</span>;        <span class="cm">// 💥 écris à une adresse aléatoire → segfault (ou pire)</span></div>
+  <p><strong>Règle</strong> : initialise toujours. <code>int *p = NULL;</code> ou <code>int *p = &amp;truc;</code>.</p>
+
+  <h3>Pointeur NULL</h3>
+  <div class="mem-block"><span class="tp">int</span> *p = <span class="num">NULL</span>;
+*p = <span class="num">42</span>;        <span class="cm">// 💥 déréférence NULL = segfault garanti</span></div>
+  <p><strong>Règle</strong> : avant de deref, check <code>if (p)</code> ou <code>if (p != NULL)</code>.</p>
+
+  <h3>Dangling pointer (pointeur en l'air)</h3>
+  <div class="mem-block"><span class="tp">int</span> *p = <span class="fn">malloc</span>(<span class="tp">sizeof</span>(<span class="tp">int</span>));
+*p = <span class="num">42</span>;
+<span class="fn">free</span>(p);         <span class="cm">// mémoire libérée</span>
+*p = <span class="num">99</span>;        <span class="cm">// 💥 p existe encore mais pointe sur de la mémoire libérée</span></div>
+  <p><strong>Règle</strong> : après <code>free(p)</code>, mets <code>p = NULL</code>. Comme ça une deref suivante = segfault clair, pas corruption silencieuse.</p>
+
+  <h3>Retourner un pointeur sur variable locale</h3>
+  <div class="mem-block"><span class="tp">int</span> *<span class="fn">foo</span>(<span class="tp">void</span>)
+{
+    <span class="tp">int</span> x = <span class="num">42</span>;
+    <span class="kw">return</span> &amp;x;    <span class="cm">// 💥 x meurt à la fin de foo, l'adresse devient invalide</span>
+}</div>
+  <p><strong>Règle</strong> : si tu veux retourner un pointeur sur qqch qui survit, utilise <code>malloc</code> (heap) au lieu d'une variable locale (stack).</p>
+
+  <div class="quiz">
+    <div class="q">🤔 Quiz final : trouve les bugs dans ce code</div>
+    <div class="mem-block"><span class="tp">int</span> *p;
+*p = <span class="num">42</span>;
+<span class="tp">int</span> a = <span class="num">5</span>;
+p = a;
+<span class="fn">printf</span>(<span class="val">"%d"</span>, *p);</div>
+    <details><summary>voir les bugs</summary>
+      <div class="answer">
+        <strong>Bug 1</strong> : <code>int *p;</code> — p non initialisé, contient du garbage.<br>
+        <strong>Bug 2</strong> : <code>*p = 42;</code> — deref d'un pointeur garbage → segfault immédiat.<br>
+        <strong>Bug 3</strong> : <code>p = a;</code> — assigne un int (5) à un pointeur. Compile error avec <code>-Werror</code>. Sans cast, "assignment makes pointer from integer without a cast".<br>
+        <strong>Bug 4</strong> : même si les bugs précédents étaient fix, la dernière ligne ferait segfault (p pointerait sur l'adresse 5, invalide).<br><br>
+        Version corrigée :
+        <div class="mem-block"><span class="tp">int</span> a = <span class="num">5</span>;
+<span class="tp">int</span> *p = &amp;a;
+*p = <span class="num">42</span>;          <span class="cm">// a devient 42</span>
+<span class="fn">printf</span>(<span class="val">"%d"</span>, *p); <span class="cm">// affiche 42</span></div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ============ 9. Cheatsheet final ============ -->
+<div class="card final-cheat">
+  <h2><span class="emoji" style="filter:invert(1);">🎯</span> Le cheatsheet à imprimer mentalement</h2>
+
+  <div style="margin-top:12px;">
+  <div class="summary-row"><code>int x;</code><span class="desc">Variable qui stocke un <strong>nombre</strong>.</span></div>
+  <div class="summary-row"><code>int *p;</code><span class="desc">Variable qui stocke une <strong>adresse</strong> (pointeur).</span></div>
+  <div class="summary-row"><code>int **pp;</code><span class="desc">Variable qui stocke une adresse d'une variable qui stocke une adresse.</span></div>
+  <div class="summary-row"><code>&amp;x</code><span class="desc">Adresse de x. Retourne un pointeur.</span></div>
+  <div class="summary-row"><code>*p</code><span class="desc">Valeur à l'adresse dans p. Déréférencement.</span></div>
+  <div class="summary-row"><code>*p = 99</code><span class="desc">Écris 99 à l'adresse dans p. Modifie <strong>la valeur pointée</strong>.</span></div>
+  <div class="summary-row"><code>p = &amp;b</code><span class="desc">Change l'adresse dans p. Modifie <strong>le pointeur</strong>.</span></div>
+  <div class="summary-row"><code>p = 99</code><span class="desc">💥 Compile error (pointer from integer). À éviter.</span></div>
+  </div>
+
+  <h2 style="margin-top:22px;">✦ Règles d'or</h2>
+  <ul>
+    <li>Toujours initialiser un pointeur (<code>NULL</code> ou adresse valide).</li>
+    <li>Avant de deref, check NULL si pas sûr.</li>
+    <li>Après <code>free(p)</code>, fais <code>p = NULL</code>.</li>
+    <li>Style 42 : <code>int *p</code>, étoile collée au nom.</li>
+    <li>L'étoile dans la déclaration ≠ l'étoile dans le code.</li>
+    <li>Si ça compile pas → relis le message d'erreur avant de paniquer. Souvent c'est un <code>&amp;</code> manquant ou un <code>*</code> en trop.</li>
+  </ul>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">pointeurs pigés ✌</div>
+  <div class="footer-meta">fiche méta · <a href="../../index.html">dashboard</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

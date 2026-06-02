@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>last_word — Comprendre la logique</title>
+<style>
+  * { font-variant-ligatures: none !important; font-feature-settings: "liga" 0, "calt" 0 !important; }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0C0C14;--bg2:#111119;--card:#16161F;--card2:#1C1C28;
+  --border:rgba(255,255,255,0.07);--text:#E2E4E9;--mid:#A0A4B0;--muted:#6B6F7E;
+  --cyan:#06D6A0;--cyan2:#34EDBC;--purple:#A78BFA;--purple2:#C4B5FD;
+  --orange:#FB923C;--orange2:#FDBA74;--green:#34D399;--gold:#FBBF24;
+  --blue:#38BDF8;--red:#F87171;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.7;overflow-x:hidden;font-variant-ligatures:none}
+.container{max-width:850px;margin:0 auto;padding:2rem 1.5rem}
+
+/* Hero */
+.hero{text-align:center;padding:3rem 1rem 2rem;position:relative}
+.hero h1{font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,var(--purple2),var(--cyan2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--mid);margin-top:0.5rem;font-size:1.05rem}
+
+section{margin:3rem 0}
+section h2{font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.6rem}
+.sec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+/* Rule card - OR/AND */
+.rule-card{
+  background:var(--card);border:1px solid var(--gold);border-radius:16px;
+  padding:2rem;box-shadow:0 0 30px rgba(251,191,36,0.06);
+}
+.rule-title{
+  color:var(--gold);font-size:1.1rem;font-weight:800;margin-bottom:1.5rem;text-align:center;
+}
+.rule-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;
+}
+@media(max-width:640px){.rule-grid{grid-template-columns:1fr}}
+.rule-box{
+  background:var(--bg2);border:2px solid var(--border);border-radius:12px;
+  padding:1.5rem;text-align:center;
+}
+.rule-box.or{border-color:var(--cyan);}
+.rule-box.and{border-color:var(--purple);}
+.rule-label{
+  font-size:0.75rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.1em;margin-bottom:0.5rem;
+}
+.rule-box.or .rule-label{color:var(--cyan)}
+.rule-box.and .rule-label{color:var(--purple)}
+.rule-big{
+  font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:800;
+  margin:1rem 0;padding:0.75rem;border-radius:8px;background:var(--bg);
+}
+.rule-box.or .rule-big{color:var(--cyan2);border:1px dashed var(--cyan)}
+.rule-box.and .rule-big{color:var(--purple2);border:1px dashed var(--purple)}
+.rule-mean{
+  font-size:0.95rem;color:var(--mid);line-height:1.5;
+}
+.rule-mean strong{color:var(--text)}
+.rule-example{
+  margin-top:1rem;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--muted);
+}
+.rule-example strong{color:var(--text)}
+
+.magic-rule{
+  margin-top:1.5rem;padding:1.25rem;text-align:center;
+  background:rgba(6,214,160,0.05);border:2px solid var(--cyan);
+  border-radius:12px;font-size:1.1rem;font-weight:700;color:var(--cyan2);
+  line-height:1.7;
+}
+.magic-rule .op{color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:800}
+
+/* String visual */
+.string-viz{
+  background:var(--card);border:1px solid var(--blue);border-radius:16px;
+  padding:2rem;margin:2rem 0;box-shadow:0 0 25px rgba(56,189,248,0.05);
+}
+.sv-title{
+  color:var(--blue);font-weight:700;font-size:0.85rem;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:1.5rem;text-align:center;
+}
+
+.string-row{
+  display:flex;justify-content:center;gap:4px;margin-bottom:0.5rem;flex-wrap:wrap;
+}
+.str-cell{
+  width:44px;height:54px;border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;
+  border:2px solid var(--border);background:var(--bg2);
+  position:relative;transition:all 0.4s;
+}
+.str-cell .char{font-size:1.2rem;font-weight:800;color:var(--text)}
+.str-cell .idx{font-size:0.6rem;color:var(--muted);margin-top:2px}
+.str-cell.ws{background:rgba(251,146,60,0.08);border-color:rgba(251,146,60,0.3)}
+.str-cell.ws .char{color:var(--orange)}
+.str-cell.ws .char::before{content:'_'}
+.str-cell.word{background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3)}
+.str-cell.word .char{color:var(--cyan2)}
+.str-cell.end{background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.3);opacity:0.6}
+.str-cell.end .char{color:var(--purple);font-size:0.9rem}
+.str-cell.highlight{
+  border-color:var(--gold);background:rgba(251,191,36,0.15);
+  box-shadow:0 0 20px rgba(251,191,36,0.3);transform:scale(1.1);
+}
+.str-cell.highlight::after{
+  content:'i';position:absolute;top:-22px;
+  font-family:'JetBrains Mono',monospace;color:var(--gold);
+  font-weight:800;font-size:1rem;
+}
+
+/* Steps */
+.step-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:2rem;margin-bottom:1rem;transition:all 0.3s;
+}
+.step-card.active{border-color:var(--cyan);box-shadow:0 0 25px rgba(6,214,160,0.08)}
+.step-head{
+  display:flex;align-items:center;gap:1rem;margin-bottom:1rem;
+}
+.step-num{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.1rem;color:#fff;flex-shrink:0;
+}
+.step-title{
+  flex:1;
+}
+.step-title h3{font-size:1.1rem;font-weight:700;color:var(--text)}
+.step-title p{font-size:0.85rem;color:var(--muted);margin-top:2px}
+
+.step-code{
+  font-family:'JetBrains Mono',monospace;font-size:0.9rem;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.25rem;margin:1rem 0;overflow-x:auto;
+}
+.step-code .kw{color:var(--purple)}
+.step-code .op{color:var(--orange)}
+.step-code .str{color:var(--green)}
+.step-code .cm{color:var(--muted);font-style:italic;margin-left:0.5rem}
+
+.step-explain{
+  background:var(--bg2);border-radius:10px;padding:1rem 1.25rem;
+  font-size:0.95rem;color:var(--mid);line-height:1.7;
+}
+.step-explain strong{color:var(--text)}
+.step-explain .hl-cyan{color:var(--cyan2);font-weight:700}
+.step-explain .hl-purple{color:var(--purple2);font-weight:700}
+.step-explain .hl-gold{color:var(--gold);font-weight:700}
+
+/* Controls */
+.anim-controls{
+  display:flex;justify-content:center;gap:0.75rem;margin:1.5rem 0;flex-wrap:wrap;
+}
+.btn{
+  border:none;border-radius:10px;padding:0.7rem 1.75rem;font-weight:700;
+  font-size:0.95rem;cursor:pointer;transition:all 0.2s;
+}
+.btn-main{
+  background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;
+  box-shadow:0 4px 20px rgba(6,214,160,0.2);
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(6,214,160,0.3)}
+.btn-sec{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-sec:hover{border-color:var(--cyan)}
+.btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important}
+
+/* Code final */
+.code-final{
+  background:var(--card);border:1px solid var(--green);border-radius:16px;
+  padding:2rem;box-shadow:0 0 25px rgba(52,211,153,0.06);
+}
+.code-block{
+  font-family:'JetBrains Mono',monospace;font-size:0.88rem;
+  line-height:1.9;padding:1.25rem 1.5rem;background:var(--bg);
+  border-radius:10px;border:1px solid var(--border);overflow-x:auto;
+}
+.code-block .kw{color:var(--purple)}
+.code-block .op{color:var(--orange)}
+.code-block .st{color:var(--green)}
+.code-block .cm{color:var(--muted);font-style:italic}
+
+/* Mantra */
+.mantra{
+  margin-top:1.5rem;padding:1.25rem;text-align:center;
+  background:rgba(251,191,36,0.06);border:2px solid var(--gold);
+  border-radius:12px;font-size:1.1rem;font-weight:800;color:var(--gold);
+}
+
+@media(max-width:640px){
+  .hero h1{font-size:1.6rem}
+  .str-cell{width:34px;height:44px}
+  .str-cell .char{font-size:0.95rem}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>last_word — la logique démystifiée</h1>
+    <p>Et la règle OR/AND qui te piège tout le temps</p>
+  </div>
+
+  <!-- SECTION 1: La règle OR vs AND -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(251,191,36,0.1);color:var(--gold)">⚡</span> La règle OR vs AND — une fois pour toutes</h2>
+    <div class="rule-card">
+      <div class="rule-title">Tu veux tester si un char est un espace ou un tab ?</div>
+
+      <div class="rule-grid">
+        <div class="rule-box or">
+          <div class="rule-label">Cas 1 — Tu veux "C'EST"</div>
+          <div class="rule-big">== &nbsp; || &nbsp; ==</div>
+          <div class="rule-mean">
+            "C'est un espace <strong>OU</strong> un tab"<br>
+            <span style="color:var(--muted);font-size:0.85rem">(au moins un des deux vrai)</span>
+          </div>
+          <div class="rule-example">
+            <strong style="color:var(--cyan2)">while</strong> skip whitespace :<br>
+            <strong>c == ' ' || c == '\t'</strong>
+          </div>
+        </div>
+
+        <div class="rule-box and">
+          <div class="rule-label">Cas 2 — Tu veux "C'EST PAS"</div>
+          <div class="rule-big">!= &nbsp; && &nbsp; !=</div>
+          <div class="rule-mean">
+            "C'est ni un espace <strong>NI</strong> un tab"<br>
+            <span style="color:var(--muted);font-size:0.85rem">(les deux faux)</span>
+          </div>
+          <div class="rule-example">
+            <strong style="color:var(--purple2)">while</strong> dans un mot :<br>
+            <strong>c != ' ' && c != '\t'</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="magic-rule">
+        Quand t'as <span class="op">==</span> → utilise <span class="op">||</span><br>
+        Quand t'as <span class="op">!=</span> → utilise <span class="op">&&</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Visualisation -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(56,189,248,0.1);color:var(--blue)">🎯</span> last_word sur <code style="color:var(--cyan2)">"  HELLO WORLD  "</code></h2>
+    <div class="string-viz">
+      <div class="sv-title">Étape par étape — clique pour avancer</div>
+      <div class="string-row" id="stringRow"></div>
+      <div class="anim-controls">
+        <button class="btn btn-sec" onclick="resetSim()">↻ Reset</button>
+        <button class="btn btn-main" id="btnNext" onclick="nextSim()">Suivant →</button>
+      </div>
+      <div id="stepInfo" style="text-align:center;color:var(--mid);font-size:1rem;margin-top:1rem;min-height:3rem;padding:1rem;background:var(--bg2);border-radius:10px">
+        Clique <strong style="color:var(--text)">Suivant</strong> pour commencer
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Les 4 boucles -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(167,139,250,0.1);color:var(--purple)">🔧</span> Les 4 boucles, une par une</h2>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">1</div>
+        <div class="step-title">
+          <h3>Aller à la fin de la string</h3>
+          <p>Placer <code>i</code> sur le dernier caractère (avant <code>\0</code>)</p>
+        </div>
+      </div>
+<div class="step-code"><span class="kw">while</span> (argv[<span class="op">1</span>][i])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+i<span class="op">--</span>; <span class="cm">// reculer sur le dernier char</span></div>
+      <div class="step-explain">
+        On avance <span class="hl-gold">i</span> jusqu'à trouver le <code>\0</code>. Puis on <strong>recule d'un cran</strong> pour être sur le dernier char de la string. C'est comme trouver la taille (<code>strlen</code>) et se positionner à la fin.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">2</div>
+        <div class="step-title">
+          <h3>Skip les espaces de la fin</h3>
+          <p>Reculer tant qu'on EST sur un espace ou tab</p>
+        </div>
+      </div>
+<div class="step-code"><span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="op">0</span> <span class="op">&amp;&amp;</span> (argv[<span class="op">1</span>][i] <span class="op">==</span> <span class="str">' '</span> <span class="op">||</span> argv[<span class="op">1</span>][i] <span class="op">==</span> <span class="str">'\t'</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">--</span>;</div>
+      <div class="step-explain">
+        On <strong>SKIP</strong> les espaces → donc on veut que ce <span class="hl-cyan">SOIT</span> un espace ou un tab → <span class="hl-cyan">== avec ||</span>.<br><br>
+        Le <code>i &gt;= 0</code> en premier empêche de sortir de la string si elle est vide ou que des espaces.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">3</div>
+        <div class="step-title">
+          <h3>Reculer jusqu'au début du mot</h3>
+          <p>Reculer tant qu'on N'EST PAS sur un espace/tab</p>
+        </div>
+      </div>
+<div class="step-code"><span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="op">0</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="str">' '</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="str">'\t'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">--</span>;<br>
+i<span class="op">++</span>; <span class="cm">// on a trop reculé d'un cran, on corrige</span></div>
+      <div class="step-explain">
+        On <strong>cherche le début</strong> du mot → donc on continue tant que ce <span class="hl-purple">N'EST PAS</span> un espace ni un tab → <span class="hl-purple">!= avec &&</span>.<br><br>
+        À la fin, <code>i</code> est <strong>avant</strong> le premier char du mot (sur un espace ou -1), donc on fait <code>i++</code> pour atterrir sur le premier char.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">4</div>
+        <div class="step-title">
+          <h3>Afficher le mot</h3>
+          <p>Avancer tant qu'on est DANS le mot</p>
+        </div>
+      </div>
+<div class="step-code"><span class="kw">while</span> (argv[<span class="op">1</span>][i] <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="str">' '</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="str">'\t'</span>)<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">write</span>(<span class="op">1</span>, <span class="op">&amp;</span>argv[<span class="op">1</span>][i], <span class="op">1</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+}<br>
+<span class="kw">write</span>(<span class="op">1</span>, <span class="str">"\n"</span>, <span class="op">1</span>);</div>
+      <div class="step-explain">
+        On affiche char par char tant qu'on est dans le mot → même règle <span class="hl-purple">!= avec &&</span>.<br><br>
+        Le <code>argv[1][i]</code> seul en premier vérifie qu'on est pas au <code>\0</code> (fin de string).
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Code final -->
+  <section>
+    <h2><span class="sec-icon" style="background:rgba(52,211,153,0.1);color:var(--green)">✅</span> Le code complet</h2>
+    <div class="code-final">
+<div class="code-block"><span class="kw">#include</span> <span class="st">&lt;unistd.h&gt;</span>
+<br><br>
+<span class="kw">int</span> <span style="color:var(--cyan2)">main</span>(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">int</span> i <span class="op">=</span> <span class="op">0</span>;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (argc <span class="op">!=</span> <span class="op">2</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">write</span>(<span class="op">1</span>, <span class="st">"\n"</span>, <span class="op">1</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> (<span class="op">0</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// 1. aller à la fin</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> (argv[<span class="op">1</span>][i])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">--</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// 2. skip espaces de fin (== || ==)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="op">0</span> <span class="op">&amp;&amp;</span> (argv[<span class="op">1</span>][i] <span class="op">==</span> <span class="st">' '</span> <span class="op">||</span> argv[<span class="op">1</span>][i] <span class="op">==</span> <span class="st">'\t'</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">--</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// 3. reculer jusqu'au début du mot (!= && !=)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> (i <span class="op">&gt;=</span> <span class="op">0</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="st">' '</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="st">'\t'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">--</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// 4. afficher le mot</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> (argv[<span class="op">1</span>][i] <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="st">' '</span> <span class="op">&amp;&amp;</span> argv[<span class="op">1</span>][i] <span class="op">!=</span> <span class="st">'\t'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">write</span>(<span class="op">1</span>, <span class="op">&amp;</span>argv[<span class="op">1</span>][i], <span class="op">1</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i<span class="op">++</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">write</span>(<span class="op">1</span>, <span class="st">"\n"</span>, <span class="op">1</span>);<br>
+}</div>
+      <div class="mantra">Aller à la fin · Skip espaces · Reculer au début du mot · Afficher</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const STR = "  HELLO WORLD  ";
+// 0:space 1:space 2:H 3:E 4:L 5:L 6:O 7:space 8:W 9:O 10:R 11:L 12:D 13:space 14:space
+const CHARS = STR.split('');
+let simStep = -1;
+let simI = 0;
+
+// Define each step of the animation
+const simSteps = [
+  { action: 'init', pos: 0, msg: 'Départ — <strong>i = 0</strong>' },
+  { action: 'toEnd', pos: 15, msg: 'Boucle 1 : on avance jusqu\'au <code style="color:var(--purple2)">\\0</code>. <strong>i = 15</strong>' },
+  { action: 'back1', pos: 14, msg: 'On fait <strong>i--</strong> pour être sur le dernier char. <strong>i = 14</strong> (espace)' },
+  { action: 'skip', pos: 13, msg: 'Boucle 2 : skip espaces. i=14 est espace → <strong>i--</strong>' },
+  { action: 'skip', pos: 12, msg: 'i=13 est espace → <strong>i--</strong>. Arrivé sur <strong>D</strong> (i=12)' },
+  { action: 'find', pos: 11, msg: 'Boucle 3 : recule au début du mot. i=12 est D (pas espace) → <strong>i--</strong>' },
+  { action: 'find', pos: 10, msg: 'i=11 est L → <strong>i--</strong>' },
+  { action: 'find', pos: 9, msg: 'i=10 est R → <strong>i--</strong>' },
+  { action: 'find', pos: 8, msg: 'i=9 est O → <strong>i--</strong>' },
+  { action: 'find', pos: 7, msg: 'i=8 est W → <strong>i--</strong>. On est sur un espace, on sort de la boucle' },
+  { action: 'fix', pos: 8, msg: 'On fait <strong>i++</strong> pour être sur le W. <strong>i = 8</strong>' },
+  { action: 'print', pos: 9, msg: 'Boucle 4 : write \'W\' → <strong>i++</strong>' },
+  { action: 'print', pos: 10, msg: 'write \'O\' → <strong>i++</strong>' },
+  { action: 'print', pos: 11, msg: 'write \'R\' → <strong>i++</strong>' },
+  { action: 'print', pos: 12, msg: 'write \'L\' → <strong>i++</strong>' },
+  { action: 'print', pos: 13, msg: 'write \'D\' → <strong>i++</strong>. On est sur un espace, on sort. write \\n. <strong style="color:var(--green)">Résultat : WORLD</strong>' }
+];
+
+function initSim() {
+  const row = document.getElementById('stringRow');
+  row.innerHTML = '';
+  CHARS.forEach((c, i) => {
+    const cell = document.createElement('div');
+    const isWs = c === ' ' || c === '\t';
+    cell.className = 'str-cell ' + (isWs ? 'ws' : 'word');
+    cell.id = 'sc-' + i;
+    cell.innerHTML = `<span class="char">${isWs ? '' : c}</span><span class="idx">${i}</span>`;
+    row.appendChild(cell);
+  });
+  // \0
+  const nul = document.createElement('div');
+  nul.className = 'str-cell end';
+  nul.id = 'sc-15';
+  nul.innerHTML = `<span class="char">\\0</span><span class="idx">15</span>`;
+  row.appendChild(nul);
+}
+
+function highlightCell(idx) {
+  document.querySelectorAll('.str-cell').forEach(c => c.classList.remove('highlight'));
+  if (idx >= 0 && idx <= 15) {
+    const cell = document.getElementById('sc-' + idx);
+    if (cell) cell.classList.add('highlight');
+  }
+}
+
+function nextSim() {
+  simStep++;
+  if (simStep >= simSteps.length) {
+    document.getElementById('btnNext').disabled = true;
+    return;
+  }
+  const s = simSteps[simStep];
+  highlightCell(s.pos);
+  document.getElementById('stepInfo').innerHTML = s.msg;
+}
+
+function resetSim() {
+  simStep = -1;
+  document.getElementById('btnNext').disabled = false;
+  document.querySelectorAll('.str-cell').forEach(c => c.classList.remove('highlight'));
+  document.getElementById('stepInfo').innerHTML = 'Clique <strong style="color:var(--text)">Suivant</strong> pour commencer';
+}
+
+window.addEventListener('load', initSim);
+</script>
+</body>
+</html>

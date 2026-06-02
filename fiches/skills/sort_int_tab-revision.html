@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sort_int_tab — fiche de révision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 900px !important; padding-top: 20px !important; }
+.revision-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 24px 26px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 20px; }
+.revision-card.a { transform: rotate(-0.2deg); }
+.revision-card.b { background: var(--hl-mint); transform: rotate(0.2deg); }
+.revision-card.c { background: var(--hl-pink); transform: rotate(-0.3deg); }
+.revision-card.d { background: var(--hl-blue); transform: rotate(0.3deg); }
+.rev-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin-bottom: 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.rev-title .emoji { font-size: 26px; }
+.rev-card-code { background: #1C1A28; color: #E9E5F0; padding: 14px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; }
+.rev-card-code .kw { color: #A5D8A8; } .rev-card-code .str { color: #FFD88A; } .rev-card-code .cm { color: #7D7B95; font-style: italic; } .rev-card-code .num { color: #FFB380; } .rev-card-code .tp { color: #79B8D8; }
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; padding: 8px 12px 8px 36px; position: relative; color: var(--ink); border-bottom: 1px dashed rgba(34,32,48,0.2); }
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before { content: "→"; position: absolute; left: 12px; color: var(--accent-d); font-weight: 700; font-size: 18px; }
+.bullets li code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border-radius: 3px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; }
+.bullets li strong { color: var(--accent-d); }
+.key-insight { background: var(--ink); color: var(--paper); padding: 16px 20px; border-radius: 10px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 19px; text-align: center; line-height: 1.4; box-shadow: 4px 4px 0 var(--accent); }
+.key-insight .hl-y { background: var(--hl-yellow); color: var(--ink); padding: 0 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ sort_int_tab — fiche de révision</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">sort_int_tab</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">quick recap ↓</div>
+  <p class="hero-sub">Bubble sort in place. <span class="hl">void retour</span>, 2 boucles imbriquées, 1 flag <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">swaped</code>.</p>
+</section>
+
+<main>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">🎯</span> l'algo en 4 points</div>
+  <ol class="bullets">
+    <li><strong>Guard</strong> : <code>size &lt; 2</code> → <code>return ;</code>. Protège contre le <code>size - 1</code> underflow (size est <code>unsigned</code>).</li>
+    <li><strong>Init</strong> : <code>swaped = 1</code> pour entrer dans le while extérieur au moins une fois.</li>
+    <li><strong>Passe</strong> : au début, <code>swaped = 0</code> ET <code>i = 0</code>. Puis inner parcourt toutes les paires voisines, swap si mal ordonnées, <code>swaped = 1</code> à chaque swap.</li>
+    <li><strong>Exit</strong> : si une passe complète ne touche à rien (<code>swaped == 0</code>) → le while extérieur sort. Trié.</li>
+  </ol>
+</div>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">💾</span> code final (commenté)</div>
+  <div class="rev-card-code"><span class="tp">void</span>	sort_int_tab(<span class="tp">int</span> *tab, <span class="tp">unsigned int</span> size)
+{
+	<span class="tp">unsigned int</span>	i;
+	<span class="tp">int</span>		tmp;
+	<span class="tp">int</span>		swaped;
+
+	<span class="cm">/* Edge case : size 0 ou 1 → rien à trier.
+	   size est unsigned → size - 1 underflow à UINT_MAX si size==0. */</span>
+	<span class="kw">if</span> (size &lt; <span class="num">2</span>)
+		<span class="kw">return</span> ;
+
+	swaped = <span class="num">1</span>;
+	<span class="kw">while</span> (swaped)
+	{
+		<span class="cm">/* Reset par passe : doigt au début + carnet à NON. */</span>
+		swaped = <span class="num">0</span>;
+		i = <span class="num">0</span>;
+		<span class="kw">while</span> (i &lt; size - <span class="num">1</span>)
+		{
+			<span class="kw">if</span> (tab[i] &gt; tab[i + <span class="num">1</span>])
+			{
+				tmp = tab[i];
+				tab[i] = tab[i + <span class="num">1</span>];
+				tab[i + <span class="num">1</span>] = tmp;
+				swaped = <span class="num">1</span>;
+			}
+			i++;
+		}
+	}
+}</div>
+</div>
+
+<div class="revision-card b">
+  <div class="rev-title"><span class="emoji">🎨</span> patterns clés</div>
+  <ul class="bullets">
+    <li><strong>Les 2 resets au même endroit</strong> : <code>swaped = 0; i = 0;</code> groupés en haut de la passe. Un reset = une passe indépendante. Les séparer = bug.</li>
+    <li><strong><code>swaped</code> = "est-ce que quelque chose a bougé pendant CETTE passe ?"</strong>. Pas "sur la dernière paire". D'où le reset en HAUT, pas au milieu.</li>
+    <li><strong>Swap en 3 temps via <code>tmp</code></strong> : classique. Pas de XOR-swap, norm 42 n'aime pas.</li>
+    <li><strong><code>i &lt; size - 1</code></strong> (pas <code>i &lt;= size - 1</code>) : on compare <code>tab[i]</code> et <code>tab[i+1]</code>, donc <code>i+1</code> doit rester valide. La dernière paire comparée est <code>(size-2, size-1)</code>.</li>
+    <li><strong>Bubble sort = O(n²)</strong>. Pas optimal mais trivial à écrire sans se tromper. L'exam ne demande pas mieux.</li>
+  </ul>
+</div>
+
+<div class="revision-card c">
+  <div class="rev-title"><span class="emoji">⚠️</span> les pièges</div>
+  <ul class="bullets">
+    <li><strong>Oublier <code>if (size &lt; 2) return ;</code></strong> → <code>size - 1</code> underflow unsigned à UINT_MAX quand <code>size == 0</code> → boucle quasi-infinie + segfault en lisant hors tableau.</li>
+    <li><strong>Mettre <code>swaped = 0</code> DANS l'inner</strong> → se reset à chaque paire, perd son sens. Le flag ne veut plus dire "pendant la passe" mais "sur la dernière paire".</li>
+    <li><strong>Oublier <code>i = 0</code> au début de la passe</strong> → combiné au bug précédent : la 2e passe ne rentre plus dans l'inner, mais <code>swaped</code> reste à 1 (du dernier swap) → <strong>boucle infinie</strong>.</li>
+    <li><strong>Comparer avec <code>&lt;</code> au lieu de <code>&gt;</code></strong> → tri décroissant (ou pas de tri du tout selon l'input).</li>
+    <li><strong>Return autre chose que <code>void</code></strong> : le proto impose <code>void</code>. Tu modifies <code>tab</code> en place, rien à retourner.</li>
+    <li><strong>Initialiser <code>swaped = 0</code></strong> → le while extérieur ne rentre jamais, le tableau n'est JAMAIS touché.</li>
+  </ul>
+</div>
+
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🧠</span> mental model</div>
+  <ul class="bullets">
+    <li><strong>Analogie des livres</strong> : tu ranges tes livres par taille sur une étagère. Tu pointes 2 livres voisins, tu les échanges si mal ordonnés, tu avances. Arrivé au bout, tu recommences depuis le début tant que t'as bougé quelque chose.</li>
+    <li><strong>Le carnet "j'ai bougé qqch"</strong> = <code>swaped</code>. On le remet à NON au DÉBUT de chaque tour, pas après chaque paire.</li>
+    <li><strong>Le doigt qui avance</strong> = <code>i</code>. On le remet au DÉBUT de l'étagère au début de chaque tour.</li>
+    <li><strong>Pourquoi ça finit forcément</strong> : à chaque passe, l'élément le plus grand "remonte" à sa place finale. En <code>n</code> passes max, tout est en place. Le <code>swaped</code> fait souvent sortir plus tôt.</li>
+    <li><strong>Pattern réutilisable</strong> : "flag + reset top-of-loop" est le pattern standard pour "répéter jusqu'à stabilité" — utile aussi en relaxation, propagation, etc.</li>
+  </ul>
+</div>
+
+<div class="key-insight">
+  la <span class="hl-y">règle d'or</span> :<br>
+  <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">swaped = 0; i = 0;</code> en HAUT de la passe, pas en bas.<br>
+  plus <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">if (size &lt; 2) return ;</code> en guard = zéro bug.
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">sort_int_tab pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="../../index.html">dashboard</a> · <a href="sort_int_tab-tutor.html">step debugger</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

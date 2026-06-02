@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sort_list — fiche de révision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 900px !important; padding-top: 20px !important; }
+.revision-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 24px 26px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 20px; }
+.revision-card.a { transform: rotate(-0.2deg); }
+.revision-card.b { background: var(--hl-mint); transform: rotate(0.2deg); }
+.revision-card.c { background: var(--hl-pink); transform: rotate(-0.3deg); }
+.revision-card.d { background: var(--hl-blue); transform: rotate(0.3deg); }
+.rev-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin-bottom: 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.rev-title .emoji { font-size: 26px; }
+.rev-card-code { background: #1C1A28; color: #E9E5F0; padding: 14px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; }
+.rev-card-code .kw { color: #A5D8A8; } .rev-card-code .str { color: #FFD88A; } .rev-card-code .cm { color: #7D7B95; font-style: italic; } .rev-card-code .num { color: #FFB380; } .rev-card-code .tp { color: #79B8D8; } .rev-card-code .fn { color: #C0B3E0; }
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; padding: 8px 12px 8px 36px; position: relative; color: var(--ink); border-bottom: 1px dashed rgba(34,32,48,0.2); }
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before { content: "→"; position: absolute; left: 12px; color: var(--accent-d); font-weight: 700; font-size: 18px; }
+.bullets li code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border-radius: 3px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; }
+.bullets li strong { color: var(--accent-d); }
+.key-insight { background: var(--ink); color: var(--paper); padding: 16px 20px; border-radius: 10px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 19px; text-align: center; line-height: 1.4; box-shadow: 4px 4px 0 var(--accent); }
+.key-insight .hl-y { background: var(--hl-yellow); color: var(--ink); padding: 0 6px; border-radius: 3px; }
+.cmp-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.cmp-table th, .cmp-table td { border: 2px solid var(--ink); padding: 8px 10px; text-align: center; background: var(--paper); }
+.cmp-table th { background: var(--hl-yellow); font-weight: 700; }
+.cmp-table td.yes { background: #A8E0B0; }
+.cmp-table td.no { background: #F7B5B0; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ sort_list — fiche de révision</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">sort_list</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">quick recap ↓</div>
+  <p class="hero-sub">Bubble sort sur liste chaînée. On swap les <span class="hl">data</span>, jamais les nœuds. <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">!cmp(a, b)</code> = "mal ordonné, faut swap".</p>
+</section>
+
+<main>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">🎯</span> l'algo en 5 points</div>
+  <ol class="bullets">
+    <li><strong>Guard</strong> : <code>!lst || !lst->next</code> → <code>return (lst);</code>. Liste vide ou 1 seul nœud = déjà triée.</li>
+    <li><strong>Init</strong> : <code>swapped = 1</code> pour forcer l'entrée dans le while extérieur.</li>
+    <li><strong>Passe</strong> : au début, <code>swapped = 0</code> ET <code>cur = lst</code>. Puis inner avance <code>cur</code> jusqu'à <code>cur->next == NULL</code>, en comparant la paire voisine.</li>
+    <li><strong>Swap data-only</strong> : si <code>!cmp(cur->data, cur->next->data)</code> → échange les <code>->data</code> via <code>tmp</code>. Les <code>->next</code> ne bougent jamais.</li>
+    <li><strong>Exit</strong> : passe sans swap → sort du while extérieur. Retourne <code>lst</code> (la tête n'a pas bougé).</li>
+  </ol>
+</div>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">💾</span> code final (commenté)</div>
+  <div class="rev-card-code"><span class="cm">/* list.h fourni — NE PAS turn in */</span>
+<span class="kw">#include</span> <span class="str">"list.h"</span>
+
+<span class="tp">t_list</span>	*<span class="fn">sort_list</span>(<span class="tp">t_list</span> *lst, <span class="tp">int</span> (*cmp)(<span class="tp">int</span>, <span class="tp">int</span>))
+{
+	<span class="tp">int</span>		swapped;
+	<span class="tp">int</span>		tmp;
+	<span class="tp">t_list</span>	*cur;
+
+	<span class="cm">/* Guard : liste vide ou 1 seul nœud → rien à trier. */</span>
+	<span class="kw">if</span> (!lst || !lst-&gt;next)
+		<span class="kw">return</span> (lst);
+
+	swapped = <span class="num">1</span>;
+	<span class="kw">while</span> (swapped)
+	{
+		<span class="cm">/* Reset par passe : hypothèse rien ne bouge, cur repart de la tête. */</span>
+		swapped = <span class="num">0</span>;
+		cur = lst;
+		<span class="kw">while</span> (cur-&gt;next)
+		{
+			<span class="cm">/* cmp retourne !=0 si (a,b) bien ordonnés.
+			   !cmp(...) vrai → ordre cassé → swap data-to-data. */</span>
+			<span class="kw">if</span> (!cmp(cur-&gt;data, cur-&gt;next-&gt;data))
+			{
+				tmp = cur-&gt;data;
+				cur-&gt;data = cur-&gt;next-&gt;data;
+				cur-&gt;next-&gt;data = tmp;
+				swapped = <span class="num">1</span>;
+			}
+			cur = cur-&gt;next;
+		}
+	}
+	<span class="kw">return</span> (lst);
+}</div>
+</div>
+
+<div class="revision-card b">
+  <div class="rev-title"><span class="emoji">🎨</span> patterns clés</div>
+  <ul class="bullets">
+    <li><strong>Swap des data, PAS des nœuds</strong>. Relier des nœuds demande 4-5 pointeurs temp + gestion de la tête. Swapper <code>->data</code> = 3 lignes, zéro risque.</li>
+    <li><strong>La tête <code>lst</code> ne bouge JAMAIS</strong> avec cette approche. D'où <code>return (lst);</code> tout simple en sortie.</li>
+    <li><strong>Reset en haut de passe</strong> : <code>swapped = 0; cur = lst;</code> groupés. Un reset = une passe indépendante.</li>
+    <li><strong>Condition inner <code>cur->next</code></strong> (pas <code>cur</code>) : on regarde la paire <code>(cur, cur->next)</code>, donc <code>cur->next</code> doit exister. Sur le dernier nœud, <code>cur->next == NULL</code> → sort.</li>
+    <li><strong>Avancée <code>cur = cur->next</code> TOUJOURS</strong>, swap ou pas. C'est l'équivalent du <code>i++</code> de sort_int_tab.</li>
+  </ul>
+</div>
+
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🧭</span> lire la signature de cmp</div>
+  <p style="font-family:'Patrick Hand',cursive;font-size:17px;line-height:1.5;color:var(--ink);margin:0 0 10px;">
+    Énoncé : <code style="font-family:'JetBrains Mono',monospace;background:var(--paper);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">cmp(a, b) != 0</code> si <b>a, b sont dans le bon ordre</b>. Donc la logique est inversée par rapport au réflexe "compare &gt;".
+  </p>
+  <table class="cmp-table">
+    <tr><th>exemple de cmp</th><th>ascendant</th><th>descendant</th></tr>
+    <tr><td><code>return (a &lt;= b);</code></td><td class="yes">✅ trie ↑</td><td class="no">✗</td></tr>
+    <tr><td><code>return (a &gt;= b);</code></td><td class="no">✗</td><td class="yes">✅ trie ↓</td></tr>
+  </table>
+  <p style="font-family:'Patrick Hand',cursive;font-size:17px;line-height:1.5;color:var(--ink);margin:12px 0 0;">
+    Règle mnémonique : <b><code style="font-family:'JetBrains Mono',monospace;background:var(--paper);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">!cmp(a, b)</code> = "mauvais ordre → SWAP"</b>. C'est le seul point où on utilise cmp.
+  </p>
+</div>
+
+<div class="revision-card c">
+  <div class="rev-title"><span class="emoji">⚠️</span> les pièges</div>
+  <ul class="bullets">
+    <li><strong>Oublier le <code>!</code> devant <code>cmp(...)</code></strong> → tri dans le mauvais sens (ou pas de tri). C'est l'erreur numéro 1 de cet exo.</li>
+    <li><strong>Vouloir swapper les nœuds au lieu des data</strong> → 4 pointeurs à manipuler, risque de perdre la tête ou de faire des cycles. <b>Ne le fais pas.</b> Swap <code>->data</code>, c'est l'idée clé.</li>
+    <li><strong>Oublier <code>if (!lst || !lst->next) return (lst);</code></strong> → segfault sur liste vide (<code>lst->next</code> déréf NULL).</li>
+    <li><strong>Oublier <code>return (lst);</code> à la fin</strong> → warning de compile + valeur de retour indéfinie.</li>
+    <li><strong>Condition inner <code>while (cur)</code> au lieu de <code>while (cur->next)</code></strong> → sur le dernier nœud on déréférence <code>cur->next->data</code> (NULL) → segfault.</li>
+    <li><strong>Mettre <code>swapped = 0</code> dans l'inner</strong> → même bug que sort_int_tab : le flag perd son sens, potentielle boucle infinie.</li>
+    <li><strong>Oublier <code>cur = lst</code> en haut de la passe</strong> → 2e passe : <code>cur</code> est resté sur le dernier nœud, l'inner ne rentre même pas. Et si <code>swapped</code> était à 1 → boucle infinie.</li>
+    <li><strong>Avancer <code>cur = cur->next</code> uniquement en cas de no-swap</strong> → bug classique, on reste bloqué sur la même paire quand il y a swap.</li>
+  </ul>
+</div>
+
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🧠</span> mental model</div>
+  <ul class="bullets">
+    <li><strong>Analogie train</strong> : les wagons (nœuds) sont attachés dans un ordre fixe. Mais les <b>valises dedans (data)</b>, tu peux les bouger. Sort_list = déplacer les valises, laisser les wagons.</li>
+    <li><strong>cmp = un arbitre</strong> qui te dit "ce couple est-il bien placé ?". Si non (retour 0) → tu échanges les contenus.</li>
+    <li><strong>Pourquoi ça finit</strong> : à chaque passe, la plus grande valise "monte" d'un cran. En N passes max, tout est rangé. Le flag <code>swapped</code> fait souvent sortir plus tôt.</li>
+    <li><strong>Différence vs sort_int_tab</strong> : même algo (bubble), mais <code>i++</code> devient <code>cur = cur->next</code>, et <code>size - 1</code> devient <code>cur->next != NULL</code>. Le flag + reset top-of-loop sont IDENTIQUES.</li>
+    <li><strong>Complexité</strong> : O(n²) en temps, O(1) en mémoire. Exam valide, on s'arrête là.</li>
+  </ul>
+</div>
+
+<div class="key-insight">
+  la <span class="hl-y">règle d'or</span> :<br>
+  <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">!cmp(a, b)</code> = mauvais ordre → swap <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">->data</code> (pas les nœuds).<br>
+  <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">swapped = 0; cur = lst;</code> en HAUT de la passe. <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">return (lst);</code>.
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">sort_list pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 4 · <a href="../../index.html">dashboard</a> · <a href="sort_list-tutor.html">step debugger</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

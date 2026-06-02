@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk ch4 — bitwise expliqué</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+.video { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 20px 32px 70px 32px; }
+.topbar { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.scene-title { font-family: 'Kalam', cursive; font-size: 30px; color: #ffe96b; text-align: center; margin-bottom: 4px; min-height: 38px; opacity: 0; transform: translateY(-15px); transition: all 0.6s; }
+.scene-title.in { opacity: 1; transform: translateY(0); }
+.subtitle { font-family: 'Caveat', cursive; font-size: 19px; color: #c0b3e0; text-align: center; margin-bottom: 14px; min-height: 22px; }
+.main { flex: 1; display: flex; min-height: 0; align-items: center; justify-content: center; }
+.stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 0 16px; max-width: 1200px; width: 100%; }
+.shelf { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.shelf-row { display: flex; gap: 6px; }
+.cell { width: 64px; height: 64px; border: 3px solid #5c5a75; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #5c5a75; background: #1a1825; transition: all 0.4s; }
+.cell.one { color: #79b8d8; background: rgba(121,184,216,0.1); border-color: #79b8d8; }
+.cell.zero { color: #ff9f7a; background: rgba(255,159,122,0.1); border-color: #ff9f7a; }
+.cell.fresh { color: #c9a6ff; border-color: #c9a6ff; background: rgba(201,166,255,0.15); animation: pop 0.5s; }
+.cell.active { transform: scale(1.15); box-shadow: 0 0 18px currentColor; }
+.cell.masked { opacity: 0.2; }
+.cell.kept { box-shadow: 0 0 22px #ffe96b; border-color: #ffe96b; }
+@keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+.labels { display: flex; gap: 6px; }
+.labels span { width: 64px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5c5a75; }
+.weights { display: flex; gap: 6px; }
+.weights span { width: 64px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #c0b3e0; }
+.big { font-family: 'Kalam', cursive; font-size: 22px; color: #ffe96b; text-align: center; line-height: 1.5; max-width: 900px; }
+.big code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 3px 10px; border-radius: 6px; font-size: 20px; }
+.big b { color: #ff9f7a; }
+.big .muted { color: #5c5a75; font-size: 16px; }
+.formula { font-family: 'JetBrains Mono', monospace; font-size: 22px; padding: 14px 22px; background: #1a1825; border: 3px solid #ffe96b; border-radius: 12px; color: #ffe96b; box-shadow: 4px 4px 0 rgba(255,233,107,0.3); }
+.code-link { background: rgba(255,159,122,0.1); border: 2px dashed #ff9f7a; border-radius: 10px; padding: 12px 18px; font-family: 'Patrick Hand', cursive; font-size: 16px; color: #ff9f7a; max-width: 800px; }
+.code-link b { color: #ffe96b; }
+.code-link code { font-family: 'JetBrains Mono', monospace; background: #1a1825; color: #ffb380; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+.section-banner { font-family: 'Kalam', cursive; font-size: 32px; color: #c9a6ff; text-align: center; padding: 18px 26px; border: 3px dashed #c9a6ff; border-radius: 14px; max-width: 700px; background: rgba(201,166,255,0.05); }
+.section-num { font-size: 16px; color: #5c5a75; letter-spacing: 4px; margin-bottom: 8px; }
+.compare-pair { display: flex; gap: 4px; flex-direction: column; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 18px; }
+.compare-line { display: flex; gap: 6px; align-items: center; }
+.compare-line .lab { color: #5c5a75; min-width: 80px; text-align: right; font-size: 14px; }
+.bin-row { display: flex; gap: 3px; }
+.bin-cell { width: 30px; height: 30px; border: 2px solid; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+.bin-cell.zero { color: #ff9f7a; border-color: rgba(255,159,122,0.4); background: rgba(255,159,122,0.05); }
+.bin-cell.one { color: #79b8d8; border-color: rgba(121,184,216,0.4); background: rgba(121,184,216,0.05); }
+.bin-cell.result { color: #ffe96b; border-color: #ffe96b; background: rgba(255,233,107,0.1); }
+.caption { font-family: 'Patrick Hand', cursive; font-size: 19px; color: #f0e9d8; text-align: center; max-width: 1000px; line-height: 1.5; margin: 14px auto 0 auto; min-height: 50px; opacity: 0; transform: translateY(15px); transition: all 0.6s; }
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 16px; }
+.caption .why { display: block; margin-top: 8px; padding: 8px 14px; background: rgba(121,184,216,0.08); border-left: 3px solid #79b8d8; border-radius: 0 6px 6px 0; font-size: 16px; color: #c0b3e0; }
+.caption .why::before { content: 'Pourquoi ? '; color: #79b8d8; font-weight: 700; }
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; align-items: center; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.controls input { width: 100px; }
+.speed-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5c5a75; }
+.counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+</style>
+</head>
+<body>
+<div class="video">
+<div class="topbar" id="section-tag">chapitre 4</div>
+<div class="scene-title" id="title">bitwise expliqué</div>
+<div class="subtitle" id="subtitle"></div>
+<div class="main"><div class="stage" id="stage"></div></div>
+<div class="caption" id="caption"></div>
+</div>
+<div class="progress" id="progress"></div>
+<div class="counter"><span id="step-cur">0</span> / <span id="step-total">0</span></div>
+<div class="controls">
+  <span class="speed-lbl">vitesse</span>
+  <input type="range" id="speed" min="1000" max="6000" step="500" value="3000">
+  <span class="speed-lbl" id="speed-val">3.0s</span>
+  <button id="btn-prev">prev</button>
+  <button id="btn-play">play</button>
+  <button id="btn-next">next</button>
+  <button id="btn-replay">replay</button>
+</div>
+<script>
+function shelf(bits, opts) {
+  opts = opts || {};
+  const masked = opts.masked || [];
+  const kept = opts.kept || [];
+  const active = opts.active || [];
+  const fresh = opts.fresh || [];
+  const showLabels = opts.labels !== false;
+  const showWeights = opts.weights || false;
+  let h = '<div class="shelf">';
+  if (showWeights) {
+    h += '<div class="weights"><span>128</span><span>64</span><span>32</span><span>16</span><span>8</span><span>4</span><span>2</span><span>1</span></div>';
+  }
+  h += '<div class="shelf-row">';
+  bits.forEach((b, i) => {
+    let cls = 'cell ' + (b === '0' ? 'zero' : b === '1' ? 'one' : '');
+    if (fresh.includes(i)) cls += ' fresh';
+    if (masked.includes(i)) cls += ' masked';
+    if (kept.includes(i)) cls += ' kept';
+    if (active.includes(i)) cls += ' active';
+    h += '<div class="' + cls + '">' + b + '</div>';
+  });
+  h += '</div>';
+  if (showLabels) {
+    h += '<div class="labels"><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></div>';
+  }
+  h += '</div>';
+  return h;
+}
+function bitRow(bits, type) {
+  let h = '<div class="bin-row">';
+  bits.forEach(b => {
+    h += '<div class="bin-cell ' + (type || (b === '0' ? 'zero' : 'one')) + '">' + b + '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+</script>
+<script>
+const SCENES = [
+  { tag: 'chapitre 4 — bitwise', title: 'On va comprendre les opérations sur les bits', subtitle: '4 opérateurs + 2 formules magiques', dur: 5000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">CHAPITRE 4</div>Les opérations bitwise<br><span style="font-size:17px; color:#5c5a75;">>> · << · &amp; · |<br>+ les formules (c >> i) &amp; 1 et (c << 1) | bit</span></div>';
+      c.innerHTML = 'Ce chapitre couvre les outils mathématiques que ton code minitalk utilise pour décomposer et reconstruire les caractères. <b>Va doucement, c est OK si tu dois revoir 2-3 fois.</b>';
+    }
+  },
+  { tag: 'rappel — un char = 8 bits', title: 'Rappel rapide du chapitre 3', subtitle: 'avant de commencer, on visualise un char', dur: 6000,
+    render: (s, c) => {
+      s.innerHTML = shelf(['0','1','0','1','0','0','1','1'], { weights: true }) + '<div class="big">c = "S" = 83 = <code>01010011</code><br><span class="muted">addition : 64 + 16 + 2 + 1 = 83</span></div>';
+      c.innerHTML = 'Un char en C c est juste un nombre sur 8 bits (= 8 cases). Position 7 à gauche (MSB), position 0 à droite (LSB). Maintenant on va voir comment manipuler ces bits.';
+    }
+  },
+  { tag: '§ 4.1 — shift droit >>', title: '4.1 — Le shift droit  >>', subtitle: 'décale les bits vers la droite', dur: 4000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.1</div>Le shift droit<br><b style="font-size:44px;color:#ff9f7a;">&gt;&gt;</b><br><span style="font-size:16px; color:#5c5a75;">divise par 2, perd le bit de droite</span></div>';
+      c.innerHTML = 'L opérateur <code>&gt;&gt;</code> décale tous les bits d un nombre vers la droite. Le bit qui sort à droite est perdu. À gauche, un 0 entre. <b>C est l outil de base pour extraire les bits côté client.</b>';
+    }
+  },
+  { tag: '§ 4.1 — shift droit >>', title: 'c >> 1 — décalage d une position', subtitle: 'avant / après', dur: 6500,
+    render: (s, c) => {
+      s.innerHTML = '<div class="big" style="font-size:18px; color:#5c5a75;">avant (c = 83) :</div>' + shelf(['0','1','0','1','0','0','1','1'], { active: [7] }) + '<div style="font-size:28px; color:#c9a6ff;">↓ décale d 1 cran à droite ↓</div><div class="big" style="font-size:18px; color:#5c5a75;">après (c &gt;&gt; 1 = 41) :</div>' + shelf(['0','0','1','0','1','0','0','1'], { fresh: [0] });
+      c.innerHTML = 'Le 1 le plus à droite est <b>tombé</b> (perdu). Tous les autres ont glissé d un cran à droite. À gauche, un <span style="color:#c9a6ff;">0 tout neuf</span> apparaît.<span class="why">Mathématiquement c est comme diviser par 2 (avec arrondi vers le bas). 83 / 2 = 41.</span>';
+    }
+  },
+  { tag: '§ 4.1 — shift droit >>', title: 'c >> 7 — l astuce qui sert dans minitalk', subtitle: 'amène le bit 7 (MSB) en position 0', dur: 8000,
+    render: (s, c) => {
+      s.innerHTML = shelf(['0','1','0','1','0','0','1','1'], { active: [0] }) + '<div style="font-size:24px; color:#c9a6ff;">↓ 7 décalages ↓</div>' + shelf(['0','0','0','0','0','0','0','0'], { kept: [7] }) + '<div class="big" style="font-size:18px;">Le bit 7 original (= 0) est maintenant <b>seul en position 0</b><br><span class="muted">tous les autres sont tombés à droite</span></div>';
+      c.innerHTML = '<b>C est ça l astuce de minitalk côté client !</b> En faisant <code>c &gt;&gt; i</code>, on amène le bit qui nous intéresse (position i) en position 0.<span class="why">Pourquoi on en a besoin : on veut envoyer chaque bit du char un par un. Pour ça il faut d abord ISOLER chaque bit, et le shift c est le moyen de le faire.</span>';
+    }
+  },
+  { tag: '§ 4.2 — shift gauche <<', title: '4.2 — Le shift gauche  <<', subtitle: 'l inverse du shift droit', dur: 4000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.2</div>Le shift gauche<br><b style="font-size:44px;color:#79b8d8;">&lt;&lt;</b><br><span style="font-size:16px; color:#5c5a75;">multiplie par 2, perd le bit de gauche</span></div>';
+      c.innerHTML = 'Exactement l inverse de <code>&gt;&gt;</code>. Les bits glissent à <b>gauche</b>, le bit qui sort à gauche est perdu, à droite un 0 apparaît. <b>C est l outil de base côté server pour la reconstruction.</b>';
+    }
+  },
+  { tag: '§ 4.2 — shift gauche <<', title: 'c << 1 — décalage d une position', subtitle: 'avant / après', dur: 6500,
+    render: (s, c) => {
+      s.innerHTML = '<div class="big" style="font-size:18px; color:#5c5a75;">avant (c = 10) :</div>' + shelf(['0','0','0','0','1','0','1','0']) + '<div style="font-size:28px; color:#c9a6ff;">↓ décale d 1 cran à gauche ↓</div><div class="big" style="font-size:18px; color:#5c5a75;">après (c &lt;&lt; 1 = 20) :</div>' + shelf(['0','0','0','1','0','1','0','0'], { fresh: [7] });
+      c.innerHTML = 'Tous les bits glissent vers la gauche. À droite, un <span style="color:#c9a6ff;">0 tout neuf</span> apparaît — c est cette nouvelle case libre qui sert à recevoir le prochain bit dans la reconstruction.<span class="why">Mathématiquement = multiplier par 2. 10 × 2 = 20.</span>';
+    }
+  },
+];
+</script>
+<script>
+SCENES.push(
+  { tag: 'AND', title: '4.3 — L AND bitwise &', subtitle: 'compare bit à bit', dur: 4000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.3</div>L AND bitwise<br><b style="font-size:44px;color:#79b8d8;">&amp;</b><br><span style="font-size:16px; color:#5c5a75;">1 seulement si les deux bits sont 1</span></div>';
+      c.innerHTML = 'L opérateur <code>&amp;</code> compare 2 nombres position par position. À chaque position : résultat = 1 <b>uniquement si les 2 bits sont à 1</b>. Sinon 0.';
+    }
+  },
+  { tag: 'AND', title: 'Exemple A & B', subtitle: 'pour chaque position', dur: 8000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="compare-pair"><div class="compare-line"><span class="lab">A =</span>' + bitRow(['1','0','1','1','0','1','0','0']) + '</div><div class="compare-line"><span class="lab">B =</span>' + bitRow(['0','1','1','0','0','1','1','0']) + '</div><div style="font-size:22px; color:#5c5a75;">─────────────────</div><div class="compare-line"><span class="lab">A &amp; B =</span>' + bitRow(['0','0','1','0','0','1','0','0'], 'result') + '</div></div><div class="big" style="font-size:15px;">pos 5 et 2 : les deux bits sont à 1 → résultat 1<br>partout ailleurs : au moins un est à 0 → résultat 0</div>';
+      c.innerHTML = 'Le AND c est un filtre strict : il faut que LES DEUX bits soient à 1. C est cette propriété qu on va utiliser pour faire un "masque".';
+    }
+  },
+);
+</script>
+<script>
+SCENES.push(
+  { tag: 'masque & 1', title: '4.4 — Le masque & 1', subtitle: 'garde uniquement la position 0', dur: 4500,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.4</div>Le masque<br><b style="font-size:44px;color:#c9a6ff;">&amp; 1</b><br><span style="font-size:16px; color:#5c5a75;">efface tous les bits sauf le bit 0</span></div>';
+      c.innerHTML = 'Pourquoi <code>&amp; 1</code> ? Parce que le nombre 1 en binaire c est <code>00000001</code> — uniquement le bit 0 est à 1. Quand on AND avec ça, tous les autres bits du résultat seront forcément 0.';
+    }
+  },
+  { tag: 'masque & 1', title: 'n & 1 — exemple visuel', subtitle: 'tous les bits sauf le 0 sont écrasés', dur: 9000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="compare-pair"><div class="compare-line"><span class="lab">n =</span>' + bitRow(['0','1','0','1','0','0','1','1']) + '<span style="font-size:13px; color:#5c5a75; margin-left:10px;">(= 83)</span></div><div class="compare-line"><span class="lab">&amp; 1 =</span>' + bitRow(['0','0','0','0','0','0','0','1']) + '<span style="font-size:13px; color:#5c5a75; margin-left:10px;">(= 1)</span></div><div style="font-size:22px; color:#5c5a75;">─────────────────</div><div class="compare-line"><span class="lab">résultat =</span>' + bitRow(['0','0','0','0','0','0','0','1'], 'result') + '<span style="font-size:13px; color:#5c5a75; margin-left:10px;">(= 1)</span></div></div><div class="big" style="font-size:16px;">Tous les bits à gauche : écrasés à 0.<br>Le bit 0 : préservé si 1, ou reste 0.<br><b style="color:#6fb07e">→ Résultat = 0 ou 1, c est la valeur du bit 0 de n.</b></div>';
+      c.innerHTML = 'Le masque <code>&amp; 1</code> agit comme un projecteur : il garde uniquement la position 0 et éteint tout le reste. C est ce qu on veut pour extraire UNE seule valeur de bit.';
+    }
+  },
+);
+</script>
+<script>
+SCENES.push(
+  { tag: 'formule magique', title: '4.5 — La formule magique', subtitle: '(c >> i) & 1', dur: 5000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.5</div>La formule magique<br><br><div class="formula" style="display:inline-block;">(c &gt;&gt; i) &amp; 1</div><br><span style="font-size:16px; color:#5c5a75; margin-top:12px; display:inline-block;">extrait le bit à la position i</span></div>';
+      c.innerHTML = 'On combine les 2 outils : <b>shift</b> pour amener le bit à la position 0, puis <b>masque &amp; 1</b> pour le garder seul. Résultat = 0 ou 1.';
+    }
+  },
+  { tag: 'formule magique', title: 'Étape 1 : (c >> 6) — shift', subtitle: 'on cible le bit 6 de H = 01001000', dur: 8000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="big" style="font-size:18px;">c = H = <code>01001000</code> = 72</div>' + shelf(['0','1','0','0','1','0','0','0'], { active: [1] }) + '<div style="font-size:22px; color:#c9a6ff;">↓ c &gt;&gt; 6 (décale 6 fois à droite) ↓</div>' + shelf(['0','0','0','0','0','0','0','1'], { kept: [7] }) + '<div class="big" style="font-size:16px;">Le bit 6 original (= 1) est maintenant en position 0.</div>';
+      c.innerHTML = 'Après <code>c &gt;&gt; 6</code>, le bit qui nous intéresse arrive tout à droite. Les autres bits sont tombés ou remplacés par des 0.';
+    }
+  },
+  { tag: 'formule magique', title: 'Étape 2 : & 1', subtitle: 'résultat final = 0 ou 1', dur: 8000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="compare-pair"><div class="compare-line"><span class="lab">après shift :</span>' + bitRow(['0','0','0','0','0','0','0','1']) + '</div><div class="compare-line"><span class="lab">&amp; 1 :</span>' + bitRow(['0','0','0','0','0','0','0','1']) + '</div><div style="font-size:22px; color:#5c5a75;">─────────────────</div><div class="compare-line"><span class="lab">résultat :</span>' + bitRow(['0','0','0','0','0','0','0','1'], 'result') + '<span style="font-size:18px; color:#6fb07e; margin-left:14px;">= 1 ✓</span></div></div><div class="big" style="font-size:17px;"><b style="color:#6fb07e">Le bit 6 de H vaut 1.</b><br><span class="muted">le client va envoyer SIGUSR2 pour ce bit</span></div>';
+      c.innerHTML = 'La formule <code>(c &gt;&gt; i) &amp; 1</code> retourne 0 ou 1 — la valeur exacte du bit i de c. Le client minitalk fait ça pour i = 7, 6, 5, ..., 0.';
+    }
+  },
+  { tag: 'formule magique', title: 'Lien direct avec ton code', subtitle: 'la ligne 10 de send_char', dur: 9000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="code-link"><b>Dans ton client.c, ligne 10 :</b><br><br><code style="font-size:15px;">if ((uc &gt;&gt; i) &amp; 1)<br>&nbsp;&nbsp;&nbsp;&nbsp;kill(pid, SIGUSR2);<br>else<br>&nbsp;&nbsp;&nbsp;&nbsp;kill(pid, SIGUSR1);</code><br><br>i va de 7 à 0 dans la boucle.<br>Pour chaque i, on extrait le bit i de uc avec la formule.<br>Si = 1 → SIGUSR2. Si = 0 → SIGUSR1.</div>';
+      c.innerHTML = '<b>C est EXACTEMENT cette formule qu utilise ton code client</b> pour extraire et envoyer chaque bit. Si tu maîtrises (c &gt;&gt; i) &amp; 1, tu peux expliquer toute la fonction send_char.';
+    }
+  },
+);
+</script>
+<script>
+SCENES.push(
+  { tag: 'OR |', title: '4.6 — L OR bitwise |', subtitle: 'compare bit à bit', dur: 4500,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.6</div>L OR bitwise<br><b style="font-size:44px;color:#6fb07e;">|</b><br><span style="font-size:16px; color:#5c5a75;">1 si au moins un des deux bits est 1</span></div>';
+      c.innerHTML = 'L opérateur <code>|</code> compare 2 nombres bit à bit. Résultat = 1 <b>si au moins un des deux bits est à 1</b>. C est l inverse logique du AND (qui exige les 2).';
+    }
+  },
+  { tag: 'OR |', title: 'c | 1 — ajouter un 1 en position 0', subtitle: 'sans toucher aux autres bits', dur: 9000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="compare-pair"><div class="compare-line"><span class="lab">c =</span>' + bitRow(['0','0','0','0','1','0','1','0']) + '<span style="font-size:13px; color:#5c5a75; margin-left:10px;">(= 10)</span></div><div class="compare-line"><span class="lab">| 1 =</span>' + bitRow(['0','0','0','0','0','0','0','1']) + '</div><div style="font-size:22px; color:#5c5a75;">─────────────────</div><div class="compare-line"><span class="lab">résultat =</span>' + bitRow(['0','0','0','0','1','0','1','1'], 'result') + '<span style="font-size:13px; color:#5c5a75; margin-left:10px;">(= 11)</span></div></div><div class="big" style="font-size:16px;">Tous les bits à gauche : <b>inchangés</b> (le masque a des 0 partout).<br>Le bit 0 : passé à 1 (le masque a un 1 ici).</div>';
+      c.innerHTML = '<code>c | 1</code> est l opération inverse de <code>&amp; 1</code>. Au lieu d EXTRAIRE le bit 0, on AJOUTE un 1 en position 0. Les autres bits restent intacts. <b>C est exactement ce qu il faut pour la reconstruction côté server.</b>';
+    }
+  },
+  { tag: 'reconstruction', title: '4.7 — La formule de reconstruction', subtitle: '(c << 1) | bit', dur: 5000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="section-banner"><div class="section-num">SECTION 4.7</div>La formule server<br><br><div class="formula" style="display:inline-block;">c = (c &lt;&lt; 1) | bit</div><br><span style="font-size:16px; color:#5c5a75; margin-top:12px; display:inline-block;">ajoute un bit à droite</span></div>';
+      c.innerHTML = 'Côté server, on reçoit les bits un par un. Comment les assembler pour reconstruire le char ? Cette formule fait exactement ça : on shift à gauche pour libérer la position 0, puis on y met le nouveau bit avec | bit.';
+    }
+  },
+  { tag: 'reconstruction', title: 'Reconstruction pas à pas', subtitle: 'on reçoit les bits de H : 0,1,0,0,1,0,0,0', dur: 12000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="big" style="font-size:15px; line-height:1.7;"><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 0 : c = (0&lt;&lt;1) | 0 = <b style="color:#ffe96b">0</b></span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 1 : c = (0&lt;&lt;1) | 1 = <b style="color:#ffe96b">1</b></span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 0 : c = (1&lt;&lt;1) | 0 = <b style="color:#ffe96b">2</b> (10)</span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 0 : c = (2&lt;&lt;1) | 0 = <b style="color:#ffe96b">4</b> (100)</span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 1 : c = (4&lt;&lt;1) | 1 = <b style="color:#ffe96b">9</b> (1001)</span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 0 : c = (9&lt;&lt;1) | 0 = <b style="color:#ffe96b">18</b> (10010)</span><br><span style="font-family:JetBrains Mono,monospace; color:#c0b3e0;">reçu 0 : c = (18&lt;&lt;1) | 0 = <b style="color:#ffe96b">36</b> (100100)</span><br><span style="font-family:JetBrains Mono,monospace; color:#6fb07e;">reçu 0 : c = (36&lt;&lt;1) | 0 = <b>72 = H ✓</b></span></div>';
+      c.innerHTML = 'À chaque bit reçu : on fait de la place à droite avec <code>&lt;&lt;</code>, puis on met le bit dans la case libre avec <code>| bit</code>. Après 8 bits, c contient le char complet. <b>C est l opération miroir du shift droit côté client.</b>';
+    }
+  },
+  { tag: 'reconstruction', title: 'Lien avec ton code server', subtitle: 'les lignes 6-8 de handle_signal', dur: 9000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="code-link"><b>Dans ton server.c, lignes 6-8 :</b><br><br><code style="font-size:15px;">c = c &lt;&lt; 1;<br>if (sig == SIGUSR2)<br>&nbsp;&nbsp;&nbsp;&nbsp;c = c | 1;</code><br><br>Le shift libère la position 0 (= ajoute un 0 à droite par défaut).<br>Si SIGUSR2 (= bit 1), on met le 1 en position 0 via | 1.<br>Si SIGUSR1 (= bit 0), pas de OR — la position 0 reste 0 grâce au shift.</div>';
+      c.innerHTML = '<b>C est EXACTEMENT cette logique qu utilise ton handler.</b> Le shift est toujours fait, le OR seulement si SIGUSR2. C est l inverse de ce que fait le client.';
+    }
+  },
+);
+</script>
+<script>
+SCENES.push(
+  { tag: '§ 4.8 — récap', title: '4.8 — Les 4 opérateurs', subtitle: 'on les a tous vus', dur: 9000,
+    render: (s, c) => {
+      s.innerHTML = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 800px;"><div style="background:rgba(255,159,122,0.1); border:2px solid #ff9f7a; border-radius:12px; padding:14px;"><div style="font-family:Kalam,cursive; font-size:24px; color:#ff9f7a;">&gt;&gt; shift droit</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:6px;">décale à droite, divise par 2</div></div><div style="background:rgba(121,184,216,0.1); border:2px solid #79b8d8; border-radius:12px; padding:14px;"><div style="font-family:Kalam,cursive; font-size:24px; color:#79b8d8;">&lt;&lt; shift gauche</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:6px;">décale à gauche, multiplie par 2</div></div><div style="background:rgba(201,166,255,0.1); border:2px solid #c9a6ff; border-radius:12px; padding:14px;"><div style="font-family:Kalam,cursive; font-size:24px; color:#c9a6ff;">&amp; AND</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:6px;">1 si les deux bits sont 1</div></div><div style="background:rgba(111,176,126,0.1); border:2px solid #6fb07e; border-radius:12px; padding:14px;"><div style="font-family:Kalam,cursive; font-size:24px; color:#6fb07e;">| OR</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:6px;">1 si au moins un bit est 1</div></div></div>';
+      c.innerHTML = 'Avec ces 4 opérateurs, tu peux manipuler les bits comme tu veux. Dans minitalk on utilise les 4.';
+    }
+  },
+  { tag: '§ 4.8 — récap', title: 'Les 2 formules à retenir absolument', subtitle: 'pour la defense', dur: 11000,
+    render: (s, c) => {
+      s.innerHTML = '<div style="display:flex; gap:24px; flex-wrap:wrap; justify-content:center;"><div style="background:rgba(255,159,122,0.08); border:2.5px solid #ff9f7a; border-radius:14px; padding:18px 24px; max-width:420px;"><div style="font-family:Kalam,cursive; font-size:22px; color:#ff9f7a; margin-bottom:8px;">CÔTÉ CLIENT</div><div class="formula" style="font-size:22px;">(c &gt;&gt; i) &amp; 1</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:10px; line-height:1.5;">Extrait le bit à la position i.<br>Donne 0 ou 1.<br>Sert à décider SIGUSR1 ou SIGUSR2.</div></div><div style="background:rgba(111,176,126,0.08); border:2.5px solid #6fb07e; border-radius:14px; padding:18px 24px; max-width:420px;"><div style="font-family:Kalam,cursive; font-size:22px; color:#6fb07e; margin-bottom:8px;">CÔTÉ SERVER</div><div class="formula" style="font-size:22px;">c = (c &lt;&lt; 1) | bit</div><div style="font-family:Patrick Hand,cursive; font-size:15px; color:#c0b3e0; margin-top:10px; line-height:1.5;">Ajoute un bit à droite de c.<br>Après 8 bits, c contient le char complet.</div></div></div>';
+      c.innerHTML = 'Si tu peux expliquer ces 2 formules à un évaluateur en defense, tu démontres que tu maîtrises la mécanique fondamentale de minitalk. C est <b>LE</b> truc à retenir de ce chapitre.';
+    }
+  },
+  { tag: 'fini', title: 'Chapitre 4 terminé ✓', subtitle: 'tu peux retourner au gitbook', dur: 7000,
+    render: (s, c) => {
+      s.innerHTML = '<div class="big" style="font-size:24px;">Bravo, t as fait le chapitre le plus dense.<br><span class="muted">Si certains concepts restent flous, relance le video à la section qui bloque.</span></div><div style="margin-top:14px;"><a href="book/04-bitwise.html" style="display:inline-block; padding:12px 22px; background:#ffe96b; color:#0f0e1a; border-radius:10px; text-decoration:none; font-weight:700; font-family:Kalam,cursive; font-size:18px;">← retour au chapitre 4 du gitbook</a></div>';
+      c.innerHTML = 'Le chapitre suivant (Ch. 5) couvre les fonctions C utilisées (kill, sigaction, pause...). C est moins dense techniquement, tu vas voir.';
+    }
+  },
+);
+</script>
+<script>
+let currentScene = 0, timer = null, paused = false, startTime = 0, remainingTime = 0, playDelay = 3000;
+const titleEl = document.getElementById('title');
+const subEl = document.getElementById('subtitle');
+const tagEl = document.getElementById('section-tag');
+const stageEl = document.getElementById('stage');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+  setTimeout(() => {
+    tagEl.textContent = s.tag;
+    titleEl.textContent = s.title;
+    subEl.textContent = s.subtitle || '';
+    s.render(stageEl, captionEl);
+    setTimeout(() => { titleEl.classList.add('in'); setTimeout(() => captionEl.classList.add('in'), 200); }, 80);
+    document.getElementById('step-cur').textContent = idx + 1;
+    document.getElementById('step-total').textContent = SCENES.length;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+function scheduleNext(d) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), d); }
+function togglePlay() {
+  paused = !paused;
+  document.getElementById('btn-play').textContent = paused ? 'reprendre' : 'pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-play').textContent = 'pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+document.getElementById('btn-play').addEventListener('click', togglePlay);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+document.getElementById('speed').addEventListener('input', e => {
+  playDelay = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = (playDelay / 1000).toFixed(1) + 's';
+});
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+playScene(0);
+</script>
+</body>
+</html>

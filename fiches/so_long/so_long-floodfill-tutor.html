@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>so_long flood fill — step debugger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=2">
+<style>
+main { max-width: 1400px !important; }
+
+.debugger {
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 18px;
+  padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0;
+}
+.dbg-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 1100px) { .dbg-grid { grid-template-columns: 1fr; } }
+
+.code-panel {
+  background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink);
+  overflow: hidden; box-shadow: 3px 3px 0 var(--ink);
+  max-height: 720px; overflow-y: auto;
+}
+.code-header {
+  background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 2;
+}
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.5); font-size: 12px;
+}
+.code-body {
+  padding: 14px 0; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1.7; color: #E9E5F0; counter-reset: lineno;
+  overflow-x: auto;
+}
+.code-line {
+  padding: 2px 20px 2px 44px; position: relative; white-space: pre; transition: background 0.15s;
+  min-width: max-content;
+}
+.code-line::before {
+  counter-increment: lineno; content: counter(lineno);
+  position: absolute; left: 8px; color: #5C5A75;
+  font-size: 10px; width: 24px; text-align: right;
+}
+.code-line.active {
+  background: rgba(255, 233, 107, 0.22); border-left: 3px solid var(--hl-yellow);
+  padding-left: 41px;
+}
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+
+.map-box {
+  border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px; background: var(--paper);
+}
+.map-title {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px;
+  color: var(--ink); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.map-title .legend {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--muted); text-transform: none; letter-spacing: 0;
+}
+.map-grid {
+  display: inline-grid; gap: 3px;
+  padding: 6px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 8px;
+}
+.cell {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  border: 2px solid var(--ink); border-radius: 5px;
+  background: var(--paper); color: var(--ink);
+  position: relative; transition: all 0.25s;
+}
+.cell[data-v="1"] { background: var(--ink); color: var(--paper); }
+.cell[data-v="0"] { background: var(--paper-d); color: var(--muted); font-size: 12px; }
+.cell[data-v="P"] { background: var(--hl-yellow); color: var(--ink); }
+.cell[data-v="C"] { background: var(--hl-pink); color: var(--accent-d); }
+.cell[data-v="E"] { background: var(--hl-blue); color: var(--ink); }
+.cell[data-v="V"] { background: var(--hl-mint); color: #1f5b34; font-size: 16px; }
+.cell.active {
+  transform: scale(1.15); z-index: 3;
+  box-shadow: 0 0 0 3px var(--accent), 3px 3px 0 var(--ink);
+}
+.cell .orig {
+  position: absolute; top: 1px; right: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--ink); opacity: 0.45; font-weight: 700;
+}
+
+.stack-box {
+  border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink);
+  padding: 12px 14px; background: #1C1A28;
+}
+.stack-title {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px;
+  color: var(--hl-yellow); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.stack-frames {
+  display: flex; flex-direction: column-reverse; gap: 3px;
+  max-height: 240px; overflow-y: auto;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+}
+.stack-frame {
+  background: #262333; color: #E9E5F0;
+  padding: 5px 10px; border-radius: 5px;
+  border-left: 3px solid #5C5A75;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.stack-frame.top {
+  background: var(--hl-yellow); color: var(--ink);
+  border-left: 3px solid var(--accent);
+  font-weight: 700;
+}
+.stack-frame .depth { opacity: 0.5; font-size: 10px; }
+.stack-empty {
+  font-family: 'Patrick Hand', cursive; font-size: 13px;
+  color: var(--muted); font-style: italic; text-align: center; padding: 8px;
+}
+
+.desc-box {
+  background: var(--ink); color: var(--paper); border-radius: 12px;
+  border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent);
+  padding: 12px 14px; font-family: 'Patrick Hand', cursive; font-size: 16px;
+  line-height: 1.4; min-height: 50px;
+}
+.desc-box .tag {
+  display: inline-block; background: var(--hl-yellow); color: var(--ink);
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px; margin-right: 7px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.desc-box .tag.wall { background: var(--accent); color: #fff; }
+.desc-box .tag.paint { background: var(--hl-mint); }
+.desc-box .tag.call { background: var(--hl-blue); }
+.desc-box .tag.return { background: var(--hl-pink); }
+.desc-box .tag.visited { background: var(--muted); color: #fff; }
+
+.verdict-box {
+  border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink);
+  padding: 12px 14px; background: var(--paper);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  display: none;
+}
+.verdict-box.show { display: block; }
+.verdict-box.ok { background: var(--hl-mint); }
+.verdict-box.ko { background: var(--hl-pink); }
+.verdict-box .title {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.ctrl-btn {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink);
+  border-radius: 22px; padding: 8px 16px;
+  box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+
+.step-counter {
+  font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft);
+  text-align: center; margin-top: 12px; font-weight: 700;
+}
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+
+.examples {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;
+}
+.ex-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 18px;
+  padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.1s;
+}
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.legend-row {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+}
+.legend-row .lg-item {
+  display: flex; align-items: center; gap: 5px;
+}
+.legend-row .lg-cell {
+  width: 18px; height: 18px; border: 1.5px solid var(--ink); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ so_long flood fill — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">flood fill</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">la récursion qui peint ↓</div>
+  <p class="hero-sub">L'algo en direct : la map qui se remplit case par case, la pile d'appels qui grandit, le verdict atteignable / coincé. <span class="hl">4 maps</span>.</p>
+</section>
+
+<main>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="legend-row">
+      <div class="lg-item"><div class="lg-cell" style="background:var(--ink);color:var(--paper)">1</div>mur</div>
+      <div class="lg-item"><div class="lg-cell" style="background:var(--paper-d);color:var(--muted);font-size:9px">0</div>sol</div>
+      <div class="lg-item"><div class="lg-cell" style="background:var(--hl-yellow)">P</div>joueur</div>
+      <div class="lg-item"><div class="lg-cell" style="background:var(--hl-pink);color:var(--accent-d)">C</div>collect</div>
+      <div class="lg-item"><div class="lg-cell" style="background:var(--hl-blue)">E</div>exit</div>
+      <div class="lg-item"><div class="lg-cell" style="background:var(--hl-mint);color:#1f5b34">V</div>visité</div>
+    </div>
+
+    <div class="dbg-grid" style="margin-top:14px;">
+      <div class="code-panel">
+        <div class="code-header">
+          <div class="dot" style="background:#FF6B6B"></div>
+          <div class="dot" style="background:#FFD26A"></div>
+          <div class="dot" style="background:#7ECE7E"></div>
+          <div class="title">map_path.c — flood()</div>
+        </div>
+        <div class="code-body" id="code-body"></div>
+      </div>
+
+      <div class="state-panel">
+        <div class="map-box">
+          <div class="map-title">
+            <span>map (copie)</span>
+            <span class="legend">cellule active = orange</span>
+          </div>
+          <div class="map-grid" id="map-grid"></div>
+        </div>
+
+        <div class="stack-box">
+          <div class="stack-title">call stack — flood()</div>
+          <div class="stack-frames" id="stack-frames">
+            <div class="stack-empty">pile vide</div>
+          </div>
+        </div>
+
+        <div class="verdict-box" id="verdict-box">
+          <div class="title" id="verdict-title">—</div>
+          <div id="verdict-text">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desc-box" id="desc-box">
+      <span class="tag" id="desc-tag">ready</span>
+      <span id="desc-text">Choisis une map et clique next.</span>
+    </div>
+
+    <div class="ctrls" style="margin-top:14px;">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="80" max="1500" value="400" step="40">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+</section>
+
+<section class="section fade" style="margin-top:20px;">
+  <h2 style="font-family:'Kalam',cursive;color:var(--ink);">à retenir</h2>
+  <ul style="font-family:'Patrick Hand',cursive;font-size:17px;line-height:1.7;">
+    <li><b>copy_map d'abord</b> — on ne touche jamais à la vraie map, on inonde une copie.</li>
+    <li><b>condition d'arrêt</b> — mur (<code>'1'</code>) ou déjà visité (<code>'V'</code>) → return immédiat. Sans le test 'V', boucle infinie et stack overflow.</li>
+    <li><b>4 directions</b> — haut, bas, gauche, droite. Pas de diagonales (le joueur bouge en croix).</li>
+    <li><b>all_reached</b> — après le flood, si une seule case <code>'C'</code> ou <code>'E'</code> reste sur la copie → map invalide.</li>
+    <li><b>la pile grandit</b> — chaque appel récursif empile un cadre. Plus la zone est grande, plus la pile est profonde. Une zone vide 1000x1000 = stack overflow possible.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">peinture qui se propage ✌</div>
+  <div class="footer-meta">circle 2 · so_long · <a href="book/index.html">gitbook so_long</a></div>
+</footer>
+
+<script>
+// ═════════ CODE DISPLAY ═════════
+const CODE = [
+  '<span class="tp">static</span> <span class="tp">void</span>\t<span class="fn">flood</span>(<span class="tp">char</span> **map, <span class="tp">int</span> x, <span class="tp">int</span> y)',
+  '{',
+  '\t<span class="kw">if</span> (map[y][x] == <span class="str">\'1\'</span> || map[y][x] == <span class="str">\'V\'</span>)',
+  '\t\t<span class="kw">return</span> ;',
+  '\tmap[y][x] = <span class="str">\'V\'</span>;',
+  '\t<span class="fn">flood</span>(map, x, y - <span class="num">1</span>);',
+  '\t<span class="fn">flood</span>(map, x, y + <span class="num">1</span>);',
+  '\t<span class="fn">flood</span>(map, x - <span class="num">1</span>, y);',
+  '\t<span class="fn">flood</span>(map, x + <span class="num">1</span>, y);',
+  '}',
+];
+
+const LN = {
+  enter: 1,
+  check: 3,
+  retEarly: 4,
+  paint: 5,
+  callUp: 6,
+  callDown: 7,
+  callLeft: 8,
+  callRight: 9,
+  retEnd: 10,
+};
+
+// ═════════ MAPS ═════════
+const MAPS = [
+  {
+    label: 'valid (simple)',
+    grid: [
+      '111111',
+      '1P0C01',
+      '100001',
+      '1000E1',
+      '111111',
+    ],
+  },
+  {
+    label: 'joueur coincé',
+    grid: [
+      '1111111',
+      '1P010C1',
+      '1010001',
+      '10100E1',
+      '1111111',
+    ],
+  },
+  {
+    label: 'salle ouverte',
+    grid: [
+      '11111111',
+      '1P000001',
+      '1000C001',
+      '10000001',
+      '100000E1',
+      '11111111',
+    ],
+  },
+  {
+    label: 'C inatteignable',
+    grid: [
+      '11111111',
+      '1P000001',
+      '10000001',
+      '11111101',
+      '1C0001E1',
+      '11111111',
+    ],
+  },
+];
+
+// ═════════ FRAME GENERATOR ═════════
+function findPlayer(grid) {
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] === 'P') return { x, y };
+    }
+  }
+  return null;
+}
+
+function cloneMap(map) {
+  return map.map(row => row.slice());
+}
+
+function gridToMap(grid) {
+  return grid.map(row => row.split(''));
+}
+
+function allReached(map) {
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[y].length; x++) {
+      if (map[y][x] === 'C' || map[y][x] === 'E') return false;
+    }
+  }
+  return true;
+}
+
+function genFrames(mapDef) {
+  const original = gridToMap(mapDef.grid);     // never modified, for "orig" overlay
+  const map = cloneMap(original);              // working copy that gets flooded
+  const player = findPlayer(map);
+  const frames = [];
+  const stack = [];
+
+  const snap = (line, tag, desc, cur) => {
+    frames.push({
+      line, tag, desc,
+      map: cloneMap(map),
+      stack: stack.map(f => ({ ...f })),
+      cur: cur ? { ...cur } : null,
+    });
+  };
+
+  function flood(x, y) {
+    stack.push({ x, y });
+    snap(LN.enter, 'enter', `j'entre dans flood(${x}, ${y})`, { x, y });
+
+    const val = map[y][x];
+    if (val === '1' || val === 'V') {
+      const reason = val === '1' ? 'mur' : 'déjà visité';
+      snap(LN.check, val === '1' ? 'wall' : 'visited',
+        `map[${y}][${x}] = '${val}' → ${reason}, return`, { x, y });
+      snap(LN.retEarly, 'return', `return depuis flood(${x}, ${y})`, { x, y });
+      stack.pop();
+      return;
+    }
+    snap(LN.check, 'check',
+      `map[${y}][${x}] = '${val}' → ni mur ni V, on continue`, { x, y });
+
+    map[y][x] = 'V';
+    snap(LN.paint, 'paint',
+      `je peins map[${y}][${x}] = 'V'`, { x, y });
+
+    snap(LN.callUp, 'call', `appel flood(${x}, ${y - 1}) ↑ HAUT`, { x, y });
+    flood(x, y - 1);
+    snap(LN.callDown, 'call', `appel flood(${x}, ${y + 1}) ↓ BAS`, { x, y });
+    flood(x, y + 1);
+    snap(LN.callLeft, 'call', `appel flood(${x - 1}, ${y}) ← GAUCHE`, { x, y });
+    flood(x - 1, y);
+    snap(LN.callRight, 'call', `appel flood(${x + 1}, ${y}) → DROITE`, { x, y });
+    flood(x + 1, y);
+
+    snap(LN.retEnd, 'return', `4 appels finis, return depuis flood(${x}, ${y})`, { x, y });
+    stack.pop();
+  }
+
+  flood(player.x, player.y);
+
+  const reached = allReached(map);
+  frames.push({
+    line: null,
+    tag: 'verdict',
+    desc: reached
+      ? 'flood terminé. Aucun C ni E ne reste sur la copie → map VALIDE ✓'
+      : 'flood terminé. Il reste au moins un C ou E sur la copie → map INVALIDE ✗',
+    map: cloneMap(map),
+    stack: [],
+    cur: null,
+    verdict: reached,
+  });
+
+  return { frames, original };
+}
+
+// ═════════ RENDERING ═════════
+let currentMapIdx = 0;
+let frames = [];
+let originalMap = null;
+let cur = 0;
+let playing = false;
+let playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = MAPS.map((m, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''}" data-idx="${idx}">${m.label}</button>`
+  ).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadMap(parseInt(chip.dataset.idx));
+    });
+  });
+}
+
+function renderCode() {
+  const body = document.getElementById('code-body');
+  body.innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-line="${idx + 1}">${html || '&nbsp;'}</div>`
+  ).join('');
+}
+
+function renderMap(map, cur) {
+  const grid = document.getElementById('map-grid');
+  const h = map.length;
+  const w = map[0].length;
+  grid.style.gridTemplateColumns = `repeat(${w}, 38px)`;
+  grid.innerHTML = '';
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const v = map[y][x];
+      const orig = originalMap[y][x];
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (cur && cur.x === x && cur.y === y ? ' active' : '');
+      cell.dataset.v = v;
+      let text = v;
+      if (v === '0') text = '·';
+      cell.textContent = text;
+      // small overlay showing original P/C/E if cell got painted V
+      if (v === 'V' && (orig === 'P' || orig === 'C' || orig === 'E')) {
+        const tag = document.createElement('span');
+        tag.className = 'orig';
+        tag.textContent = orig;
+        cell.appendChild(tag);
+      }
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function renderStack(stack) {
+  const el = document.getElementById('stack-frames');
+  if (!stack.length) {
+    el.innerHTML = '<div class="stack-empty">pile vide</div>';
+    return;
+  }
+  el.innerHTML = stack.map((f, idx) => {
+    const isTop = idx === stack.length - 1;
+    return `<div class="stack-frame ${isTop ? 'top' : ''}">
+      <span>flood(${f.x}, ${f.y})</span>
+      <span class="depth">#${idx + 1}${isTop ? ' ← top' : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  if (f.line) {
+    const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+    if (line) {
+      line.classList.add('active');
+      const panel = document.querySelector('.code-panel');
+      if (panel) {
+        const lineTop = line.offsetTop;
+        const lineH = line.offsetHeight;
+        const panelH = panel.clientHeight;
+        const target = lineTop - panelH / 2 + lineH / 2;
+        panel.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      }
+    }
+  }
+
+  renderMap(f.map, f.cur);
+  renderStack(f.stack);
+
+  document.getElementById('desc-tag').textContent = f.tag;
+  document.getElementById('desc-tag').className = 'tag ' + f.tag;
+  document.getElementById('desc-text').textContent = f.desc;
+
+  const vb = document.getElementById('verdict-box');
+  if (f.tag === 'verdict') {
+    vb.classList.add('show');
+    vb.classList.toggle('ok', f.verdict);
+    vb.classList.toggle('ko', !f.verdict);
+    document.getElementById('verdict-title').textContent = f.verdict ? '✓ map valide' : '✗ map invalide';
+    document.getElementById('verdict-text').textContent = f.verdict
+      ? 'Tous les C et le E ont été atteints par le flood — check_path passe, le jeu peut démarrer.'
+      : 'Au moins un C ou le E reste sur la copie — check_path appelle error_exit, le jeu ne démarre pas.';
+  } else {
+    vb.classList.remove('show');
+  }
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadMap(idx) {
+  currentMapIdx = idx;
+  const result = genFrames(MAPS[idx]);
+  frames = result.frames;
+  originalMap = result.original;
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 1600 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+renderCode();
+renderExamples();
+loadMap(0);
+</script>
+
+</body>
+</html>

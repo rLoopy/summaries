@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ft_list_foreach — step debugger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 1400px !important; }
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.dbg-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 1100px) { .dbg-grid { grid-template-columns: 1fr; } }
+.code-panel { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); overflow: hidden; box-shadow: 3px 3px 0 var(--ink); max-height: 700px; overflow-y: auto; }
+.code-header { background: #262333; padding: 10px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 2; }
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5); font-size: 12px; }
+.code-body { padding: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #E9E5F0; counter-reset: lineno; overflow-x: auto; }
+.code-line { padding: 2px 20px 2px 44px; position: relative; white-space: pre; transition: background 0.15s; min-width: max-content; }
+.code-line::before { counter-increment: lineno; content: counter(lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255, 233, 107, 0.22); border-left: 3px solid var(--hl-yellow); padding-left: 41px; }
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; } .pp { color: #E89A9A; }
+
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+.vars-box, .list-box, .out-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; background: var(--paper); }
+.vars-title, .list-title, .out-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.var-row { display: flex; align-items: center; gap: 8px; padding: 5px 7px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 7px; margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 85px; }
+.var-eq { color: var(--muted); }
+.var-val { color: var(--ink); font-weight: 700; padding: 2px 7px; background: var(--hl-yellow); border: 1.5px solid var(--ink); border-radius: 4px; min-width: 28px; text-align: center; }
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+
+.list-nodes { display: flex; gap: 4px; flex-wrap: wrap; padding-top: 10px; align-items: center; }
+.list-node { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 54px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 8px; padding: 4px 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); transition: all 0.18s; }
+.list-node .data-label { font-family: 'Caveat', cursive; font-size: 11px; color: var(--muted); font-weight: 400; margin-bottom: 2px; }
+.list-node.current { background: var(--hl-yellow); box-shadow: 2px 2px 0 var(--ink); transform: translate(-1px,-1px) scale(1.05); }
+.list-node.visited { background: var(--hl-mint); opacity: 0.75; }
+.list-arrow { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--ink-soft); margin: 0 2px; }
+.list-null { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-style: italic; color: var(--muted); padding: 6px 10px; border: 2px dashed var(--ink-soft); border-radius: 8px; background: var(--paper-e); }
+.pointer-label { font-family: 'Caveat', cursive; font-size: 14px; color: var(--accent-d); font-weight: 700; text-align: center; height: 14px; margin-top: -6px; }
+.pointer-label::before { content: "↑ begin_list"; }
+
+.out-box .out-text { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--accent-d); font-weight: 700; min-height: 24px; padding: 4px 8px; background: var(--paper-d); border: 2px solid var(--ink); border-radius: 6px; letter-spacing: 2px; }
+
+.desc-box { background: var(--ink); color: var(--paper); border-radius: 12px; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent); padding: 12px 14px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.4; min-height: 50px; }
+.desc-box .tag { display: inline-block; background: var(--hl-yellow); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 7px; text-transform: uppercase; letter-spacing: 1px; }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-soft); text-align: center; margin-top: 12px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.note-card { background: var(--paper); border: 3px dashed #6FAF84; border-radius: 14px; padding: 16px 20px; margin: 20px 0; }
+.note-card h3 { font-family: 'Kalam', cursive; color: #2f8b4d; margin: 0 0 10px; font-size: 22px; }
+.note-card p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 6px 0; }
+.note-card code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ ft_list_foreach — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">ft_list_foreach</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">step by step ↓</div>
+  <p class="hero-sub">Parcours d'une liste chaînée, <b>callback</b> sur chaque node. 4 lignes de code. Regarde <code style="font-family:'JetBrains Mono',monospace;background:var(--hl-yellow);padding:1px 6px;border:1.5px solid var(--ink);border-radius:3px;">begin_list</code> sauter de node en node jusqu'à NULL.</p>
+</section>
+
+<main>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="dbg-grid">
+      <div class="code-panel">
+        <div class="code-header">
+          <div class="dot" style="background:#FF6B6B"></div>
+          <div class="dot" style="background:#FFD26A"></div>
+          <div class="dot" style="background:#7ECE7E"></div>
+          <div class="title">ft_list_foreach.c</div>
+        </div>
+        <div class="code-body" id="code-body"></div>
+      </div>
+
+      <div class="state-panel">
+        <div class="vars-box">
+          <div class="vars-title">variable</div>
+          <div class="var-row"><span class="var-name">begin_list</span><span class="var-eq">→</span><span class="var-val null" id="v-begin">-</span></div>
+        </div>
+
+        <div class="list-box">
+          <div class="list-title">la liste chaînée</div>
+          <div class="list-nodes" id="list-nodes"></div>
+          <div class="pointer-label" id="pointer-label"></div>
+        </div>
+
+        <div class="out-box">
+          <div class="out-title">stdout (ce que f affiche)</div>
+          <div class="out-text" id="out-text">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desc-box" id="desc-box">
+      <span class="tag" id="desc-tag">ready</span>
+      <span id="desc-text">Choisis un exemple et clique next.</span>
+    </div>
+
+    <div class="ctrls" style="margin-top:14px;">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="150" max="1800" value="700" step="50">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+
+  <div class="note-card">
+    <h3>💡 Le pattern "iterator + callback"</h3>
+    <p>Cette fonction ne <b>sait rien</b> de ce que fait <code>f</code>. Elle promet juste : "je passe sur chaque node et je te file son <code>data</code>". Ce que <code>f</code> en fait est ton problème — afficher, multiplier, free, compter, peu importe.</p>
+    <p>Dans les 3 exemples, <code>f = ft_putnbr</code> qui fait <code>printf("%d", *(int *)data)</code>. Mais ça marcherait avec n'importe quelle <code>void f(void *)</code>.</p>
+    <p>C'est le même pattern que <code>sort_list</code> (où <code>cmp</code> est le callback). Une fois que t'as compris un, l'autre est gratuit.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">foreach pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="../../index.html">dashboard</a> · <a href="ft_list_foreach-revision.html">fiche révision</a></div>
+</footer>
+
+<script>
+const CODE = [
+  '<span class="pp">#include</span> <span class="str">"ft_list.h"</span>',
+  '',
+  '<span class="tp">void</span> <span class="fn">ft_list_foreach</span>(<span class="tp">t_list</span> *begin_list, <span class="tp">void</span> (*f)(<span class="tp">void</span> *))',
+  '{',
+  '\t<span class="kw">while</span> (begin_list)',
+  '\t{',
+  '\t\t<span class="fn">f</span>(begin_list-&gt;data);',
+  '\t\tbegin_list = begin_list-&gt;next;',
+  '\t}',
+  '}',
+];
+
+const LN = {
+  include: 1,
+  entry: 3,
+  whileCheck: 5,
+  fCall: 7,
+  advance: 8,
+  end: 10,
+};
+
+/* Simulate: iterate over list, call f (= ft_putnbr which prints the data) on each node. */
+function genFrames(initialList) {
+  const frames = [];
+  const nodes = initialList.map((val, idx) => ({ data: val, idx }));
+  let curIdx = -1;  // -1 = not yet started; -2 = NULL (past end or empty)
+  let out = '';
+  const visited = new Set();
+
+  const snap = (line, tag, desc) => frames.push({
+    line, tag, desc,
+    beginLabel: curIdx === -1 ? '?' : (curIdx === -2 ? 'NULL' : `→ ${nodes[curIdx].data}`),
+    nodes: nodes.map(n => ({ ...n })),
+    curIdx,
+    visited: new Set(visited),
+    out,
+  });
+
+  snap(LN.entry, 'enter',
+    `Appel ft_list_foreach(liste de ${nodes.length} élément${nodes.length !== 1 ? 's' : ''}, f = ft_putnbr).`);
+
+  // begin_list takes its initial value (head of list)
+  curIdx = nodes.length > 0 ? 0 : -2;
+
+  while (true) {
+    if (curIdx === -2) {
+      snap(LN.whileCheck, 'check',
+        `while(begin_list) : begin_list vaut NULL → condition FAUSSE → on sort du while.`);
+      break;
+    }
+    snap(LN.whileCheck, 'check',
+      `while(begin_list) : begin_list pointe sur le node [${nodes[curIdx].data}] (pas NULL) → on entre.`);
+
+    snap(LN.fCall, 'exec',
+      `f(begin_list->data) = ft_putnbr(${nodes[curIdx].data}) → printf affiche "${nodes[curIdx].data}".`);
+    out += String(nodes[curIdx].data);
+
+    visited.add(curIdx);
+    const isLast = curIdx === nodes.length - 1;
+    snap(LN.advance, 'assign',
+      isLast
+        ? `begin_list = begin_list->next. Le dernier node a next = NULL, donc begin_list devient NULL.`
+        : `begin_list = begin_list->next. On saute au node suivant [${nodes[curIdx + 1].data}].`);
+    curIdx = isLast ? -2 : curIdx + 1;
+  }
+
+  snap(LN.end, 'exit', `Fin de la fonction. Output total : "${out || '(rien)'}"`);
+  return frames;
+}
+
+const EXAMPLES = [
+  { label: '[9,8,7,6,5,4,3,2,1,0]', list: [9,8,7,6,5,4,3,2,1,0] },
+  { label: '[42]  (1 node)',        list: [42] },
+  { label: '[]  (liste vide)',      list: [] },
+  { label: '[1,2,3]',               list: [1,2,3] },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = EXAMPLES.map((e, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''}" data-idx="${idx}">${e.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadExample(EXAMPLES[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode() {
+  document.getElementById('code-body').innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderList(f) {
+  const el = document.getElementById('list-nodes');
+  if (f.nodes.length === 0) {
+    el.innerHTML = `<div class="list-null">NULL (liste vide)</div>`;
+    document.getElementById('pointer-label').style.visibility = 'hidden';
+    return;
+  }
+  let html = '';
+  f.nodes.forEach((n, idx) => {
+    let cls = 'list-node';
+    if (idx === f.curIdx) cls += ' current';
+    else if (f.visited.has(idx)) cls += ' visited';
+    html += `<div class="${cls}" data-idx="${idx}"><span class="data-label">data</span>${n.data}</div>`;
+    html += `<span class="list-arrow">→</span>`;
+  });
+  html += `<div class="list-null">NULL</div>`;
+  el.innerHTML = html;
+  document.getElementById('pointer-label').style.visibility = (f.curIdx >= 0) ? 'visible' : 'hidden';
+  // position the pointer under the current node
+  if (f.curIdx >= 0) {
+    const cur = el.querySelector(`.list-node[data-idx="${f.curIdx}"]`);
+    const label = document.getElementById('pointer-label');
+    if (cur && label) {
+      const offsetLeft = cur.offsetLeft + cur.offsetWidth / 2;
+      label.style.textAlign = 'left';
+      label.style.paddingLeft = `${offsetLeft - 38}px`;
+    }
+  }
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    const panel = line.closest('.code-panel');
+    if (panel) {
+      const pr = panel.getBoundingClientRect();
+      const lr = line.getBoundingClientRect();
+      const offset = (lr.top - pr.top) - (panel.clientHeight / 2) + (line.clientHeight / 2);
+      panel.scrollBy({ top: offset, behavior: 'smooth' });
+    }
+  }
+  setVar('v-begin', f.beginLabel);
+  renderList(f);
+  document.getElementById('out-text').textContent = f.out || '—';
+  document.getElementById('desc-tag').textContent = f.tag;
+  document.getElementById('desc-text').textContent = f.desc;
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function setVar(id, val) {
+  const el = document.getElementById(id);
+  if (val === '?' || val === 'NULL') { el.textContent = val; el.classList.add('null'); }
+  else { el.textContent = val; el.classList.remove('null'); }
+}
+
+function loadExample(ex) {
+  frames = genFrames(ex.list);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2000 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+renderCode();
+renderExamples();
+loadExample(EXAMPLES[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

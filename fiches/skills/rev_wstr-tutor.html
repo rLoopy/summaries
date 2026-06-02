@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rev_wstr — step debugger (style Python Tutor)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=2">
+<style>
+.debugger {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 6px 6px 0 var(--ink);
+  margin: 20px 0;
+}
+
+/* 2-column grid */
+.dbg-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) {
+  .dbg-grid { grid-template-columns: 1fr; }
+}
+
+/* code panel */
+.code-panel {
+  background: #1C1A28;
+  border-radius: 12px;
+  border: 2.5px solid var(--ink);
+  overflow: hidden;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.code-header {
+  background: #262333;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.code-header .dot { width: 11px; height: 11px; border-radius: 50%; }
+.code-header .title {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+}
+.code-body {
+  padding: 14px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #E9E5F0;
+  counter-reset: lineno;
+}
+.code-line {
+  padding: 2px 14px 2px 40px;
+  position: relative;
+  white-space: pre;
+  transition: background 0.15s;
+}
+.code-line::before {
+  counter-increment: lineno;
+  content: counter(lineno);
+  position: absolute;
+  left: 8px;
+  color: #5C5A75;
+  font-size: 11px;
+  width: 24px;
+  text-align: right;
+}
+.code-line.active {
+  background: rgba(255, 233, 107, 0.22);
+  border-left: 3px solid var(--hl-yellow);
+  padding-left: 37px;
+}
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.kw { color: #A5D8A8; }
+.tp { color: #79B8D8; }
+.fn { color: #C0B3E0; }
+.str { color: #FFD88A; }
+.num { color: #FFB380; }
+.cm { color: #5C5A75; font-style: italic; }
+
+/* state panel */
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* variables */
+.vars-box {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px 16px;
+}
+.vars-title {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.var-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: var(--paper-d);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 50px; }
+.var-eq { color: var(--muted); }
+.var-val {
+  color: var(--ink);
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--hl-yellow);
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  min-width: 30px;
+  text-align: center;
+}
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+
+/* string visu */
+.str-visu {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px 16px;
+}
+.str-title {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.str-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.ch {
+  width: 34px;
+  height: 44px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  background: var(--paper);
+  transition: all 0.25s;
+}
+.ch.space { background: var(--paper-d); }
+.ch .chr { font-size: 18px; color: var(--ink); }
+.ch.space .chr { color: var(--muted); font-size: 14px; }
+.ch .idx { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); }
+.ch.cur-i { background: var(--hl-yellow); transform: translateY(-3px); box-shadow: 1px 4px 0 var(--ink); }
+.ch.cur-end { background: var(--hl-pink); border-width: 3px; }
+.ch.cur-i.cur-end { background: linear-gradient(135deg, var(--hl-yellow) 50%, var(--hl-pink) 50%); }
+
+/* output */
+.output-box {
+  background: #1C1A28;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 14px 16px;
+}
+.output-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #9DD6A8;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.output-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: #FF9F7A;
+  font-weight: 700;
+  min-height: 22px;
+  white-space: pre;
+}
+
+/* description */
+.desc-box {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 12px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--accent);
+  padding: 14px 16px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  line-height: 1.45;
+  min-height: 60px;
+}
+.desc-box .tag {
+  display: inline-block;
+  background: var(--hl-yellow);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* controls */
+.ctrls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ctrl-btn {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 22px;
+  padding: 8px 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: 3px 3px 0 var(--ink); transform: none; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+
+.step-counter {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 12px;
+  font-weight: 700;
+}
+.step-counter .num { color: var(--accent-d); font-size: 24px; }
+
+.examples {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ex-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.1s;
+}
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ rev_wstr — step debugger</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title">
+    <span class="word">step by step</span>
+  </div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">comme Python Tutor ↓</div>
+  <p class="hero-sub">Le compilateur <span class="hl">lit ligne par ligne</span> dans l'ordre. Clique <strong>next</strong> pour voir chaque étape, variables à jour, string, output.</p>
+</section>
+
+<main>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples">
+      <button class="ex-chip active" data-str="hi bye">"hi bye"</button>
+      <button class="ex-chip" data-str="one two three">"one two three"</button>
+      <button class="ex-chip" data-str="Wingardium Leviosa">"Wingardium Leviosa"</button>
+    </div>
+
+    <div class="dbg-grid">
+
+      <!-- CODE PANEL (LEFT) -->
+      <div class="code-panel">
+        <div class="code-header">
+          <div class="dot" style="background:#FF6B6B"></div>
+          <div class="dot" style="background:#FFD26A"></div>
+          <div class="dot" style="background:#7ECE7E"></div>
+          <div class="title">rev_wstr.c</div>
+        </div>
+        <div class="code-body" id="code-body">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- STATE PANEL (RIGHT) -->
+      <div class="state-panel">
+        <div class="vars-box">
+          <div class="vars-title">variables</div>
+          <div class="var-row"><span class="var-name">argc</span><span class="var-eq">=</span><span class="var-val" id="v-argc">-</span></div>
+          <div class="var-row"><span class="var-name">str</span><span class="var-eq">=</span><span class="var-val" id="v-str" style="min-width:auto;padding:2px 6px;font-size:12px;">-</span></div>
+          <div class="var-row"><span class="var-name">i</span><span class="var-eq">=</span><span class="var-val" id="v-i">-</span></div>
+          <div class="var-row"><span class="var-name">end</span><span class="var-eq">=</span><span class="var-val null" id="v-end">-</span></div>
+        </div>
+
+        <div class="str-visu">
+          <div class="str-title">string</div>
+          <div class="str-row" id="str-row"></div>
+        </div>
+
+        <div class="output-box">
+          <div class="output-label">stdout</div>
+          <div class="output-text" id="out-text">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desc-box" id="desc-box">
+      <span class="tag" id="desc-tag">ready</span>
+      <span id="desc-text">Choisis une string et clique next.</span>
+    </div>
+
+    <div class="ctrls" style="margin-top:14px;">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse :
+        <input type="range" id="speed" min="200" max="2000" value="800" step="100">
+      </label>
+    </div>
+
+    <div class="step-counter">
+      étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">tape ton code quand ça clique ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="rev_wstr.html">zine rev_wstr</a> · <a href="rev_wstr-visu.html">visualiseur algo</a></div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Source code (displayed in the code panel)
+// ═══════════════════════════════════════════════════════════════════
+const CODE = [
+  '<span class="kw">int</span>\t<span class="fn">main</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)',
+  '{',
+  '\t<span class="tp">char</span>\t*str;',
+  '\t<span class="tp">int</span>\t\ti;',
+  '\t<span class="tp">int</span>\t\tend;',
+  '',
+  '\t<span class="kw">if</span> (argc != <span class="num">2</span>)',
+  '\t{',
+  '\t\t<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\\n"</span>, <span class="num">1</span>);',
+  '\t\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '\t}',
+  '\tstr = argv[<span class="num">1</span>];',
+  '\ti = <span class="num">0</span>;',
+  '\t<span class="kw">while</span> (str[i])',
+  '\t\ti++;',
+  '\ti--;',
+  '\t<span class="kw">while</span> (i >= <span class="num">0</span>)',
+  '\t{',
+  '\t\tend = i;',
+  '\t\t<span class="kw">while</span> (i >= <span class="num">0</span> && str[i] != <span class="str">\' \'</span> && str[i] != <span class="str">\'\\t\'</span>)',
+  '\t\t\ti--;',
+  '\t\t<span class="fn">write</span>(<span class="num">1</span>, &str[i + <span class="num">1</span>], end - i);',
+  '\t\t<span class="kw">if</span> (i >= <span class="num">0</span>)',
+  '\t\t\t<span class="fn">write</span>(<span class="num">1</span>, <span class="str">" "</span>, <span class="num">1</span>);',
+  '\t\ti--;',
+  '\t}',
+  '\t<span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\\n"</span>, <span class="num">1</span>);',
+  '\t<span class="kw">return</span> (<span class="num">0</span>);',
+  '}',
+];
+
+// Line numbers (1-based) for each logical step
+const LN = {
+  checkArgc: 7,
+  strAssign: 12,
+  iInit: 13,
+  whileLen: 14,
+  iPlus: 15,
+  iMinus1: 16,
+  outerWhile: 17,
+  endAssign: 19,
+  innerWhile: 20,
+  innerMinus: 21,
+  writeWord: 22,
+  ifSpace: 23,
+  writeSpace: 24,
+  iMinusOuter: 25,
+  writeNewline: 27,
+  returnStmt: 28,
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// Frame generator
+// ═══════════════════════════════════════════════════════════════════
+function genFrames(str) {
+  const frames = [];
+  let out = '';
+  const push = (line, tag, desc, i, end) => frames.push({line, tag, desc, i, end, out});
+
+  push(LN.checkArgc, 'check', `argc == 2 ? oui, on rentre pas dans le if.`, null, null);
+  push(LN.strAssign, 'assign', `str = argv[1] → str pointe sur "${str}".`, null, null);
+
+  let i = 0;
+  push(LN.iInit, 'assign', `i = 0`, i, null);
+
+  push(LN.whileLen, 'check', `while(str[${i}]) : '${str[i]}' != 0 → entre`, i, null);
+  while (str[i]) {
+    push(LN.iPlus, 'exec', `i++ → i = ${i + 1}`, i + 1, null);
+    i++;
+    if (!str[i])
+      push(LN.whileLen, 'check', `while(str[${i}]) : fin de string ('\\0') → SORT`, i, null);
+    else
+      push(LN.whileLen, 'check', `while(str[${i}]) : '${str[i]}' → continue`, i, null);
+  }
+
+  push(LN.iMinus1, 'exec', `i-- → i = ${i - 1} (dernier vrai char)`, i - 1, null);
+  i--;
+
+  let end = null;
+  push(LN.outerWhile, 'check', `while(i >= 0) : i = ${i} ✓ → ENTRE dans le gros while`, i, end);
+
+  while (i >= 0) {
+    end = i;
+    push(LN.endAssign, 'assign', `end = i = ${end}`, i, end);
+
+    push(LN.innerWhile, 'check',
+      i < 0 ? `i = ${i} → condition fausse, sort` :
+      (str[i] === ' ' || str[i] === '\t') ? `str[${i}] = séparateur → sort direct` :
+      `str[${i}] = '${str[i]}' pas sep → entre dans le walk back`, i, end);
+
+    while (i >= 0 && str[i] !== ' ' && str[i] !== '\t') {
+      push(LN.innerMinus, 'exec', `i-- → i = ${i - 1}`, i - 1, end);
+      i--;
+      push(LN.innerWhile, 'check',
+        i < 0 ? `i = -1 → sort du inner while` :
+        (str[i] === ' ' || str[i] === '\t') ? `str[${i}] = ' ' (séparateur) → SORT` :
+        `str[${i}] = '${str[i]}' → continue`, i, end);
+    }
+
+    const wordStart = i + 1;
+    const wordLen = end - i;
+    const word = str.substring(wordStart, wordStart + wordLen);
+    out += word;
+    push(LN.writeWord, 'write',
+      `write(1, &str[${wordStart}], ${wordLen}) → écrit "${word}" sur stdout`, i, end);
+
+    if (i >= 0) {
+      push(LN.ifSpace, 'check', `if (i >= 0) : i = ${i} ✓ → rentre`, i, end);
+      out += ' ';
+      push(LN.writeSpace, 'write', `write(1, " ", 1) → écrit un espace`, i, end);
+    } else {
+      push(LN.ifSpace, 'check', `if (i >= 0) : i = ${i} faux → SKIP l'espace`, i, end);
+    }
+
+    push(LN.iMinusOuter, 'exec', `i-- → i = ${i - 1}`, i - 1, end);
+    i--;
+
+    push(LN.outerWhile, 'check',
+      i >= 0 ? `while(i >= 0) : i = ${i} ✓ → continue pour un autre tour` :
+      `while(i >= 0) : i = ${i} faux → SORT du gros while`, i, end);
+  }
+
+  out += '\n';
+  push(LN.writeNewline, 'write', `write(1, "\\n", 1) → newline final`, i, end);
+  push(LN.returnStmt, 'exit', `return (0); → fin du programme ✓`, i, end);
+
+  return frames;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════════════════════════════════
+let currentStr = 'hi bye';
+let frames = [];
+let cur = 0;
+let playing = false;
+let playTimer = null;
+
+function renderCode() {
+  const body = document.getElementById('code-body');
+  body.innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-line="${idx + 1}">${html || '&nbsp;'}</div>`
+  ).join('');
+}
+
+function renderStrVisu(str) {
+  const row = document.getElementById('str-row');
+  row.innerHTML = '';
+  for (let k = 0; k < str.length; k++) {
+    const ch = document.createElement('div');
+    ch.className = 'ch' + (str[k] === ' ' || str[k] === '\t' ? ' space' : '');
+    ch.dataset.idx = k;
+    const display = str[k] === ' ' ? '␣' : (str[k] === '\t' ? '→' : str[k]);
+    ch.innerHTML = `<div class="chr">${display}</div><div class="idx">${k}</div>`;
+    row.appendChild(ch);
+  }
+}
+
+function renderFrame(f) {
+  // Highlight active code line
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Variables
+  document.getElementById('v-argc').textContent = '2';
+  document.getElementById('v-str').textContent = `"${currentStr}"`;
+  const viEl = document.getElementById('v-i');
+  const veEl = document.getElementById('v-end');
+  if (f.i !== null) { viEl.textContent = f.i; viEl.classList.remove('null'); }
+  else { viEl.textContent = '-'; viEl.classList.add('null'); }
+  if (f.end !== null) { veEl.textContent = f.end; veEl.classList.remove('null'); }
+  else { veEl.textContent = '-'; veEl.classList.add('null'); }
+
+  // String visualization
+  document.querySelectorAll('.str-row .ch').forEach((el, idx) => {
+    el.classList.remove('cur-i', 'cur-end');
+    if (f.i === idx) el.classList.add('cur-i');
+    if (f.end === idx) el.classList.add('cur-end');
+  });
+
+  // Output
+  const outEl = document.getElementById('out-text');
+  outEl.textContent = f.out || '—';
+
+  // Description
+  document.getElementById('desc-tag').textContent = f.tag;
+  document.getElementById('desc-text').textContent = f.desc;
+
+  // Step counter
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+
+  // Buttons state
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadString(str) {
+  currentStr = str;
+  frames = genFrames(str);
+  cur = 0;
+  stopPlay();
+  renderStrVisu(str);
+  renderFrame(frames[0]);
+}
+
+function next() {
+  if (cur < frames.length - 1) {
+    cur++;
+    renderFrame(frames[cur]);
+  } else stopPlay();
+}
+function prev() {
+  if (cur > 0) {
+    cur--;
+    renderFrame(frames[cur]);
+  }
+}
+function reset() {
+  stopPlay();
+  cur = 0;
+  renderFrame(frames[0]);
+}
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2200 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => {
+    if (cur < frames.length - 1) next();
+    else stopPlay();
+  }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+// bindings
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (playing) stopPlay();
+  else startPlay();
+});
+document.getElementById('speed').addEventListener('input', () => {
+  if (playing) { stopPlay(); startPlay(); }
+});
+document.querySelectorAll('.ex-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    loadString(chip.dataset.str);
+  });
+});
+
+// keyboard : → next, ← prev, space = play/pause
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+
+// progress bar
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+// init
+renderCode();
+loadString('hi bye');
+</script>
+
+</body>
+</html>

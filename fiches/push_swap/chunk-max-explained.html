@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>chunk_max — l'algo Turk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+
+.video { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 24px 36px 70px 36px; }
+
+.scene-title {
+  font-family: 'Kalam', cursive; font-size: 32px; color: #ffe96b;
+  text-align: center; margin-bottom: 6px; min-height: 42px;
+  opacity: 0; transform: translateY(-15px); transition: all 0.6s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.subtitle {
+  font-family: 'Caveat', cursive; font-size: 20px; color: #c0b3e0;
+  text-align: center; margin-bottom: 20px; min-height: 24px;
+}
+
+.stage {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; min-height: 0; gap: 25px;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive; font-size: 20px; color: #f0e9d8;
+  text-align: center; max-width: 1100px; line-height: 1.5;
+  margin: 14px auto 0 auto; min-height: 60px;
+  opacity: 0; transform: translateY(15px); transition: all 0.6s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 16px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Number line showing ranks split into chunks */
+.numberline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 16px 0;
+}
+
+.rank-cell {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #3a3849;
+  background: #2a2833;
+  color: #5c5a75;
+  transition: all 0.5s ease;
+}
+.rank-cell.chunk0 { background: #6fb07e; color: #0f0e1a; border-color: #6fb07e; }
+.rank-cell.chunk1 { background: #79b8d8; color: #0f0e1a; border-color: #79b8d8; }
+.rank-cell.chunk2 { background: #c9a6ff; color: #0f0e1a; border-color: #c9a6ff; }
+.rank-cell.chunk3 { background: #ffe96b; color: #0f0e1a; border-color: #ffe96b; }
+.rank-cell.active { transform: scale(1.15); box-shadow: 0 0 12px currentColor; }
+.rank-cell.chunkmax { box-shadow: 0 0 0 3px #ff6b4a; transform: scale(1.2); z-index: 5; }
+
+.chunk-label {
+  text-align: center;
+  font-family: 'Kalam', cursive;
+  font-size: 16px;
+  color: #5c5a75;
+  margin-top: 4px;
+}
+
+/* Formula breakdown */
+.formula {
+  background: #1a1825;
+  border: 2px solid #2a2833;
+  border-radius: 12px;
+  padding: 20px 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  text-align: center;
+  color: #c0b3e0;
+}
+.formula .step { color: #ff9f7a; font-weight: 700; }
+.formula .var { color: #ffe96b; }
+.formula .res { color: #6fb07e; font-weight: 700; }
+
+.formula-row {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.formula-box {
+  background: #1a1825;
+  border: 2px solid #2a2833;
+  border-radius: 10px;
+  padding: 16px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: #c0b3e0;
+  text-align: center;
+}
+.formula-box .label {
+  font-family: 'Kalam', cursive;
+  color: #79b8d8;
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.formula-box .value { color: #ffe96b; font-size: 24px; font-weight: 700; }
+
+/* Stack visualization */
+.stacks-area {
+  display: flex;
+  gap: 70px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.stack-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stack-label {
+  font-family: 'Kalam', cursive;
+  font-size: 22px;
+  color: #ff9f7a;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+
+.stack-box {
+  width: 60px;
+  height: 36px;
+  background: #2a2833;
+  border: 2px solid #ff9f7a;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 17px;
+  color: #f0e9d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s ease;
+}
+.stack-box.top { box-shadow: 0 0 0 3px #ffe96b; }
+.stack-box.chunk0 { border-color: #6fb07e; background: rgba(111,176,126,0.3); }
+.stack-box.chunk1 { border-color: #79b8d8; background: rgba(121,184,216,0.3); }
+.stack-box.chunk2 { border-color: #c9a6ff; background: rgba(201,166,255,0.3); }
+
+.big-text {
+  font-family: 'Kalam', cursive;
+  font-size: 24px;
+  color: #ffe96b;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.table {
+  background: #1a1825;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #c0b3e0;
+}
+.table table { border-collapse: collapse; }
+.table th, .table td { padding: 4px 12px; text-align: center; }
+.table th { color: #ffe96b; border-bottom: 1px solid #3a3849; font-family: 'Kalam', cursive; font-size: 14px; }
+.table tr.hl td { background: rgba(255, 233, 107, 0.1); color: #ffe96b; font-weight: 700; }
+.table td.value { color: #6fb07e; font-weight: 700; }
+
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s linear; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+.keyhint { position: fixed; bottom: 42px; left: 20px; font-family: 'Caveat', cursive; font-size: 13px; color: #3a3849; }
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">chunk_max</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="stage" id="stage"></div>
+  <div class="caption" id="caption">démarrage…</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+function renderRankLine(n, chunkSize, chunkMax = -1, activeRank = -1) {
+  let html = '<div>';
+  html += '<div class="numberline">';
+  for (let i = 0; i < n; i++) {
+    let cls = 'rank-cell chunk' + (Math.floor(i / chunkSize) % 4);
+    if (i === chunkMax) cls += ' chunkmax';
+    if (i === activeRank) cls += ' active';
+    html += `<div class="${cls}">${i}</div>`;
+  }
+  html += '</div>';
+  // Add chunk labels
+  html += '<div style="display:flex; gap:0; margin-top:4px;">';
+  for (let i = 0; i < n; i += chunkSize) {
+    const w = Math.min(chunkSize, n - i) * 32;
+    html += `<div style="width:${w}px; text-align:center; font-family:'Kalam',cursive; font-size:13px; color:#5c5a75;">chunk ${Math.floor(i/chunkSize)}</div>`;
+  }
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function formulaCalc(pushed, chunkSize) {
+  const div = Math.floor(pushed / chunkSize);
+  const plus = div + 1;
+  const mul = plus * chunkSize;
+  const result = mul - 1;
+  return { div, plus, mul, result };
+}
+
+const SCENES = [
+  // 1. Intro
+  {
+    dur: 7000,
+    title: "chunk_max — la borne mobile",
+    subtitle: "le truc qui te dit \"quel rang accepter maintenant\"",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text">
+          Quand on pousse A vers B par <b style="color:#ff9f7a;">chunks</b>,<br>
+          on ne pousse pas tout n'importe comment.<br><br>
+          On dit : <span style="color:#6fb07e;">"d'abord les rangs 0 à 15"</span>,<br>
+          puis <span style="color:#79b8d8;">"ensuite 16 à 31"</span>, etc.<br><br>
+          <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">chunk_max</code>
+          = la borne haute du chunk en cours.
+        </div>`;
+      caption.innerHTML = "À chaque tour de boucle, on compare le rang du top de A à <code>chunk_max</code>. Si ≤, on push. Sinon, on saute (ra).";
+    }
+  },
+
+  // 2. Visualisation des chunks
+  {
+    dur: 9000,
+    title: "Découpage en chunks (exemple : n=16, chunk_size=4)",
+    subtitle: "les rangs sont colorés par chunk",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        ${renderRankLine(16, 4)}
+        <div class="big-text" style="font-size: 20px;">
+          Avec chunk_size = 4, on a <b>4 chunks</b> :<br>
+          chunk 0 (vert) : rangs 0-3<br>
+          chunk 1 (bleu) : rangs 4-7<br>
+          chunk 2 (violet) : rangs 8-11<br>
+          chunk 3 (jaune) : rangs 12-15
+        </div>`;
+      caption.innerHTML = "On veut pousser <b>d'abord</b> tous les rangs verts (0-3) sur B, puis tous les bleus, etc. <code>chunk_max</code> indique <b>la borne droite</b> du chunk en cours.";
+    }
+  },
+
+  // 3. La formule
+  {
+    dur: 8000,
+    title: "La formule",
+    subtitle: "chunk_max = (pushed / chunk_size + 1) * chunk_size - 1",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="formula">
+          chunk_max = ( <span class="var">pushed</span> / <span class="var">chunk_size</span> + <span class="step">1</span> ) × <span class="var">chunk_size</span> - <span class="step">1</span>
+        </div>
+        <div class="big-text" style="font-size: 18px;">
+          On lit ça comme :<br>
+          1️⃣ trouver dans quel chunk on est<br>
+          2️⃣ aller au chunk suivant (borne haute = début du suivant - 1)<br>
+          3️⃣ en soustraire 1 pour avoir le dernier rang du chunk actuel
+        </div>`;
+      caption.innerHTML = "Cette formule <b>avance automatiquement</b> chaque fois que pushed traverse une frontière de chunk. On va la décortiquer étape par étape.";
+    }
+  },
+
+  // 4. Étape par étape avec pushed=0
+  {
+    dur: 9000,
+    title: "Cas pushed=0, chunk_size=4",
+    subtitle: "on en est au tout début",
+    render: (stage, caption) => {
+      const c = formulaCalc(0, 4);
+      stage.innerHTML = `
+        <div class="formula-row">
+          <div class="formula-box">
+            <div class="label">pushed / chunk_size</div>
+            <div>0 / 4 =</div>
+            <div class="value">${c.div}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">+ 1</div>
+            <div>${c.div} + 1 =</div>
+            <div class="value">${c.plus}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">× chunk_size</div>
+            <div>${c.plus} × 4 =</div>
+            <div class="value">${c.mul}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box" style="border-color:#ff6b4a;">
+            <div class="label" style="color:#ff6b4a;">- 1 (RÉSULTAT)</div>
+            <div>${c.mul} - 1 =</div>
+            <div class="value" style="color:#ff6b4a;">${c.result}</div>
+          </div>
+        </div>
+        ${renderRankLine(16, 4, 3)}`;
+      caption.innerHTML = "Au début (pushed=0), on est au <b>chunk 0</b>. La formule retourne <span class='hl'>3</span> : la borne haute du chunk 0. On accepte les rangs 0, 1, 2, 3.";
+    }
+  },
+
+  // 5. Cas pushed=4
+  {
+    dur: 8500,
+    title: "Cas pushed=4 — on a poussé tout le chunk 0",
+    subtitle: "chunk_max bascule automatiquement",
+    render: (stage, caption) => {
+      const c = formulaCalc(4, 4);
+      stage.innerHTML = `
+        <div class="formula-row">
+          <div class="formula-box">
+            <div class="label">pushed / chunk_size</div>
+            <div>4 / 4 =</div>
+            <div class="value">${c.div}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">+ 1</div>
+            <div>${c.div} + 1 =</div>
+            <div class="value">${c.plus}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">× chunk_size</div>
+            <div>${c.plus} × 4 =</div>
+            <div class="value">${c.mul}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box" style="border-color:#ff6b4a;">
+            <div class="label" style="color:#ff6b4a;">RÉSULTAT</div>
+            <div>${c.mul} - 1 =</div>
+            <div class="value" style="color:#ff6b4a;">${c.result}</div>
+          </div>
+        </div>
+        ${renderRankLine(16, 4, 7)}`;
+      caption.innerHTML = "On a poussé 4 éléments (tout le chunk 0). pushed/4 = 1, donc on est au <b>chunk 1</b>. <code>chunk_max</code> est maintenant <span class='hl'>7</span> : on accepte les rangs 4, 5, 6, 7.";
+    }
+  },
+
+  // 6. Cas pushed=8
+  {
+    dur: 8000,
+    title: "Cas pushed=8 — on entame le chunk 2",
+    subtitle: "même formule, autre résultat",
+    render: (stage, caption) => {
+      const c = formulaCalc(8, 4);
+      stage.innerHTML = `
+        <div class="formula-row">
+          <div class="formula-box">
+            <div class="label">pushed / chunk_size</div>
+            <div>8 / 4 =</div>
+            <div class="value">${c.div}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">+ 1</div>
+            <div class="value">${c.plus}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box">
+            <div class="label">× chunk_size</div>
+            <div class="value">${c.mul}</div>
+          </div>
+          <div style="font-size:30px; color:#5c5a75;">→</div>
+          <div class="formula-box" style="border-color:#ff6b4a;">
+            <div class="label" style="color:#ff6b4a;">RÉSULTAT</div>
+            <div class="value" style="color:#ff6b4a;">${c.result}</div>
+          </div>
+        </div>
+        ${renderRankLine(16, 4, 11)}`;
+      caption.innerHTML = "pushed=8 → chunk 2 → chunk_max = <b>11</b>. Maintenant on accepte les rangs <b>8, 9, 10, 11</b> sur B.";
+    }
+  },
+
+  // 7. Table récap
+  {
+    dur: 9000,
+    title: "Le chunk_max évolue selon pushed",
+    subtitle: "table récap (chunk_size = 4)",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>pushed</th>
+                <th>pushed / 4</th>
+                <th>(div + 1)</th>
+                <th>× 4</th>
+                <th>- 1</th>
+                <th>chunk_max</th>
+                <th>chunk en cours</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="hl"><td>0</td><td>0</td><td>1</td><td>4</td><td>3</td><td class="value">3</td><td>chunk 0 (rangs 0-3)</td></tr>
+              <tr><td>2</td><td>0</td><td>1</td><td>4</td><td>3</td><td class="value">3</td><td>chunk 0</td></tr>
+              <tr><td>3</td><td>0</td><td>1</td><td>4</td><td>3</td><td class="value">3</td><td>chunk 0</td></tr>
+              <tr class="hl"><td>4</td><td>1</td><td>2</td><td>8</td><td>7</td><td class="value">7</td><td>chunk 1 (rangs 4-7)</td></tr>
+              <tr><td>5</td><td>1</td><td>2</td><td>8</td><td>7</td><td class="value">7</td><td>chunk 1</td></tr>
+              <tr><td>7</td><td>1</td><td>2</td><td>8</td><td>7</td><td class="value">7</td><td>chunk 1</td></tr>
+              <tr class="hl"><td>8</td><td>2</td><td>3</td><td>12</td><td>11</td><td class="value">11</td><td>chunk 2 (rangs 8-11)</td></tr>
+              <tr class="hl"><td>12</td><td>3</td><td>4</td><td>16</td><td>15</td><td class="value">15</td><td>chunk 3 (rangs 12-15)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="big-text" style="font-size: 18px;">
+          ★ chunk_max change <b>aux frontières</b> de chunks<br>
+          (à pushed = 0, 4, 8, 12...)
+        </div>`;
+      caption.innerHTML = "La formule passe d'un palier au suivant <b>à chaque fois que pushed traverse une frontière</b>. C'est ce qui te permet d'écrire UNE seule boucle pour tous les chunks.";
+    }
+  },
+
+  // 8. Simulation
+  {
+    dur: 11000,
+    title: "Simulation : push A → B avec chunk_size=4",
+    subtitle: "exemple : top de A = 6 (rang)",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div style="display:flex; gap:50px; align-items:center;">
+          <div class="stack-col">
+            <div class="stack-label">A</div>
+            <div class="stack-box top">6</div>
+            <div class="stack-box">2</div>
+            <div class="stack-box">11</div>
+            <div class="stack-box">9</div>
+          </div>
+          <div style="font-family:'Kalam',cursive; font-size:18px; color:#c0b3e0;">
+            pushed = 4<br>
+            chunk_max = 7<br>
+            top = 6<br>
+            <span style="color:#6fb07e; font-weight:700;">6 ≤ 7 → pb !</span>
+          </div>
+        </div>
+        ${renderRankLine(16, 4, 7, 6)}`;
+      caption.innerHTML = "Le top de A vaut <b>6</b>. chunk_max vaut <b>7</b>. <code>6 &lt;= 7</code> → on <b>push sur B</b> (pb). Le top suivant sera évalué de la même manière.";
+    }
+  },
+
+  // 9. Cas ra
+  {
+    dur: 10000,
+    title: "Cas \"pas dans le chunk\" : ra",
+    subtitle: "exemple : top de A = 11",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div style="display:flex; gap:50px; align-items:center;">
+          <div class="stack-col">
+            <div class="stack-label">A</div>
+            <div class="stack-box top">11</div>
+            <div class="stack-box">9</div>
+            <div class="stack-box">3</div>
+          </div>
+          <div style="font-family:'Kalam',cursive; font-size:18px; color:#c0b3e0;">
+            pushed = 4<br>
+            chunk_max = 7<br>
+            top = 11<br>
+            <span style="color:#ff8888; font-weight:700;">11 &gt; 7 → ra</span><br>
+            <span style="color:#5c5a75; font-size:14px;">(on le verra dans chunk 2)</span>
+          </div>
+        </div>
+        ${renderRankLine(16, 4, 7, 11)}`;
+      caption.innerHTML = "Le top vaut <b>11</b>, hors du chunk 1 (qui va jusqu'à 7). On fait <code>ra</code> pour passer au suivant. Le 11 sera traité plus tard, quand chunk_max sera ≥ 11.";
+    }
+  },
+
+  // 10. Pourquoi cette stratégie est intelligente
+  {
+    dur: 10000,
+    title: "Pourquoi cette stratégie est intelligente",
+    subtitle: "trade-off : pas de tri parfait, mais peu d'ops",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div style="display:flex; gap:40px; align-items:flex-start; justify-content:center;">
+          <div style="background:rgba(217,72,72,0.1); border:2px solid #d94848; border-radius:10px; padding:18px 22px; max-width:380px;">
+            <div style="color:#ff8888; font-family:'Kalam',cursive; font-size:18px; margin-bottom:10px;">❌ Sans chunks</div>
+            <div style="color:#c0b3e0; font-size:16px; line-height:1.5;">
+              Garder B parfaitement trié décroissant<br>
+              → besoin de rb à chaque pb<br>
+              → O(n²) ops<br>
+              → ~3000 ops pour 100 nums
+            </div>
+          </div>
+          <div style="background:rgba(111,176,126,0.1); border:2px solid #6fb07e; border-radius:10px; padding:18px 22px; max-width:380px;">
+            <div style="color:#95d8a8; font-family:'Kalam',cursive; font-size:18px; margin-bottom:10px;">✓ Avec chunks</div>
+            <div style="color:#c0b3e0; font-size:16px; line-height:1.5;">
+              B "à peu près trié par paquets"<br>
+              → un seul pb par élément<br>
+              → quelques ra pour skipper<br>
+              → ~500-650 ops pour 100 nums
+            </div>
+          </div>
+        </div>
+        <div class="big-text" style="font-size: 20px;">
+          ★ Le push_back_to_a (phase 3) ramène le max à chaque tour<br>
+          → ça compense l'imperfection de B
+        </div>`;
+      caption.innerHTML = "Le génie de Turk : <b>on accepte que B soit imparfait</b>, parce que la phase de retour (push_back) sait gérer ça avec un coût raisonnable.";
+    }
+  },
+
+  // 11. Récap
+  {
+    dur: 8000,
+    title: "Récap",
+    subtitle: "ce qu'il faut retenir",
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="text-align:left; font-size:22px; line-height:1.7;">
+          1. <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">chunk_max</code>
+          = la borne haute du chunk <b>en cours</b><br><br>
+
+          2. Formule :<br>
+          &nbsp;&nbsp;<code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">chunk_max = (pushed/chunk_size + 1) * chunk_size - 1</code><br><br>
+
+          3. Elle <b>évolue toute seule</b> quand pushed traverse une frontière<br><br>
+
+          4. Dans la boucle :<br>
+          &nbsp;&nbsp;si <code style="color:#ffb380; background:#2a2833; padding:2px 8px; border-radius:4px;">(*a)->val ≤ chunk_max</code> → pb<br>
+          &nbsp;&nbsp;sinon → ra
+        </div>`;
+      caption.innerHTML = "Avec ça, t'as tout pour écrire PB4. Une boucle, une formule qui se débrouille, et un if simple. Retourne au code et termine.";
+    }
+  }
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, captionEl);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      setTimeout(() => captionEl.classList.add('in'), 200);
+    }, 80);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(delay) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), delay); }
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-pause').textContent = '⏸ pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+
+</body>
+</html>

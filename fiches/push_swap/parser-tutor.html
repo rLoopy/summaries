@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap parser — tutor step by step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 1200px !important; }
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 20px 24px; box-shadow: 5px 5px 0 var(--ink); margin: 20px 0; }
+.intro h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin: 0 0 10px; }
+.intro p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 8px 0; }
+.intro code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+.ex-chip.ok { border-color: #2f8b4d; }
+.ex-chip.ko { border-color: #c1272d; }
+
+.op-banner { background: var(--ink); color: var(--paper); padding: 12px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 14px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; box-shadow: 3px 3px 0 var(--accent); flex-wrap: wrap; }
+.op-banner .tag { background: var(--hl-yellow); color: var(--ink); font-weight: 700; padding: 4px 10px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; min-width: 80px; text-align: center; }
+.op-banner .tag.ok { background: #9DD6A8; }
+.op-banner .tag.err { background: #FF8B6B; color: #fff; }
+.op-banner .desc { font-family: 'Patrick Hand', cursive; font-size: 16px; flex: 1; min-width: 200px; line-height: 1.35; }
+
+.grid { display: grid; grid-template-columns: 1.2fr 1.4fr; gap: 16px; margin-bottom: 14px; }
+@media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+
+.code-panel { background: #1C1A28; border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #E9E5F0; max-height: 580px; overflow-y: auto; }
+.code-panel h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; color: var(--hl-yellow); margin: 0 0 8px; text-align: center; letter-spacing: 1px; }
+.code-line { padding: 2px 8px 2px 40px; position: relative; border-radius: 3px; margin: 1px 0; white-space: pre; }
+.code-line::before { content: attr(data-lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; width: 24px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.22); border-left: 3px solid var(--hl-yellow); padding-left: 37px; font-weight: 700; }
+.code-line.active.err { background: rgba(255,120,120,0.22); border-left-color: #ff7878; }
+.code-line.active.ok { background: rgba(157,214,168,0.22); border-left-color: #9DD6A8; }
+.kw { color: #A5D8A8; }
+.fn { color: #C0B3E0; }
+.tp { color: #79B8D8; }
+.num { color: #FFB380; }
+.str { color: #FFD88A; }
+.cm { color: #5C5A75; font-style: italic; }
+
+.state-panel { display: flex; flex-direction: column; gap: 12px; }
+.state-box { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--ink); padding: 10px 12px; }
+.state-box h4 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; margin: 0 0 6px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+.state-box .val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink); }
+.state-box.highlight { box-shadow: 4px 4px 0 var(--accent); transform: translate(-1px,-1px); }
+
+.slot-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.slot { padding: 4px 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; min-width: 34px; text-align: center; transition: all 0.2s; box-shadow: 1px 1px 0 var(--ink); }
+.slot.new { background: var(--hl-yellow); animation: fadeIn 0.4s ease; }
+.slot.freed { background: repeating-linear-gradient(45deg, var(--paper), var(--paper) 4px, var(--paper-e) 4px, var(--paper-e) 8px); color: var(--muted); text-decoration: line-through; }
+.slot.check { outline: 2px dashed var(--accent-d); outline-offset: 2px; }
+.slot.bad { background: #FFCACA; }
+.slot.good { background: #BFE6CC; }
+.slot.null-marker { background: var(--paper-e); font-style: italic; color: var(--muted); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+.empty-msg { font-family: 'Caveat', cursive; font-size: 16px; color: var(--muted); font-style: italic; padding: 8px 0; }
+
+.memory-list { list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.memory-list li { padding: 3px 8px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 4px; margin-bottom: 3px; }
+.memory-list li.freed { background: var(--paper-e); color: var(--muted); text-decoration: line-through; }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink-soft); text-align: center; margin-top: 10px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 22px; }
+
+.notes { background: var(--hl-mint); border: 3px dashed var(--ink); border-radius: 14px; padding: 18px 22px; margin: 20px 0; }
+.notes h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; margin: 0 0 10px; }
+.notes p, .notes li { font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.notes ul { margin: 8px 0 0 20px; }
+.notes code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap parser — tutor step by step</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">parser tutor</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">chaque étape du parsing, étape par étape ↓</div>
+</section>
+
+<main>
+
+<div class="intro">
+  <h2>🎯 Ce que tu vas voir</h2>
+  <p>Toute la chaîne du parser, en direct. Tu vois <code>tokens</code> apparaître, <code>values</code> se remplir, la mémoire s'allouer et se libérer, et les erreurs déclencher un <code>return NULL</code>.</p>
+  <p>4 scénarios pour couvrir les succès ET les échecs :</p>
+  <ul style="font-family:'Patrick Hand',cursive;font-size:17px;line-height:1.5;margin:6px 0 6px 22px;">
+    <li><code>./push_swap 3 1 4 2</code> — ✅ tout se passe bien</li>
+    <li><code>./push_swap "3 1 4 2"</code> — ✅ format single-string</li>
+    <li><code>./push_swap 3 abc 4</code> — ❌ token non-numérique</li>
+    <li><code>./push_swap 3 1 4 1</code> — ❌ doublon</li>
+  </ul>
+</div>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="op-banner">
+      <div class="tag" id="phase-tag">ready</div>
+      <div class="desc" id="phase-desc">Choisis un scénario et clique next.</div>
+    </div>
+
+    <div class="grid">
+      <div class="code-panel">
+        <h3>parse_args() — pseudo-code</h3>
+        <div id="code"></div>
+      </div>
+
+      <div class="state-panel">
+        <div class="state-box" id="box-argv">
+          <h4>argv (input)</h4>
+          <div class="slot-row" id="argv-slots"></div>
+        </div>
+
+        <div class="state-box" id="box-n">
+          <h4>n (dans main)</h4>
+          <div class="val" id="n-val">?</div>
+        </div>
+
+        <div class="state-box" id="box-tokens">
+          <h4>tokens (char **)</h4>
+          <div class="slot-row" id="tokens-slots"></div>
+        </div>
+
+        <div class="state-box" id="box-values">
+          <h4>values (int *)</h4>
+          <div class="slot-row" id="values-slots"></div>
+        </div>
+
+        <div class="state-box" id="box-memory">
+          <h4>memoire allouée</h4>
+          <ul class="memory-list" id="memory-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrls">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="200" max="2000" value="900" step="100">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+
+  <div class="notes">
+    <h3>🔑 À observer en regardant</h3>
+    <ul>
+      <li><b>tokens</b> et <b>values</b> sont 2 allocations distinctes (visibles dans "mémoire allouée"). <code>tokens</code> est free'd en cours de route, <code>values</code> survit pour être renvoyé.</li>
+      <li>Dans les cas d'erreur (abc, doublon), regarde bien comment la mémoire est <b>nettoyée avant le return NULL</b>. Zéro leak, c'est la discipline 42.</li>
+      <li>Le <code>*n = ...</code> qui écrit dans <code>n</code> de main est symbolisé par la mise à jour du champ <b>"n (dans main)"</b>. C'est le pattern "output parameter".</li>
+      <li>Les 2 formats d'input (<code>3 1 4 2</code> vs <code>"3 1 4 2"</code>) produisent EXACTEMENT le même <code>tokens</code> après tokenize. Magie de <code>ft_split</code>.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">parser pigé ✌</div>
+  <div class="footer-meta">push_swap · <a href="parse_args-stars.html">fiche étoiles</a> · <a href="../../index.html">dashboard</a></div>
+</footer>
+
+<script>
+/* ============================================================ */
+/*  Pseudocode of parse_args                                    */
+/* ============================================================ */
+
+const CODE = [
+  '<span class="tp">int</span> *<span class="fn">parse_args</span>(<span class="tp">int</span> argc, <span class="tp">char</span> **argv, <span class="tp">int</span> *n)',
+  '{',
+  '    <span class="tp">char</span> **tokens;',
+  '    <span class="tp">int</span>  *values;',
+  '',
+  '    tokens = <span class="fn">tokenize</span>(argc, argv);',
+  '    <span class="kw">if</span> (!tokens) <span class="kw">return</span> <span class="num">NULL</span>;',
+  '    *n = <span class="fn">count_tokens</span>(tokens);',
+  '    <span class="kw">if</span> (*n == <span class="num">0</span>) { <span class="fn">free_tokens</span>(tokens); <span class="kw">return</span> <span class="num">NULL</span>; }',
+  '    values = <span class="fn">convert_tokens</span>(tokens, *n);',
+  '    <span class="fn">free_tokens</span>(tokens);',
+  '    <span class="kw">if</span> (!values) <span class="kw">return</span> <span class="num">NULL</span>;',
+  '    <span class="kw">if</span> (<span class="fn">has_duplicates</span>(values, *n))',
+  '    { <span class="fn">free</span>(values); <span class="kw">return</span> <span class="num">NULL</span>; }',
+  '    <span class="kw">return</span> values;',
+  '}',
+];
+
+const LN = {
+  entry: 1,
+  tokenize: 6,
+  checkTokens: 7,
+  countSet: 8,
+  checkZero: 9,
+  convertCall: 10,
+  freeTokens: 11,
+  checkValues: 12,
+  dupCheck: 13,
+  dupFree: 14,
+  retOk: 15,
+};
+
+/* ============================================================ */
+/*  Simulator                                                   */
+/* ============================================================ */
+
+function simulate(scenario) {
+  const frames = [];
+  const argv = scenario.argv;
+  const argc = argv.length;
+
+  let tokens = null;            // null = not yet allocated
+  let tokensFreed = false;
+  let values = null;
+  let valuesFreed = false;
+  let nVal = null;              // the value of *n
+  let memory = [];              // currently allocated blocks
+  let endState = null;          // 'ok' or 'err'
+
+  const snap = (line, tag, desc, opts = {}) => {
+    frames.push({
+      line, tag, desc,
+      argv: [...argv],
+      tokens: tokens ? [...tokens] : null,
+      tokensFreed,
+      values: values ? [...values] : null,
+      valuesFreed,
+      nVal,
+      memory: [...memory],
+      focus: opts.focus || null,
+      endState,
+      ...opts,
+    });
+  };
+
+  snap(LN.entry, 'enter', `Entrée dans parse_args. argc=${argc}, argv=${JSON.stringify(argv)}.`);
+
+  /* ═════ tokenize ═════ */
+  snap(LN.tokenize, 'tokenize', `Appel à tokenize(argc, argv) — on va normaliser les args en tableau de strings.`, { focus: 'tokens' });
+  tokens = [...scenario.tokens];
+  memory.push('tokens (char **) + ' + tokens.filter(t => t !== null).length + ' strings');
+  snap(LN.tokenize, 'tokenize', `tokenize a produit ${tokens.length - 1} strings + 1 NULL. Memoire allouée : le tableau + chaque string.`, { focus: 'tokens' });
+
+  /* ═════ check tokens NULL ═════ */
+  snap(LN.checkTokens, 'check', `Check : tokens n'est pas NULL → on continue.`);
+
+  /* ═════ count_tokens ═════ */
+  nVal = tokens.filter(t => t !== null).length;
+  snap(LN.countSet, 'count', `count_tokens compte jusqu'au NULL et renvoie ${nVal}. On écrit dans *n. La variable n de main devient maintenant ${nVal}.`, { focus: 'n' });
+
+  /* ═════ check n == 0 ═════ */
+  if (nVal === 0) {
+    snap(LN.checkZero, 'check', `Check : *n == 0 → OUI. L'user a passé une string vide ou que des espaces.`, { focus: 'n' });
+    memory = [];
+    tokensFreed = true;
+    snap(LN.checkZero, 'free', `free_tokens(tokens) → on libère les strings + le tableau.`, { focus: 'tokens' });
+    endState = 'err';
+    snap(LN.checkZero, 'err', `return NULL. parse_args signale une erreur. main affichera "Error" et exit 1.`, { focus: 'tokens' });
+    return frames;
+  }
+  snap(LN.checkZero, 'check', `Check : *n == ${nVal} (pas 0) → on continue.`);
+
+  /* ═════ convert_tokens ═════ */
+  snap(LN.convertCall, 'convert', `Appel à convert_tokens(tokens, ${nVal}). Cette fonction alloue values puis valide chaque token.`, { focus: 'values' });
+  values = new Array(nVal).fill(null);
+  memory.push('values (int *)');
+  snap(LN.convertCall, 'convert', `convert_tokens a malloc values (tableau de ${nVal} ints, encore vides).`, { focus: 'values' });
+
+  // Validate each token
+  let convertOk = true;
+  for (let i = 0; i < nVal; i++) {
+    const tok = tokens[i];
+    snap(LN.convertCall, 'check-token', `Validation de tokens[${i}] = "${tok}". is_number("${tok}") → check format + range.`, { focus: 'tokens', checkTokenIdx: i });
+    if (!scenario.isValid(tok)) {
+      snap(LN.convertCall, 'err-token', `"${tok}" n'est PAS un int valide → convert_tokens free values et return NULL.`, { focus: 'tokens', badTokenIdx: i });
+      values = null;
+      memory = memory.filter(m => !m.startsWith('values'));
+      convertOk = false;
+      snap(LN.convertCall, 'err-token', `Retour dans parse_args. values est NULL.`, { focus: 'values' });
+      break;
+    }
+    const n = parseInt(tok, 10);
+    values[i] = n;
+    snap(LN.convertCall, 'convert-ok', `"${tok}" OK. ft_atol → ${n}. values[${i}] = ${n}.`, { focus: 'values', goodValueIdx: i });
+  }
+
+  if (convertOk) {
+    snap(LN.convertCall, 'convert', `convert_tokens a fini. values = [${values.join(', ')}]. Retour à parse_args.`, { focus: 'values' });
+  }
+
+  /* ═════ free_tokens ═════ */
+  tokensFreed = true;
+  memory = memory.filter(m => !m.startsWith('tokens'));
+  snap(LN.freeTokens, 'free', `free_tokens(tokens) — on libère les strings (plus besoin, on a les ints dans values).`, { focus: 'tokens' });
+
+  /* ═════ check values NULL ═════ */
+  if (!convertOk) {
+    snap(LN.checkValues, 'check', `Check : values est NULL (conversion a raté).`, { focus: 'values' });
+    endState = 'err';
+    snap(LN.checkValues, 'err', `return NULL. main affichera "Error".`);
+    return frames;
+  }
+  snap(LN.checkValues, 'check', `Check : values n'est pas NULL → on continue.`);
+
+  /* ═════ has_duplicates ═════ */
+  snap(LN.dupCheck, 'dup-check', `Check doublons : has_duplicates(values, ${nVal}).`, { focus: 'values' });
+
+  // Simulate double loop briefly
+  let hasDup = false;
+  let dupI = -1, dupJ = -1;
+  outer:
+  for (let i = 0; i < nVal; i++) {
+    for (let j = i + 1; j < nVal; j++) {
+      if (values[i] === values[j]) {
+        hasDup = true;
+        dupI = i;
+        dupJ = j;
+        break outer;
+      }
+    }
+  }
+
+  if (hasDup) {
+    snap(LN.dupCheck, 'dup-found', `Doublon trouvé : values[${dupI}] == values[${dupJ}] == ${values[dupI]}.`, { focus: 'values', dupIdxs: [dupI, dupJ] });
+    valuesFreed = true;
+    memory = memory.filter(m => !m.startsWith('values'));
+    snap(LN.dupFree, 'free', `free(values) — on libère values avant de sortir. Zéro leak.`, { focus: 'values' });
+    endState = 'err';
+    snap(LN.dupFree, 'err', `return NULL. main affichera "Error".`);
+    return frames;
+  }
+
+  snap(LN.dupCheck, 'check', `Aucun doublon → on continue.`);
+
+  /* ═════ return values ═════ */
+  endState = 'ok';
+  snap(LN.retOk, 'ok', `return values. parse_args a fini avec succès. main reçoit values=[${values.join(', ')}], n=${nVal}.`, { focus: 'values' });
+
+  return frames;
+}
+
+/* ============================================================ */
+/*  Scenarios                                                   */
+/* ============================================================ */
+
+const SCENARIOS = [
+  {
+    label: '3 1 4 2 ✅',
+    argv: ['./push_swap', '3', '1', '4', '2'],
+    tokens: ['3', '1', '4', '2', null],
+    isValid: (t) => /^-?\d+$/.test(t) && !isNaN(parseInt(t, 10)),
+  },
+  {
+    label: '"3 1 4 2" ✅',
+    argv: ['./push_swap', '3 1 4 2'],
+    tokens: ['3', '1', '4', '2', null],
+    isValid: (t) => /^-?\d+$/.test(t) && !isNaN(parseInt(t, 10)),
+  },
+  {
+    label: '3 abc 4 ❌',
+    argv: ['./push_swap', '3', 'abc', '4'],
+    tokens: ['3', 'abc', '4', null],
+    isValid: (t) => /^-?\d+$/.test(t) && !isNaN(parseInt(t, 10)),
+  },
+  {
+    label: '3 1 4 1 ❌ (doublon)',
+    argv: ['./push_swap', '3', '1', '4', '1'],
+    tokens: ['3', '1', '4', '1', null],
+    isValid: (t) => /^-?\d+$/.test(t),
+  },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = SCENARIOS.map((s, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''} ${s.label.includes('✅') ? 'ok' : 'ko'}" data-idx="${idx}">${s.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadScenario(SCENARIOS[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderCode() {
+  document.getElementById('code').innerHTML = CODE.map((html, idx) =>
+    `<div class="code-line" data-lineno="${String(idx + 1).padStart(2, ' ')}" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderArgv(f) {
+  const el = document.getElementById('argv-slots');
+  el.innerHTML = f.argv.map((v, i) => {
+    const c = i === 0 ? 'slot null-marker' : 'slot';
+    return `<div class="${c}">"${v}"</div>`;
+  }).join('');
+}
+
+function renderTokens(f) {
+  const el = document.getElementById('tokens-slots');
+  if (f.tokensFreed) {
+    el.innerHTML = '<div class="empty-msg">(free\'d — memoire libérée)</div>';
+    return;
+  }
+  if (!f.tokens) {
+    el.innerHTML = '<div class="empty-msg">(pas encore alloué)</div>';
+    return;
+  }
+  el.innerHTML = f.tokens.map((v, i) => {
+    let cls = 'slot';
+    if (v === null) cls += ' null-marker';
+    if (f.checkTokenIdx === i) cls += ' check';
+    if (f.badTokenIdx === i) cls += ' bad';
+    return `<div class="${cls}">${v === null ? 'NULL' : '"' + v + '"'}</div>`;
+  }).join('');
+}
+
+function renderValues(f) {
+  const el = document.getElementById('values-slots');
+  if (f.valuesFreed) {
+    el.innerHTML = '<div class="empty-msg">(free\'d — memoire libérée)</div>';
+    return;
+  }
+  if (!f.values) {
+    el.innerHTML = '<div class="empty-msg">(pas encore alloué)</div>';
+    return;
+  }
+  el.innerHTML = f.values.map((v, i) => {
+    let cls = 'slot';
+    if (v === null) cls += ' null-marker';
+    if (f.goodValueIdx === i) cls += ' good';
+    if (f.dupIdxs && f.dupIdxs.includes(i)) cls += ' bad check';
+    return `<div class="${cls}">${v === null ? '?' : v}</div>`;
+  }).join('');
+}
+
+function renderN(f) {
+  const el = document.getElementById('n-val');
+  el.textContent = f.nVal === null ? '?' : f.nVal;
+  document.getElementById('box-n').classList.toggle('highlight', f.focus === 'n');
+}
+
+function renderMemory(f) {
+  const el = document.getElementById('memory-list');
+  if (f.memory.length === 0) {
+    el.innerHTML = '<div class="empty-msg">(rien d\'alloué)</div>';
+    return;
+  }
+  el.innerHTML = f.memory.map(m => `<li>${m}</li>`).join('');
+}
+
+function renderHighlight(f) {
+  ['box-argv', 'box-n', 'box-tokens', 'box-values', 'box-memory'].forEach(id => {
+    document.getElementById(id).classList.remove('highlight');
+  });
+  if (f.focus === 'tokens') document.getElementById('box-tokens').classList.add('highlight');
+  if (f.focus === 'values') document.getElementById('box-values').classList.add('highlight');
+  if (f.focus === 'n') document.getElementById('box-n').classList.add('highlight');
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.code-line').forEach(el => {
+    el.classList.remove('active');
+    el.classList.remove('err');
+    el.classList.remove('ok');
+  });
+  const line = document.querySelector(`.code-line[data-line="${f.line}"]`);
+  if (line) {
+    line.classList.add('active');
+    if (f.tag === 'err' || f.tag === 'err-token') line.classList.add('err');
+    if (f.tag === 'ok') line.classList.add('ok');
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  renderArgv(f);
+  renderTokens(f);
+  renderValues(f);
+  renderN(f);
+  renderMemory(f);
+  renderHighlight(f);
+
+  const tagEl = document.getElementById('phase-tag');
+  tagEl.textContent = f.tag;
+  tagEl.className = 'tag';
+  if (f.tag === 'ok' || f.tag === 'convert-ok') tagEl.classList.add('ok');
+  if (f.tag === 'err' || f.tag === 'err-token' || f.tag === 'dup-found') tagEl.classList.add('err');
+  document.getElementById('phase-desc').textContent = f.desc;
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadScenario(s) {
+  frames = simulate(s);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 2200 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+renderCode();
+renderExamples();
+loadScenario(SCENARIOS[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>

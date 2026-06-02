@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reverse_rotate step-by-step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0f0e1a;
+  color: #f0e9d8;
+  font-family: 'Patrick Hand', cursive;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.video {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 36px 70px 36px;
+}
+
+.scene-title {
+  font-family: 'Kalam', cursive;
+  font-size: 32px;
+  color: #ffe96b;
+  text-align: center;
+  margin-bottom: 6px;
+  min-height: 42px;
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: all 0.6s ease;
+}
+.scene-title.in { opacity: 1; transform: translateY(0); }
+
+.subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #c0b3e0;
+  text-align: center;
+  margin-bottom: 16px;
+  min-height: 24px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  gap: 30px;
+  min-height: 0;
+}
+
+.stage-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  gap: 20px;
+}
+
+.code-panel {
+  width: 480px;
+  background: #1a1825;
+  border: 2px solid #2a2833;
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #c0b3e0;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-panel .code-title {
+  font-family: 'Kalam', cursive;
+  font-size: 14px;
+  color: #79b8d8;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #2a2833;
+}
+
+.code-panel pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #8f89a6;
+}
+
+.code-panel .line {
+  display: block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  transition: all 0.4s ease;
+}
+.code-panel .line.hl {
+  background: rgba(255, 233, 107, 0.18);
+  color: #ffe96b;
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 #ffe96b;
+}
+.code-panel .line.done {
+  color: #6fb07e;
+}
+
+.code-panel .kw { color: #ff9f7a; }
+.code-panel .fn { color: #79b8d8; }
+.code-panel .com { color: #5c5a75; font-style: italic; }
+.code-panel .num { color: #c9a6ff; }
+.code-panel .type { color: #9dd6a8; }
+
+.action-card {
+  background: rgba(255, 233, 107, 0.08);
+  border: 2px solid #ffe96b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 15px;
+  color: #ffe96b;
+  line-height: 1.4;
+}
+
+.caption {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 21px;
+  color: #f0e9d8;
+  text-align: center;
+  max-width: 1100px;
+  line-height: 1.5;
+  margin: 16px auto 0 auto;
+  min-height: 60px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.6s ease;
+}
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 17px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Chain */
+.chain {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 70px 0 30px 0;
+  min-height: 200px;
+}
+
+.node {
+  position: relative;
+  width: 100px;
+  height: 65px;
+  background: #2a2833;
+  border: 3px solid #ff9f7a;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 24px;
+  color: #f0e9d8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0 #c0b3e0;
+  transition: all 0.5s ease;
+}
+
+.node .addr {
+  font-size: 10px;
+  color: #5c5a75;
+  font-weight: 400;
+}
+
+.node.last-style {
+  border-color: #c9a6ff;
+  box-shadow: 4px 4px 0 #c9a6ff;
+}
+
+.arr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  color: #c0b3e0;
+  margin: 0 4px;
+  transition: all 0.5s ease;
+}
+.arr.fading { color: #3a3849; }
+.arr.new { color: #ffe96b; }
+
+/* Pointer markers */
+.ptr {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Kalam', cursive;
+  transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+
+.ptr .label {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.ptr .arrow-down { font-size: 22px; margin-top: 2px; }
+
+.ptr.cur .label { background: #79b8d8; color: #0f0e1a; }
+.ptr.cur .arrow-down { color: #79b8d8; }
+.ptr.last .label { background: #c9a6ff; color: #0f0e1a; }
+.ptr.last .arrow-down { color: #c9a6ff; }
+.ptr.head .label { background: #6fb07e; color: #0f0e1a; }
+.ptr.head .arrow-down { color: #6fb07e; }
+
+.state-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+.state-pill {
+  background: #2a2833;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #3a3849;
+}
+.state-pill .name { color: #ffe96b; }
+.state-pill .val { color: #ff9f7a; font-weight: 700; }
+
+.progress {
+  position: fixed; bottom: 0; left: 0;
+  height: 4px;
+  background: #ffe96b;
+  transition: width 0.2s linear;
+}
+.controls {
+  position: fixed; bottom: 14px; right: 14px;
+  display: flex; gap: 8px;
+}
+.controls button {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 14px;
+  background: #2a2833;
+  color: #f0e9d8;
+  border: 2px solid #f0e9d8;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter {
+  position: fixed; bottom: 18px; left: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #5c5a75;
+}
+.keyhint {
+  position: fixed; bottom: 42px; left: 20px;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #3a3849;
+}
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="scene-title" id="title">reverse_rotate</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="main">
+    <div class="stage-wrap" id="stage"></div>
+    <div class="code-panel">
+      <div class="code-title">reverse_rotate (helper de rra/rrb/rrr)</div>
+      <pre id="code-body"></pre>
+      <div class="action-card" id="action-card">→ démarrage…</div>
+    </div>
+  </div>
+  <div class="caption" id="caption">démarrage…</div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+const CODE_LINES = [
+  '<span class="kw">static void</span> <span class="fn">reverse_rotate</span>(<span class="type">t_stack</span> **stack)',
+  '{',
+  '  <span class="type">t_stack</span> *cur;',
+  '  <span class="type">t_stack</span> *last;',
+  '',
+  '  <span class="kw">if</span> (!*stack || !(*stack)-&gt;next)',
+  '    <span class="kw">return</span> ;',
+  '  cur = *stack;          <span class="com">// RR1</span>',
+  '  <span class="kw">while</span> (cur-&gt;next-&gt;next) <span class="com">// RR2</span>',
+  '    cur = cur-&gt;next;',
+  '  last = cur-&gt;next;      <span class="com">// RR3</span>',
+  '  cur-&gt;next = <span class="num">NULL</span>;      <span class="com">// RR4</span>',
+  '  last-&gt;next = *stack;   <span class="com">// RR5</span>',
+  '  *stack = last;         <span class="com">// RR6</span>',
+  '}'
+];
+
+function renderCode(hl = [], done = []) {
+  return CODE_LINES.map((ln, i) => {
+    const lineNum = i + 1;
+    const cls = hl.includes(lineNum) ? ' hl' : (done.includes(lineNum) ? ' done' : '');
+    return `<span class="line${cls}">${ln || ' '}</span>`;
+  }).join('\n');
+}
+
+function renderChain(nodes, pointers = []) {
+  let html = '<div class="chain">';
+  nodes.forEach((n, i) => {
+    const cls = 'node' + (n.last ? ' last-style' : '');
+    html += `<div class="${cls}" data-idx="${i}">${n.val}<span class="addr">${n.addr}</span></div>`;
+    if (i < nodes.length - 1 && !n.noArrow) {
+      html += `<span class="arr ${n.arrCls || ''}">→</span>`;
+    }
+  });
+  if (nodes.length > 0 && !nodes[nodes.length - 1].noArrow) {
+    html += `<span class="arr">→</span><span style="color:#5c5a75; font-family:'JetBrains Mono'; font-style:italic; font-size: 14px;">NULL</span>`;
+  }
+  pointers.forEach(p => {
+    const leftPx = p.target * 138 + 50;
+    html += `
+      <div class="ptr ${p.className}" style="left: ${leftPx - 40}px;">
+        <div class="label">${p.label}</div>
+        <div class="arrow-down">↓</div>
+      </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function statePills(items) {
+  return `<div class="state-row">${items.map(i => `<div class="state-pill"><span class="name">${i.name}</span> = <span class="val">${i.val}</span></div>`).join('')}</div>`;
+}
+
+const SCENES = [
+  // 1. Intro
+  {
+    dur: 6500,
+    title: "reverse_rotate — le dernier devient le 1er",
+    subtitle: "rra / rrb / rrr appellent ce helper",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div style="font-family:'Kalam',cursive; font-size:24px; color:#ffe96b; text-align:center; line-height:1.6;">
+          AVANT : <span style="color:#f0e9d8;">[3] → [1] → [4] → [2]</span><br>
+          APRÈS : <span style="color:#f0e9d8;"><b style="color:#c9a6ff;">[2]</b> → [3] → [1] → [4]</span>
+        </div>
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0'}
+        ])}`;
+      code.innerHTML = renderCode();
+      action.textContent = "→ on déroule les 6 trous (RR1-RR6)";
+      caption.innerHTML = "C'est l'inverse de rotate : le <b>dernier</b> node ([2]) doit aller au début. Subtilité : la condition de boucle change, on s'arrête sur l'avant-dernier au lieu du dernier.";
+    }
+  },
+
+  // 2. Garde
+  {
+    dur: 7000,
+    title: "Garde de sécurité",
+    subtitle: "if (!*stack || !(*stack)->next) return ;",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0'}
+        ], [
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        ${statePills([
+          {name:'*stack', val:'0x7FA0'},
+          {name:'cur', val:'???'},
+          {name:'last', val:'???'}
+        ])}`;
+      code.innerHTML = renderCode([6]);
+      action.innerHTML = "0 ou 1 node ?<br>→ on sort sans rien faire";
+      caption.innerHTML = "Si la pile est vide ou n'a qu'un seul node, reverse_rotate n'a aucun sens. On <code>return</code>. Sinon on continue.";
+    }
+  },
+
+  // 3. RR1
+  {
+    dur: 8000,
+    title: "RR1 — curseur sur le head",
+    subtitle: "cur = *stack",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0'}
+        ], [
+          {className:'cur', target:0, label:'cur'},
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        ${statePills([
+          {name:'cur', val:'0x7FA0'},
+          {name:'*stack', val:'0x7FA0'}
+        ])}`;
+      code.innerHTML = renderCode([8]);
+      action.innerHTML = "cur démarre sur le node [3].<br>Il va marcher.";
+      caption.innerHTML = "<code>cur</code> est un curseur qui va parcourir la chaîne. Il part du head, comme dans tous les patterns de parcours.";
+    }
+  },
+
+  // 4. RR2 iter 1
+  {
+    dur: 8500,
+    title: "RR2 boucle — iter 1 : cur->next->next existe",
+    subtitle: "while (cur->next->next) cur = cur->next",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0'}
+        ], [
+          {className:'cur', target:1, label:'cur'},
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        ${statePills([
+          {name:'cur', val:'0x7FB0 (node [1])'},
+          {name:'cur->next', val:'0x7FC0'},
+          {name:'cur->next->next', val:'0x7FD0 ≠ NULL'}
+        ])}`;
+      code.innerHTML = renderCode([9, 10], [8]);
+      action.innerHTML = "cur->next->next = node [2] ≠ NULL<br>→ on continue : cur avance sur [1]";
+      caption.innerHTML = "On teste s'il y a 2 nodes après cur. Oui : [4] et [2]. Donc <code>cur</code> avance sur <b>[1]</b>.";
+    }
+  },
+
+  // 5. RR2 iter 2 (exit)
+  {
+    dur: 9000,
+    title: "RR2 boucle — iter 2 : cur->next->next == NULL",
+    subtitle: "STOP : cur est sur l'avant-dernier",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0'}
+        ], [
+          {className:'cur', target:2, label:'cur'},
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        ${statePills([
+          {name:'cur', val:'0x7FC0 (node [4])'},
+          {name:'cur->next', val:'0x7FD0 (node [2])'},
+          {name:'cur->next->next', val:'NULL'}
+        ])}
+        <div style="color:#6fb07e; font-family:'Patrick Hand', cursive; font-size: 22px;">
+          ✓ cur est sur l'AVANT-DERNIER ([4])
+        </div>`;
+      code.innerHTML = renderCode([], [8, 9, 10]);
+      action.innerHTML = "cur sur [4]. cur->next->next = NULL.<br>La boucle s'arrête.";
+      caption.innerHTML = "Maintenant <code>cur->next</code> = [2] (le dernier), et <code>cur->next->next</code> = NULL. La boucle stoppe. <code>cur</code> est <b>pile sur l'avant-dernier</b>.";
+    }
+  },
+
+  // 6. RR3
+  {
+    dur: 8000,
+    title: "RR3 — sauvegarder le dernier",
+    subtitle: "last = cur->next",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0'}, {val:'2', addr:'0x7FD0', last: true}
+        ], [
+          {className:'cur', target:2, label:'cur'},
+          {className:'last', target:3, label:'last'},
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        ${statePills([
+          {name:'cur', val:'0x7FC0'},
+          {name:'last', val:'0x7FD0'}
+        ])}`;
+      code.innerHTML = renderCode([11], [8, 9, 10]);
+      action.innerHTML = "last reçoit l'adresse du dernier node ([2]).<br>On le garde pour le déménager au début.";
+      caption.innerHTML = "Depuis l'avant-dernier <code>cur</code>, le dernier est juste <code>cur->next</code>. On le sauve dans <code>last</code> — c'est le node qu'on va déplacer au début.";
+    }
+  },
+
+  // 7. RR4
+  {
+    dur: 9000,
+    title: "RR4 — couper le lien",
+    subtitle: "cur->next = NULL",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'3', addr:'0x7FA0'}, {val:'1', addr:'0x7FB0'},
+          {val:'4', addr:'0x7FC0', noArrow:true}, {val:'2', addr:'0x7FD0', last: true}
+        ], [
+          {className:'cur', target:2, label:'cur'},
+          {className:'last', target:3, label:'last'},
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        <div style="color:#ffe96b; font-family:'Patrick Hand', cursive; font-size: 20px;">
+          [4] devient le nouveau bout de chaîne.<br>
+          [2] reste accessible via la variable last.
+        </div>`;
+      code.innerHTML = renderCode([12], [8, 9, 10, 11]);
+      action.innerHTML = "cur->next = NULL.<br>La chaîne principale se termine sur [4].";
+      caption.innerHTML = "On coupe le lien [4]→[2]. Maintenant <code>cur</code> ([4]) est le nouveau bout (son next vaut NULL). [2] est <b>orphelin</b> dans la chaîne — mais <code>last</code> garde son adresse.";
+    }
+  },
+
+  // 8. RR5
+  {
+    dur: 9000,
+    title: "RR5 — last se relie devant l'ancien head",
+    subtitle: "last->next = *stack",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'2', addr:'0x7FD0', last: true}, {val:'3', addr:'0x7FA0'},
+          {val:'1', addr:'0x7FB0'}, {val:'4', addr:'0x7FC0'}
+        ], [
+          {className:'last', target:0, label:'last'},
+          {className:'head', target:1, label:'*stack'},
+          {className:'cur', target:3, label:'cur'}
+        ])}
+        <div style="color:#ffe96b; font-family:'Patrick Hand', cursive; font-size: 20px;">
+          ⚠ *stack pointe encore sur [3]<br>
+          (RR6 va le mettre à jour)
+        </div>`;
+      code.innerHTML = renderCode([13], [8, 9, 10, 11, 12]);
+      action.innerHTML = "last->next = *stack.<br>[2] pointe sur [3] (l'ancien head).";
+      caption.innerHTML = "Le node <code>last</code> ([2]) chaîne son <code>next</code> sur l'ancien head ([3]). La chaîne <span class='hl'>[2] → [3] → [1] → [4] → NULL</span> est physiquement formée. Reste à dire au head qu'il a déménagé.";
+    }
+  },
+
+  // 9. RR6
+  {
+    dur: 8500,
+    title: "RR6 — head pointe sur last",
+    subtitle: "*stack = last",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'2', addr:'0x7FD0', last: true}, {val:'3', addr:'0x7FA0'},
+          {val:'1', addr:'0x7FB0'}, {val:'4', addr:'0x7FC0'}
+        ], [
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        <div style="color:#6fb07e; font-family:'Patrick Hand', cursive; font-size: 22px;">
+          ✓ Pile = [2, 3, 1, 4]
+        </div>`;
+      code.innerHTML = renderCode([14], [8, 9, 10, 11, 12, 13]);
+      action.innerHTML = "*stack = last.<br>Le head est officiellement [2].";
+      caption.innerHTML = "On dit à la pile : <span class='hl'>ton head, c'est last maintenant</span>. La rotation inverse est terminée.";
+    }
+  },
+
+  // 10. État final
+  {
+    dur: 7000,
+    title: "Reverse rotate complète",
+    subtitle: "le dernier est devenu le 1er",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        ${renderChain([
+          {val:'2', addr:'0x7FD0'}, {val:'3', addr:'0x7FA0'},
+          {val:'1', addr:'0x7FB0'}, {val:'4', addr:'0x7FC0'}
+        ], [
+          {className:'head', target:0, label:'*stack'}
+        ])}
+        <div style="color:#6fb07e; font-family:'Kalam', cursive; font-size: 26px; text-align:center; line-height:1.6;">
+          ✓ Pile = [2, 3, 1, 4]<br>
+          <span style="font-size:18px; color:#c0b3e0;">aux mêmes adresses qu'au départ,<br>juste les liens ont changé</span>
+        </div>`;
+      code.innerHTML = renderCode([], [8, 9, 10, 11, 12, 13, 14]);
+      action.innerHTML = "✅ reverse_rotate fait !<br>+ write(1, \"rra\\n\", 4) pour rra";
+      caption.innerHTML = "Encore une fois, les nodes <b>n'ont pas bougé en mémoire</b>. Seuls les pointeurs <code>next</code> ont été modifiés. C'est l'efficacité des linked lists.";
+    }
+  },
+
+  // 11. Comparaison rotate / reverse_rotate
+  {
+    dur: 9000,
+    title: "rotate vs reverse_rotate — la différence",
+    subtitle: "où s'arrête le curseur",
+    render: (stage, code, action, caption) => {
+      stage.innerHTML = `
+        <div style="display:flex; gap:50px; align-items:flex-start; justify-content:center; font-family:'JetBrains Mono', monospace; font-size: 14px;">
+          <div style="background:#1a1825; padding:18px 22px; border-radius:10px; border:2px solid #79b8d8; min-width: 360px;">
+            <div style="color:#79b8d8; font-family:'Kalam', cursive; font-size: 18px; margin-bottom:10px;">rotate (1er → dernier)</div>
+            <div style="color:#c0b3e0; line-height:1.7;">
+              while (last-&gt;next)<br>
+              &nbsp;&nbsp;last = last-&gt;next;<br>
+              <span style="color:#5c5a75; font-style:italic;">// stop sur le DERNIER</span>
+            </div>
+          </div>
+          <div style="background:#1a1825; padding:18px 22px; border-radius:10px; border:2px solid #c9a6ff; min-width: 360px;">
+            <div style="color:#c9a6ff; font-family:'Kalam', cursive; font-size: 18px; margin-bottom:10px;">reverse_rotate (dernier → 1er)</div>
+            <div style="color:#c0b3e0; line-height:1.7;">
+              while (cur-&gt;next-&gt;next)<br>
+              &nbsp;&nbsp;cur = cur-&gt;next;<br>
+              <span style="color:#5c5a75; font-style:italic;">// stop sur l'AVANT-DERNIER</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Patrick Hand', cursive; font-size: 19px; color:#ffe96b; text-align:center; margin-top:20px;">
+          rotate doit <b>attacher</b> first au bout (besoin d'arriver SUR le dernier).<br>
+          reverse_rotate doit <b>couper</b> le lien avant le dernier (besoin d'arriver SUR l'avant-dernier).
+        </div>`;
+      action.innerHTML = "Une étoile de plus dans la condition,<br>une logique miroir.";
+      caption.innerHTML = "Les deux fonctions ont une <b>structure identique</b> à 90%. La seule grosse différence : la condition de boucle qui décide où on s'arrête.";
+    }
+  }
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const codeBodyEl = document.getElementById('code-body');
+const actionCardEl = document.getElementById('action-card');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    s.render(stageEl, codeBodyEl, actionCardEl, captionEl);
+
+    setTimeout(() => {
+      titleEl.classList.add('in');
+      setTimeout(() => captionEl.classList.add('in'), 200);
+    }, 80);
+
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(delay) {
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => playScene(currentScene + 1), delay);
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) {
+    if (timer) clearTimeout(timer);
+    remainingTime -= (Date.now() - startTime);
+  } else {
+    startTime = Date.now();
+    scheduleNext(Math.max(remainingTime, 500));
+  }
+}
+
+function replay() {
+  paused = false;
+  document.getElementById('btn-pause').textContent = '⏸ pause';
+  if (timer) clearTimeout(timer);
+  playScene(0);
+}
+
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+
+</body>
+</html>

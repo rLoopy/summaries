@@ -668,7 +668,7 @@ footer a { color: var(--accent-d); text-decoration: underline wavy; }
 
 <footer>
   une carte en travaux · les astres bougent, les fiches poussent.<br>
-  <a href="fiches/fprime.html">→ fprime (cercle 01)</a>
+  <a href="fiches/skills/fprime.html">→ fprime (cercle 01)</a> · <a href="fiches/index.html">→ toutes les fiches</a>
 </footer>
 
 <div id="tooltip"></div>
@@ -687,32 +687,32 @@ footer a { color: var(--accent-d); text-decoration: underline wavy; }
   <h2>notes &amp; outils</h2>
   <div class="ns-sub">fiches meta — ce que j'apprends au-delà du cursus.</div>
   <div class="notes-grid">
-    <a class="note-card" data-cat="42" href="fiches/42-c-guide.html">
+    <a class="note-card" data-cat="42" href="fiches/skills/42-c-guide.html">
       <span class="nc-cat">42 · guide</span>
       <span class="nc-title">42 C guide</span>
       <span class="nc-desc">la boîte à outils C pour 42.</span>
     </a>
-    <a class="note-card" data-cat="42" href="fiches/pointeurs.html">
+    <a class="note-card" data-cat="42" href="fiches/skills/pointeurs.html">
       <span class="nc-cat">42 · fondations</span>
       <span class="nc-title">pointeurs</span>
       <span class="nc-desc">la fiche anti-doute. étoile, deref, double pointeur, pièges.</span>
     </a>
-    <a class="note-card" data-cat="42" href="fiches/architecture.html">
+    <a class="note-card" data-cat="42" href="fiches/skills/architecture.html">
       <span class="nc-cat">42 · architecture</span>
       <span class="nc-title">architecture</span>
       <span class="nc-desc">comment je structure mes projets.</span>
     </a>
-    <a class="note-card" data-cat="42" href="fiches/push-swap-tutor.html">
+    <a class="note-card" data-cat="42" href="fiches/push_swap/push-swap-tutor.html">
       <span class="nc-cat">42 · push_swap</span>
       <span class="nc-title">push_swap step debugger</span>
       <span class="nc-desc">simulation fidèle de mon code C — 6 scénarios, sort_3 → Turk 16, ops live.</span>
     </a>
-    <a class="note-card" data-cat="42" href="fiches/push_swap-code-tour.html">
+    <a class="note-card" data-cat="42" href="fiches/push_swap/push_swap-code-tour.html">
       <span class="nc-cat">42 · push_swap · peer-eval</span>
       <span class="nc-title">push_swap code tour</span>
       <span class="nc-desc">tour du code fichier par fichier — 24 scènes, visuels piles, Q&amp;A peer-eval. lecture auto.</span>
     </a>
-    <a class="note-card" data-cat="42" href="fiches/so_long-floodfill-tutor.html">
+    <a class="note-card" data-cat="42" href="fiches/so_long/so_long-floodfill-tutor.html">
       <span class="nc-cat">42 · so_long</span>
       <span class="nc-title">so_long flood fill — step debugger</span>
       <span class="nc-desc">l’algo récursif en direct : 4 maps, code highlight, call stack, verdict valide/invalide.</span>
@@ -775,11 +775,11 @@ const DATA = [
   { id:'ft_printf',   name:'ft_printf',   circle:1, state:'done', fiche:null, desc:'refais printf. va_args et maths de formatage.' },
   { id:'gnl',         name:'get_next_line', circle:1, state:'done', fiche:null, desc:'lecture ligne à ligne. le piège du buffer.' },
   { id:'born2beroot', name:'born2beroot', circle:1, state:'done', fiche:null, desc:'sysadmin. VM, users, sudo, cron.' },
-  { id:'fprime',      name:'fprime',      circle:1, state:'done', fiche:'fiches/fprime.html', desc:'factorisation en nombres premiers.', angleNudge: 1.4 },
+  { id:'fprime',      name:'fprime',      circle:1, state:'done', fiche:'fiches/skills/fprime.html', desc:'factorisation en nombres premiers.', angleNudge: 1.4 },
 
   // cercle 02
-  { id:'push_swap',   name:'push_swap',   circle:2, state:'reg', fiche:'fiches/push_swap-code-tour.html', desc:'tri 2 piles — tour du code pour peer-eval.' },
-  { id:'so_long',     name:'so_long',     circle:2, state:'todo', fiche:'fiches/so-long-book/index.html', group:'graphique', desc:'petit jeu 2D avec MiniLibX. Gitbook complet : sujet, map .ber, flood fill, FAQ defense.' },
+  { id:'push_swap',   name:'push_swap',   circle:2, state:'reg', fiche:'fiches/push_swap/push_swap-code-tour.html', desc:'tri 2 piles — tour du code pour peer-eval.' },
+  { id:'so_long',     name:'so_long',     circle:2, state:'todo', fiche:'fiches/so_long/book/index.html', group:'graphique', desc:'petit jeu 2D avec MiniLibX. Gitbook complet : sujet, map .ber, flood fill, FAQ defense.' },
   { id:'fdf',         name:'FdF',         circle:2, state:'todo', fiche:null, group:'graphique', desc:'wireframe 3D. MiniLibX + projection iso.' },
   { id:'fractol',     name:'fract_ol',    circle:2, state:'todo', fiche:null, group:'graphique', desc:'Mandelbrot, Julia. MiniLibX.' },
   { id:'pipex',       name:'pipex',       circle:2, state:'todo', fiche:null, group:'comm', desc:'recrée le shell pipe |. fork, exec, dup2.' },
@@ -803,7 +803,7 @@ const EXAM_DATA = {
     { id:'ft_strrev',      f:'exams/ft_strrev.html' },
     { id:'inter',          f:'exams/inter.html' },
     { id:'is_power_of_2',  f:'exams/is_power_of_2.html' },
-    { id:'last_word',      f:'exams/last_word.html', visuels:[{name:'visuel', f:'fiches/last-word-visual.html'}] },
+    { id:'last_word',      f:'exams/last_word.html', visuels:[{name:'visuel', f:'fiches/skills/last-word-visual.html'}] },
     { id:'max',            f:'exams/max.html' },
     { id:'print_bits',     f:'exams/print_bits.html' },
     { id:'reverse_bits',   f:'exams/reverse_bits.html' },
@@ -813,38 +813,38 @@ const EXAM_DATA = {
     { id:'wdmatch',        f:'exams/wdmatch.html' },
   ],
   level2: [
-    { id:'ft_atoi',        f:'exams/ft_atoi.html', visuels:[{name:'bloc 3 visuel', f:'fiches/atoi-bloc3-visual.html'}] },
+    { id:'ft_atoi',        f:'exams/ft_atoi.html', visuels:[{name:'bloc 3 visuel', f:'fiches/skills/atoi-bloc3-visual.html'}] },
   ],
   level3: [
-    { id:'fprime',         f:'fiches/fprime.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/fprime-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/fprime-tutor.html'},
+    { id:'fprime',         f:'fiches/skills/fprime.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/fprime-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/fprime-tutor.html'},
     ]},
-    { id:'rev_wstr',       f:'fiches/rev_wstr.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/rev_wstr-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/rev_wstr-tutor.html'},
-      {name:'visu algo', f:'fiches/rev_wstr-visu.html'},
+    { id:'rev_wstr',       f:'fiches/skills/rev_wstr.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/rev_wstr-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/rev_wstr-tutor.html'},
+      {name:'visu algo', f:'fiches/skills/rev_wstr-visu.html'},
       {name:'debug version', f:'exams/rev_wstr-debug.html'},
     ]},
-    { id:'rostring',       f:'fiches/rostring-tutor.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/rostring-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/rostring-tutor.html'},
+    { id:'rostring',       f:'fiches/skills/rostring-tutor.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/rostring-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/rostring-tutor.html'},
     ]},
-    { id:'ft_itoa',        f:'fiches/ft_itoa.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/ft_itoa-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/ft_itoa-tutor.html'},
+    { id:'ft_itoa',        f:'fiches/skills/ft_itoa.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/ft_itoa-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/ft_itoa-tutor.html'},
     ]},
-    { id:'sort_int_tab',   f:'fiches/sort_int_tab-revision.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/sort_int_tab-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/sort_int_tab-tutor.html'},
+    { id:'sort_int_tab',   f:'fiches/skills/sort_int_tab-revision.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/sort_int_tab-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/sort_int_tab-tutor.html'},
     ]},
-    { id:'ft_list_foreach',f:'fiches/ft_list_foreach-revision.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/ft_list_foreach-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/ft_list_foreach-tutor.html'},
+    { id:'ft_list_foreach',f:'fiches/skills/ft_list_foreach-revision.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/ft_list_foreach-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/ft_list_foreach-tutor.html'},
     ]},
-    { id:'sort_list',      f:'fiches/sort_list-revision.html', visuels:[
-      {name:'fiche de révision ★', f:'fiches/sort_list-revision.html'},
-      {name:'tutor step-by-step', f:'fiches/sort_list-tutor.html'},
+    { id:'sort_list',      f:'fiches/skills/sort_list-revision.html', visuels:[
+      {name:'fiche de révision ★', f:'fiches/skills/sort_list-revision.html'},
+      {name:'tutor step-by-step', f:'fiches/skills/sort_list-tutor.html'},
     ]},
   ],
   recaps: [

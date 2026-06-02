@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>index_stack — process détaillé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=2">
+<style>
+main { max-width: 1500px !important; }
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+.dbg-grid { display: grid; grid-template-columns: 1.3fr 1.3fr 1fr; gap: 16px; margin-bottom: 18px; }
+@media (max-width: 1200px) { .dbg-grid { grid-template-columns: 1fr; } }
+
+/* Code panels */
+.code-panel { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); overflow: hidden; box-shadow: 3px 3px 0 var(--ink); display: flex; flex-direction: column; }
+.code-header { background: #262333; padding: 8px 12px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-header .title { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5); font-size: 11px; }
+.code-body { padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: #E9E5F0; counter-reset: lineno; }
+.code-line { padding: 1px 16px 1px 40px; position: relative; white-space: pre; transition: background 0.15s; }
+.code-line::before { counter-increment: lineno; content: counter(lineno); position: absolute; left: 6px; color: #5C5A75; font-size: 9px; width: 22px; text-align: right; }
+.code-line.active { background: rgba(255,233,107,0.25); border-left: 3px solid var(--hl-yellow); padding-left: 37px; }
+.code-line.active::before { color: var(--hl-yellow); font-weight: 700; }
+.code-line.dim { opacity: 0.4; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; }
+.str { color: #FFD88A; } .num { color: #FFB380; } .cm { color: #5C5A75; font-style: italic; }
+
+/* State panel */
+.state-panel { display: flex; flex-direction: column; gap: 10px; }
+.vars-box, .pile-box, .vals-box, .compare-box { border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 10px 12px; }
+.vars-box, .pile-box { background: var(--paper); }
+.vals-box, .compare-box { background: #1C1A28; }
+
+.box-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 13px; color: var(--ink); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.vals-box .box-title { color: #9DD6A8; }
+.compare-box .box-title { color: #FFB380; }
+
+.var-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; background: var(--paper-d); border: 1.5px solid var(--ink); border-radius: 6px; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.var-name { color: var(--accent-d); font-weight: 700; min-width: 60px; }
+.var-val { color: var(--ink); font-weight: 700; padding: 1px 6px; background: var(--hl-yellow); border: 1px solid var(--ink); border-radius: 3px; min-width: 24px; text-align: center; font-size: 11px; }
+.var-val.null { color: var(--muted); background: var(--paper-e); font-style: italic; }
+.var-val.calc { background: #FFB380; }
+
+/* Pile */
+.pile-display { display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+.node { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; padding: 6px 8px; border: 2px solid var(--ink); border-radius: 7px; background: var(--paper-d); transition: all 0.3s; }
+.node.active { background: var(--hl-yellow); transform: scale(1.05); }
+.node.ranked { background: #a5d8a8; }
+.node .arr { color: var(--muted); font-size: 10px; }
+.node .rank-tag { background: var(--ink); color: var(--paper); font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+
+/* Vals array */
+.vals-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.val-cell { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; padding: 5px 8px; border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; color: #FFB380; background: #262333; min-width: 38px; text-align: center; transition: all 0.3s; }
+.val-cell.target { border-color: #ffe96b; color: #ffe96b; background: rgba(255,233,107,0.15); }
+.val-cell.testing { border-color: #79b8d8; color: #79b8d8; background: rgba(121,184,216,0.15); transform: scale(1.1); }
+.val-cell.counted { border-color: #6fb07e; color: #6fb07e; background: rgba(111,176,126,0.15); }
+.val-cell.rejected { opacity: 0.4; }
+.vals-labels { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+.vals-labels span { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5C5A75; min-width: 38px; text-align: center; padding: 0 8px; }
+
+/* Compare box */
+.compare-row { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #E9E5F0; padding: 6px 8px; background: #262333; border-radius: 5px; margin-top: 4px; }
+.compare-row .num { color: #FFB380; font-weight: 700; }
+.compare-row .ok { color: #6fb07e; font-weight: 700; }
+.compare-row .no { color: #ff7a7a; font-weight: 700; }
+.compare-row .res { float: right; font-weight: 700; }
+
+/* Desc */
+.desc-box { background: var(--ink); color: var(--paper); border-radius: 12px; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--accent); padding: 12px 14px; font-family: 'Patrick Hand', cursive; font-size: 15px; line-height: 1.45; min-height: 60px; }
+.desc-box .tag { display: inline-block; background: var(--hl-yellow); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 7px; text-transform: uppercase; letter-spacing: 1px; }
+.desc-box .tag.helper { background: #79b8d8; }
+.desc-box .tag.compute { background: #FFB380; }
+.desc-box code { background: #2a2833; color: #ffb380; padding: 2px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.desc-box b { color: #ffe96b; }
+
+/* Controls */
+.ctrls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 15px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 20px; padding: 6px 14px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink-soft); text-align: center; margin-top: 10px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 22px; }
+
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--paper); border: 2px solid var(--ink); border-radius: 16px; padding: 5px 11px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.callout { background: rgba(121,184,216,0.1); border-left: 3px solid #79b8d8; padding: 8px 12px; font-family: 'Patrick Hand', cursive; font-size: 13px; color: #c0b3e0; border-radius: 4px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ index_stack — process détaillé</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">index_stack</span></div>
+  <p class="hero-sub">Chaque ligne · chaque comparaison · chaque mutation</p>
+</section>
+
+<main>
+
+<div class="examples">
+  <button class="ex-chip active" onclick="loadExample(0)">[-42, 999, 7]</button>
+  <button class="ex-chip" onclick="loadExample(1)">[3, 1, 4, 2]</button>
+  <button class="ex-chip" onclick="loadExample(2)">[50, -5, 42, 0]</button>
+</div>
+
+<div class="debugger">
+  <div class="dbg-grid">
+
+    <!-- index_stack code -->
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="dot" style="background:#ff5f57"></div>
+        <div class="dot" style="background:#febc2e"></div>
+        <div class="dot" style="background:#28c840"></div>
+        <div class="title">index_stack()</div>
+      </div>
+      <div class="code-body" id="code-is">
+        <div class="code-line" data-line="1"><span class="kw">int</span>  <span class="fn">index_stack</span>(<span class="tp">t_stack</span> *a)</div>
+        <div class="code-line" data-line="2">{</div>
+        <div class="code-line" data-line="3">  <span class="kw">int</span>     n;</div>
+        <div class="code-line" data-line="4">  <span class="kw">int</span>     *vals;</div>
+        <div class="code-line" data-line="5">  <span class="tp">t_stack</span> *cur;</div>
+        <div class="code-line" data-line="6"> </div>
+        <div class="code-line" data-line="7">  n = <span class="fn">stack_size</span>(a);</div>
+        <div class="code-line" data-line="8">  vals = <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="kw">int</span>)*n);</div>
+        <div class="code-line" data-line="9">  <span class="fn">copy_vals</span>(a, vals);</div>
+        <div class="code-line" data-line="10">  cur = a;</div>
+        <div class="code-line" data-line="11">  <span class="kw">while</span> (cur)</div>
+        <div class="code-line" data-line="12">  {</div>
+        <div class="code-line" data-line="13">    cur-&gt;val = <span class="fn">compute_rank</span>(cur-&gt;val, vals, n);</div>
+        <div class="code-line" data-line="14">    cur = cur-&gt;next;</div>
+        <div class="code-line" data-line="15">  }</div>
+        <div class="code-line" data-line="16">  <span class="fn">free</span>(vals);</div>
+        <div class="code-line" data-line="17">  <span class="kw">return</span> (<span class="num">1</span>);</div>
+        <div class="code-line" data-line="18">}</div>
+      </div>
+    </div>
+
+    <!-- helpers code -->
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="dot" style="background:#ff5f57"></div>
+        <div class="dot" style="background:#febc2e"></div>
+        <div class="dot" style="background:#28c840"></div>
+        <div class="title">helpers (static)</div>
+      </div>
+      <div class="code-body" id="code-hp">
+        <div class="code-line" data-line="1"><span class="cm">// copie pile → tableau</span></div>
+        <div class="code-line" data-line="2"><span class="kw">static</span> <span class="kw">void</span> <span class="fn">copy_vals</span>(<span class="tp">t_stack</span> *a, <span class="kw">int</span> *vals)</div>
+        <div class="code-line" data-line="3">{</div>
+        <div class="code-line" data-line="4">  <span class="kw">int</span> i = <span class="num">0</span>;</div>
+        <div class="code-line" data-line="5">  <span class="kw">while</span> (a)</div>
+        <div class="code-line" data-line="6">  {</div>
+        <div class="code-line" data-line="7">    vals[i] = a-&gt;val;</div>
+        <div class="code-line" data-line="8">    a = a-&gt;next;</div>
+        <div class="code-line" data-line="9">    i++;</div>
+        <div class="code-line" data-line="10">  }</div>
+        <div class="code-line" data-line="11">}</div>
+        <div class="code-line" data-line="12"> </div>
+        <div class="code-line" data-line="13"><span class="cm">// rang = # vals < target</span></div>
+        <div class="code-line" data-line="14"><span class="kw">static</span> <span class="kw">int</span> <span class="fn">compute_rank</span>(<span class="kw">int</span> target, <span class="kw">int</span> *vals, <span class="kw">int</span> n)</div>
+        <div class="code-line" data-line="15">{</div>
+        <div class="code-line" data-line="16">  <span class="kw">int</span> rank = <span class="num">0</span>;</div>
+        <div class="code-line" data-line="17">  <span class="kw">int</span> j = <span class="num">0</span>;</div>
+        <div class="code-line" data-line="18">  <span class="kw">while</span> (j &lt; n)</div>
+        <div class="code-line" data-line="19">  {</div>
+        <div class="code-line" data-line="20">    <span class="kw">if</span> (vals[j] &lt; target)</div>
+        <div class="code-line" data-line="21">      rank++;</div>
+        <div class="code-line" data-line="22">    j++;</div>
+        <div class="code-line" data-line="23">  }</div>
+        <div class="code-line" data-line="24">  <span class="kw">return</span> (rank);</div>
+        <div class="code-line" data-line="25">}</div>
+      </div>
+    </div>
+
+    <!-- state -->
+    <div class="state-panel">
+
+      <div class="vars-box">
+        <div class="box-title">Variables</div>
+        <div class="var-row"><span class="var-name">n</span><span class="var-val" id="v-n">?</span></div>
+        <div class="var-row"><span class="var-name">cur</span><span class="var-val" id="v-cur">NULL</span></div>
+        <div class="var-row"><span class="var-name">target</span><span class="var-val" id="v-target">—</span></div>
+        <div class="var-row"><span class="var-name">rank</span><span class="var-val calc" id="v-rank">—</span></div>
+        <div class="var-row"><span class="var-name">j</span><span class="var-val" id="v-j">—</span></div>
+      </div>
+
+      <div class="pile-box">
+        <div class="box-title">Pile A (in-memory)</div>
+        <div class="pile-display" id="pile-display"></div>
+      </div>
+
+      <div class="vals-box">
+        <div class="box-title">vals[] — snapshot</div>
+        <div class="vals-row" id="vals-display"><span style="color:#5c5a75; font-style:italic; font-size:12px;">pas alloué</span></div>
+        <div class="vals-labels" id="vals-labels"></div>
+      </div>
+
+      <div class="compare-box" id="compare-box" style="display:none">
+        <div class="box-title">Comparaisons compute_rank</div>
+        <div id="compare-content"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="desc-box" id="desc-box">
+    <span class="tag">démarrage</span>Clique <b>Suivant →</b> pour dérouler chaque ligne du code.
+  </div>
+
+  <div class="ctrls" style="margin-top:12px">
+    <button class="ctrl-btn" id="btn-prev" onclick="prev()" disabled>← Préc</button>
+    <button class="ctrl-btn primary" id="btn-next" onclick="next()">Suivant →</button>
+    <button class="ctrl-btn" onclick="restart()">↺ Reset</button>
+  </div>
+  <div class="step-counter"><span class="num" id="step-cur">0</span> / <span id="step-total">?</span></div>
+</div>
+
+</main>
+
+<script>
+const EXAMPLES = [
+  [-42, 999, 7],
+  [3, 1, 4, 2],
+  [50, -5, 42, 0],
+];
+let exIdx = 0;
+let steps = [];
+let stepIdx = 0;
+
+function buildSteps(orig) {
+  const n = orig.length;
+  const result = [];
+  const pile = orig.map(v => ({ orig: v, rank: null }));
+
+  // step 0
+  result.push({
+    panel: 'is', line: null,
+    desc: `<span class="tag">intro</span>Pile A = <b>[${orig.join(', ')}]</b>. Objectif : remplacer chaque valeur par son rang (0 = plus petit, ${n-1} = plus grand).`,
+    n: '?', cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: null, valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // n = stack_size
+  result.push({
+    panel: 'is', line: 7,
+    desc: `<span class="tag">ligne 7</span><code>n = stack_size(a)</code> → <b>n = ${n}</b> (nombre de nodes dans la pile).`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: null, valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // malloc
+  result.push({
+    panel: 'is', line: 8,
+    desc: `<span class="tag">ligne 8</span><code>malloc(sizeof(int) * ${n})</code> → alloue un tableau de ${n} entiers (vals[]). Pour l'instant rempli de données aléatoires.`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: Array(n).fill('?'), valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // copy_vals call
+  result.push({
+    panel: 'is', line: 9,
+    desc: `<span class="tag">ligne 9</span><code>copy_vals(a, vals)</code> → on entre dans la fonction helper qui va remplir vals[]. ↘️`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: Array(n).fill('?'), valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // copy_vals iterations
+  const valsArr = Array(n).fill('?');
+  for (let i = 0; i < n; i++) {
+    result.push({
+      panel: 'hp', line: 5,
+      desc: `<span class="tag helper">copy_vals</span><code>while (a)</code> — node[${i}] existe, on entre dans la boucle.`,
+      n: String(n), cur: `a[${i}]=${orig[i]}`, target: '—', rank: '—', j: `i=${i}`,
+      pile: [...pile], vals: [...valsArr], valsHl: [], target_val: null, compare: null, active: i,
+    });
+
+    valsArr[i] = orig[i];
+    result.push({
+      panel: 'hp', line: 7,
+      desc: `<span class="tag helper">copy_vals</span><code>vals[${i}] = a->val</code> → on copie <b>${orig[i]}</b> dans vals[${i}].`,
+      n: String(n), cur: `a[${i}]=${orig[i]}`, target: '—', rank: '—', j: `i=${i}`,
+      pile: [...pile], vals: [...valsArr], valsHl: [i], target_val: null, compare: null, active: i,
+    });
+
+    result.push({
+      panel: 'hp', line: 8,
+      desc: `<span class="tag helper">copy_vals</span><code>a = a->next</code>, <code>i++</code> → on passe au suivant.`,
+      n: String(n), cur: i + 1 < n ? `a[${i+1}]=${orig[i+1]}` : 'NULL', target: '—', rank: '—', j: `i=${i+1}`,
+      pile: [...pile], vals: [...valsArr], valsHl: [], target_val: null, compare: null, active: i + 1 < n ? i + 1 : -1,
+    });
+  }
+
+  // copy_vals return
+  result.push({
+    panel: 'is', line: 9,
+    desc: `<span class="tag helper">retour</span>copy_vals terminé. <b>vals[] = [${valsArr.join(', ')}]</b> est figé. ⛔ Ce tableau ne sera plus modifié — on ne fait que LIRE dedans.`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: [...valsArr], valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // cur = a
+  result.push({
+    panel: 'is', line: 10,
+    desc: `<span class="tag">ligne 10</span><code>cur = a</code> → cur pointe sur le 1er node (<b>${orig[0]}</b>). On va le parcourir avec while.`,
+    n: String(n), cur: `a[0]=${orig[0]}`, target: '—', rank: '—', j: '—',
+    pile: [...pile], vals: [...valsArr], valsHl: [], target_val: null, compare: null, active: 0,
+  });
+
+  // main loop
+  const currentPile = pile.map(p => ({ ...p }));
+  for (let i = 0; i < n; i++) {
+    const target = orig[i];
+
+    // while (cur) check
+    result.push({
+      panel: 'is', line: 11,
+      desc: `<span class="tag">ligne 11</span><code>while (cur)</code> — cur n'est pas NULL (val=${target}), on entre dans la boucle.`,
+      n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: '—', j: '—',
+      pile: currentPile.map(p => ({ ...p })), vals: [...valsArr], valsHl: [], target_val: null, compare: null, active: i,
+    });
+
+    // compute_rank call
+    result.push({
+      panel: 'is', line: 13,
+      desc: `<span class="tag">ligne 13</span><code>compute_rank(${target}, vals, ${n})</code> → on entre dans le helper qui compte combien de valeurs sont &lt; ${target}. ↘️`,
+      n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: '0', j: '—',
+      pile: currentPile.map(p => ({ ...p })), vals: [...valsArr], valsHl: [], target_val: target, compare: { items: [] }, active: i,
+    });
+
+    // compute_rank init
+    result.push({
+      panel: 'hp', line: 17,
+      desc: `<span class="tag compute">compute_rank</span><code>rank = 0</code>, <code>j = 0</code> — on initialise le compteur et l'index.`,
+      n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: '0', j: '0',
+      pile: currentPile.map(p => ({ ...p })), vals: [...valsArr], valsHl: [], target_val: target, compare: { items: [] }, active: i,
+    });
+
+    // inner loop
+    let rank = 0;
+    const compareItems = [];
+    const countedIdx = [];
+    for (let j = 0; j < n; j++) {
+      const isLess = valsArr[j] < target;
+
+      // condition check
+      result.push({
+        panel: 'hp', line: 20,
+        desc: `<span class="tag compute">compute_rank</span><code>if (vals[${j}] &lt; target)</code> → <b>${valsArr[j]} &lt; ${target}</b> ? ${isLess ? '<span style="color:#6fb07e">OUI</span>' : '<span style="color:#ff7a7a">NON</span>'}`,
+        n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: String(rank), j: String(j),
+        pile: currentPile.map(p => ({ ...p })),
+        vals: [...valsArr],
+        valsHl: { testing: [j], counted: countedIdx.slice(), target: -1 },
+        target_val: target,
+        compare: { items: compareItems.slice() },
+        active: i,
+      });
+
+      if (isLess) {
+        rank++;
+        countedIdx.push(j);
+        compareItems.push({ idx: j, val: valsArr[j], target, ok: true, rank });
+        result.push({
+          panel: 'hp', line: 21,
+          desc: `<span class="tag compute">compute_rank</span><code>rank++</code> → rank passe à <b>${rank}</b>.`,
+          n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: String(rank), j: String(j),
+          pile: currentPile.map(p => ({ ...p })),
+          vals: [...valsArr],
+          valsHl: { testing: [], counted: countedIdx.slice(), target: -1 },
+          target_val: target,
+          compare: { items: compareItems.slice() },
+          active: i,
+        });
+      } else {
+        compareItems.push({ idx: j, val: valsArr[j], target, ok: false, rank });
+      }
+
+      // j++
+      result.push({
+        panel: 'hp', line: 22,
+        desc: `<span class="tag compute">compute_rank</span><code>j++</code> → j = ${j + 1}.`,
+        n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: String(rank), j: String(j + 1),
+        pile: currentPile.map(p => ({ ...p })),
+        vals: [...valsArr],
+        valsHl: { testing: [], counted: countedIdx.slice(), target: -1 },
+        target_val: target,
+        compare: { items: compareItems.slice() },
+        active: i,
+      });
+    }
+
+    // return
+    result.push({
+      panel: 'hp', line: 24,
+      desc: `<span class="tag compute">compute_rank</span><code>return (${rank})</code> — fini. Le rang de <b>${target}</b> est <b>${rank}</b>. ↗️ retour à index_stack.`,
+      n: String(n), cur: `a[${i}]=${target}`, target: String(target), rank: String(rank), j: String(n),
+      pile: currentPile.map(p => ({ ...p })),
+      vals: [...valsArr],
+      valsHl: { testing: [], counted: countedIdx.slice(), target: -1 },
+      target_val: target,
+      compare: { items: compareItems.slice() },
+      active: i,
+    });
+
+    // assignation
+    currentPile[i] = { orig: target, rank };
+    result.push({
+      panel: 'is', line: 13,
+      desc: `<span class="tag">ligne 13</span><code>cur->val = ${rank}</code> — la valeur <b>${target}</b> est ÉCRASÉE par son rang <b>${rank}</b> dans la pile. 🎯 Mais vals[] reste intact !`,
+      n: String(n), cur: `a[${i}]=${target}→${rank}`, target: String(target), rank: String(rank), j: '—',
+      pile: currentPile.map(p => ({ ...p })),
+      vals: [...valsArr],
+      valsHl: [], target_val: null, compare: null, active: i,
+    });
+
+    // cur = cur->next
+    result.push({
+      panel: 'is', line: 14,
+      desc: `<span class="tag">ligne 14</span><code>cur = cur->next</code> → ${i + 1 < n ? `on passe au node suivant (val=${orig[i + 1]}).` : 'cur devient NULL — la pile est entièrement parcourue.'}`,
+      n: String(n), cur: i + 1 < n ? `a[${i+1}]=${orig[i+1]}` : 'NULL', target: '—', rank: '—', j: '—',
+      pile: currentPile.map(p => ({ ...p })),
+      vals: [...valsArr],
+      valsHl: [], target_val: null, compare: null, active: i + 1 < n ? i + 1 : -1,
+    });
+  }
+
+  // free
+  result.push({
+    panel: 'is', line: 16,
+    desc: `<span class="tag">ligne 16</span><code>free(vals)</code> — le snapshot a fait son boulot, on libère la mémoire. <b>Pas de leak.</b>`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: currentPile.map(p => ({ ...p })),
+    vals: null, valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  // return
+  result.push({
+    panel: 'is', line: 17,
+    desc: `<span class="tag">done ✓</span><code>return (1)</code> — index_stack terminée. Pile finale : <b>[${currentPile.map(p => p.rank).join(', ')}]</b>. push_to_b peut maintenant faire ses chunks.`,
+    n: String(n), cur: 'NULL', target: '—', rank: '—', j: '—',
+    pile: currentPile.map(p => ({ ...p })),
+    vals: null, valsHl: [], target_val: null, compare: null, active: -1,
+  });
+
+  return result;
+}
+
+function loadExample(idx) {
+  exIdx = idx;
+  document.querySelectorAll('.ex-chip').forEach((c, i) => c.classList.toggle('active', i === idx));
+  steps = buildSteps(EXAMPLES[idx]);
+  stepIdx = 0;
+  document.getElementById('step-total').textContent = steps.length - 1;
+  render();
+}
+
+function render() {
+  const s = steps[stepIdx];
+
+  // Highlight active panel + line
+  document.querySelectorAll('#code-is .code-line, #code-hp .code-line').forEach(el => el.classList.remove('active'));
+  if (s.panel && s.line) {
+    const panel = s.panel === 'is' ? 'code-is' : 'code-hp';
+    document.querySelectorAll('#' + panel + ' .code-line').forEach(el => {
+      if (parseInt(el.dataset.line) === s.line) el.classList.add('active');
+    });
+  }
+  // Dim non-active panel
+  document.getElementById('code-is').style.opacity = (s.panel === 'is' || !s.panel) ? '1' : '0.5';
+  document.getElementById('code-hp').style.opacity = (s.panel === 'hp') ? '1' : '0.5';
+
+  // Vars
+  document.getElementById('v-n').textContent = s.n;
+  document.getElementById('v-cur').textContent = s.cur;
+  document.getElementById('v-target').textContent = s.target;
+  document.getElementById('v-rank').textContent = s.rank;
+  document.getElementById('v-j').textContent = s.j;
+
+  // Pile
+  const pileEl = document.getElementById('pile-display');
+  pileEl.innerHTML = '';
+  s.pile.forEach((node, i) => {
+    const div = document.createElement('div');
+    div.className = 'node';
+    if (i === s.active) div.classList.add('active');
+    if (node.rank !== null) div.classList.add('ranked');
+    if (node.rank !== null) {
+      div.innerHTML = `<span>${node.orig}</span><span class="arr">→</span><span class="rank-tag">${node.rank}</span>`;
+    } else {
+      div.textContent = node.orig;
+    }
+    pileEl.appendChild(div);
+  });
+
+  // Vals
+  const valsEl = document.getElementById('vals-display');
+  const labelsEl = document.getElementById('vals-labels');
+  if (s.vals === null) {
+    valsEl.innerHTML = '<span style="color:#5c5a75; font-style:italic; font-size:12px;">libéré</span>';
+    labelsEl.innerHTML = '';
+  } else {
+    const hl = s.valsHl || [];
+    const testing = hl.testing || [];
+    const counted = hl.counted || [];
+    valsEl.innerHTML = s.vals.map((v, i) => {
+      let cls = '';
+      const isTarget = s.target_val !== null && v === s.target_val && s.compare && i === testing[0];
+      if (testing.includes(i)) cls = ' testing';
+      else if (counted.includes(i)) cls = ' counted';
+      return `<div class="val-cell${cls}">${v}${counted.includes(i) ? ' ✓' : ''}</div>`;
+    }).join('');
+    labelsEl.innerHTML = s.vals.map((_, i) => `<span>[${i}]</span>`).join('');
+  }
+
+  // Compare box
+  const cbox = document.getElementById('compare-box');
+  const cc = document.getElementById('compare-content');
+  if (s.compare && s.compare.items.length > 0) {
+    cbox.style.display = 'block';
+    cc.innerHTML = s.compare.items.map(item =>
+      `<div class="compare-row">vals[${item.idx}]=<span class="num">${item.val}</span> &lt; ${item.target}? <span class="res ${item.ok ? 'ok' : 'no'}">${item.ok ? '✓ rank=' + item.rank : '✗'}</span></div>`
+    ).join('');
+  } else if (s.compare && s.compare.items.length === 0) {
+    cbox.style.display = 'block';
+    cc.innerHTML = '<div style="color:#5c5a75; font-style:italic; font-size:11px; padding:4px 8px;">en cours...</div>';
+  } else {
+    cbox.style.display = 'none';
+  }
+
+  // Desc
+  document.getElementById('desc-box').innerHTML = s.desc;
+
+  // Counter
+  document.getElementById('step-cur').textContent = stepIdx;
+  document.getElementById('btn-prev').disabled = stepIdx === 0;
+  document.getElementById('btn-next').disabled = stepIdx === steps.length - 1;
+
+  // Progress
+  const pct = steps.length > 1 ? (stepIdx / (steps.length - 1)) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  // Auto scroll to active line
+  setTimeout(() => {
+    const active = document.querySelector('.code-line.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+function restart() { stepIdx = 0; render(); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+});
+
+loadExample(0);
+</script>
+</body>
+</html>

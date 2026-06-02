@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fprime — fiche de révision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=2">
+<style>
+main { max-width: 900px !important; padding-top: 20px !important; }
+.revision-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 24px 26px; box-shadow: 5px 5px 0 var(--ink); margin-bottom: 20px; }
+.revision-card.a { transform: rotate(-0.2deg); }
+.revision-card.b { background: var(--hl-mint); transform: rotate(0.2deg); }
+.revision-card.c { background: var(--hl-pink); transform: rotate(-0.3deg); }
+.revision-card.d { background: var(--hl-blue); transform: rotate(0.3deg); }
+.rev-title { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin-bottom: 14px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.rev-title .emoji { font-size: 26px; }
+.rev-card-code { background: #1C1A28; color: #E9E5F0; padding: 14px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); overflow-x: auto; white-space: pre; }
+.rev-card-code .kw { color: #A5D8A8; } .rev-card-code .str { color: #FFD88A; } .rev-card-code .cm { color: #7D7B95; font-style: italic; } .rev-card-code .num { color: #FFB380; } .rev-card-code .tp { color: #79B8D8; }
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; padding: 8px 12px 8px 36px; position: relative; color: var(--ink); border-bottom: 1px dashed rgba(34,32,48,0.2); }
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before { content: "→"; position: absolute; left: 12px; color: var(--accent-d); font-weight: 700; font-size: 18px; }
+.bullets li code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 6px; border-radius: 3px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; }
+.bullets li strong { color: var(--accent-d); }
+.key-insight { background: var(--ink); color: var(--paper); padding: 16px 20px; border-radius: 10px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 19px; text-align: center; line-height: 1.4; box-shadow: 4px 4px 0 var(--accent); }
+.key-insight .hl-y { background: var(--hl-yellow); color: var(--ink); padding: 0 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ fprime — fiche de révision</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">fprime</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">quick recap ↓</div>
+  <p class="hero-sub">Factorisation en premiers. <span class="hl">Zéro math</span>, juste un while + if/else.</p>
+</section>
+
+<main>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">🎯</span> l'algo en 5 points</div>
+  <ol class="bullets">
+    <li><strong>Guard</strong> : <code>argc != 2</code> → <code>printf("\n")</code>, return.</li>
+    <li><strong>Parse</strong> : <code>int n = atoi(argv[1])</code>.</li>
+    <li><strong>Cas spéciaux</strong> : <code>n &lt; 2</code> (couvre 0 et 1) → <code>printf("%d\n", n)</code>, return.</li>
+    <li><strong>Loop</strong> : <code>div = 2</code>, <code>while (n &gt; 1)</code>. Si <code>n % div == 0</code> : print + divise + <code>*</code> si <code>n &gt; 1</code>. Sinon <code>div++</code>.</li>
+    <li><strong>Final</strong> : <code>printf("\n")</code>.</li>
+  </ol>
+</div>
+
+<div class="revision-card a">
+  <div class="rev-title"><span class="emoji">💾</span> code final</div>
+  <div class="rev-card-code">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+<span class="tp">int</span> main(<span class="tp">int</span> argc, <span class="tp">char</span> **argv)
+{
+	<span class="cm">/* Edge case : il faut exactement 1 argument */</span>
+	<span class="kw">if</span> (argc != <span class="num">2</span>)
+	{
+		printf(<span class="str">&quot;\n&quot;</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+
+	<span class="cm">/* Convertit le string en int */</span>
+	<span class="tp">int</span> n = atoi(argv[<span class="num">1</span>]);
+
+	<span class="cm">/* Cas spécial : n == 1 → affiche &quot;1&quot; (le sujet veut littéralement &quot;1&quot;).
+	   Pour n &lt;= 0, le while ci-dessous ne rentre pas → seul le \n final */</span>
+	<span class="kw">if</span> (n == <span class="num">1</span>)
+	{
+		printf(<span class="str">&quot;1\n&quot;</span>);
+		<span class="kw">return</span> <span class="num">0</span>;
+	}
+
+	<span class="cm">/* On commence par le plus petit diviseur possible */</span>
+	<span class="tp">int</span> div = <span class="num">2</span>;
+
+	<span class="cm">/* Tant qu&#x27;il reste quelque chose à factoriser */</span>
+	<span class="kw">while</span> (n &gt; <span class="num">1</span>)
+	{
+		<span class="cm">/* div divise n : on écrit le facteur et on divise */</span>
+		<span class="kw">if</span> (n % div == <span class="num">0</span>)
+		{
+			printf(<span class="str">&quot;%d&quot;</span>, div);
+			n /= div;
+
+			<span class="cm">/* S&#x27;il reste des facteurs à venir, on met un &#x27;*&#x27; */</span>
+			<span class="kw">if</span> (n &gt; <span class="num">1</span>)
+				printf(<span class="str">&quot;*&quot;</span>);
+		}
+		<span class="cm">/* div divise plus : on passe au suivant
+		   (pas besoin de tester si div est premier :
+		    les non-premiers sont automatiquement sautés) */</span>
+		<span class="kw">else</span>
+			div++;
+	}
+
+	printf(<span class="str">&quot;\n&quot;</span>);
+	<span class="kw">return</span> <span class="num">0</span>;
+}</div>
+</div>
+
+<div class="revision-card b">
+  <div class="rev-title"><span class="emoji">🎨</span> patterns clés</div>
+  <ul class="bullets">
+    <li><strong>Pas de test de primalité</strong> : quand tu incrémentes <code>div</code> et qu'il tombe sur un non-premier (4, 6, 8…), <code>n % div</code> ne sera jamais 0 — parce que les premiers de ce non-premier ont déjà été retirés. Le test se fait tout seul.</li>
+    <li><strong>Séparateur après, conditionnel</strong> : <code>if (n &gt; 1) printf("*")</code>. S'il reste du taf, on met un <code>*</code>. Sinon rien → pas de trailing star.</li>
+    <li><strong>Early return pour n &lt; 2</strong> : couvre 0 et 1 d'un coup. Le sujet veut "1" pour <code>./fprime 1</code>, et le loop <code>while (n &gt; 1)</code> ne rentrerait jamais donc faudrait un cas spécial de toute façon.</li>
+    <li><strong>Pas de variable "first"</strong> : le flag est inutile avec le pattern "séparateur après". Gain : 1 variable en moins.</li>
+    <li><strong>Autorisés : <code>printf</code> + <code>atoi</code></strong> (pas <code>write</code> comme dans rev_wstr/rostring). Plus simple : <code>printf("%d", div)</code>.</li>
+  </ul>
+</div>
+
+<div class="revision-card c">
+  <div class="rev-title"><span class="emoji">⚠️</span> les pièges</div>
+  <ul class="bullets">
+    <li><strong>Oublier le <code>if (n &gt; 1)</code> avant le <code>*</code></strong> → tu sors "2*3*7*" au lieu de "2*3*7". Classic.</li>
+    <li><strong>Oublier le cas <code>n = 1</code></strong> → le while ne rentre jamais, aucune output, alors que le sujet veut "1".</li>
+    <li><strong>Démarrer <code>div = 1</code></strong> → boucle infinie (<code>n % 1 == 0</code> toujours, n ne change pas de valeur utile).</li>
+    <li><strong>Incrémenter <code>div</code> même quand il divise</strong> → tu loupes les facteurs répétés comme dans <code>8 = 2×2×2</code>.</li>
+    <li><strong>Oublier <code>n /= div</code></strong> → boucle infinie, tu imprimes "2" à jamais pour <code>n = 42</code>.</li>
+    <li><strong>argc &gt; 2</strong> (ex: <code>./fprime 42 21</code>) → juste <code>\n</code>, pareil que pas d'arg. Le <code>!= 2</code> gère les 2 cas.</li>
+  </ul>
+</div>
+
+<div class="revision-card d">
+  <div class="rev-title"><span class="emoji">🧠</span> mental model</div>
+  <ul class="bullets">
+    <li><strong>Le loop entier = "je divise tant que je peux, sinon j'avance"</strong>.</li>
+    <li><strong>div est jamais un nombre premier explicitement</strong> — mais par construction, les facteurs qu'il trouve SONT toujours premiers (les composés ayant déjà été "épuisés" par leurs premiers).</li>
+    <li><strong>Si n = premier dès le départ</strong> (ex: 9539), <code>div</code> monte lentement (1 incrément par itération) jusqu'à atteindre n lui-même. C'est le pire cas en perf mais ça marche.</li>
+    <li><strong>Pattern réutilisable</strong> : "sinon j'avance" → le <code>div++</code> dans le <code>else</code>. Classique pour les itérations qui cherchent quelque chose.</li>
+  </ul>
+</div>
+
+<div class="key-insight">
+  la <span class="hl-y">règle d'or</span> :<br>
+  à chaque tour : soit div divise (j'écris + divise), soit il divise plus (j'avance).<br>
+  <code style="background:rgba(255,255,255,0.2);color:#fff;padding:1px 5px;border-radius:3px;">if (n &gt; 1) printf("*")</code> : séparateur SEULEMENT s'il reste du taf après.
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-sig">fprime pigé ✌</div>
+  <div class="footer-meta">rank 02 · level 3 · <a href="fprime.html">zine</a> · <a href="fprime-tutor.html">step debugger</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+</script>
+
+</body>
+</html>

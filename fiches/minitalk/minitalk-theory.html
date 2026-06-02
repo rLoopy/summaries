@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>minitalk — théorie complète</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; overflow: hidden; }
+
+.video { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 20px 32px 70px 32px; }
+
+.chapter-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5c5a75; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.scene-title { font-family: 'Kalam', cursive; font-size: 30px; color: #ffe96b; text-align: center; margin-bottom: 4px; min-height: 38px; opacity: 0; transform: translateY(-15px); transition: all 0.6s ease; }
+.scene-title.in { opacity: 1; transform: translateY(0); }
+.subtitle { font-family: 'Caveat', cursive; font-size: 19px; color: #c0b3e0; text-align: center; margin-bottom: 14px; min-height: 22px; }
+
+.main { flex: 1; display: flex; gap: 20px; min-height: 0; }
+.stage-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; gap: 20px; padding: 0 16px; overflow-y: auto; }
+
+/* Process box */
+.process { background: #1a1825; border: 3px solid #79b8d8; border-radius: 12px; padding: 12px 20px; min-width: 160px; text-align: center; box-shadow: 4px 4px 0 rgba(121,184,216,0.3); }
+.process.client { border-color: #ff9f7a; box-shadow: 4px 4px 0 rgba(255,159,122,0.3); }
+.process.server { border-color: #6fb07e; box-shadow: 4px 4px 0 rgba(111,176,126,0.3); }
+.process.kernel { border-color: #c9a6ff; box-shadow: 4px 4px 0 rgba(201,166,255,0.3); }
+.process .p-label { font-family: 'Kalam', cursive; font-size: 12px; letter-spacing: 2px; color: #5c5a75; text-transform: uppercase; }
+.process .p-name { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #ffe96b; font-weight: 700; margin: 4px 0; }
+.process.client .p-name { color: #ff9f7a; }
+.process.server .p-name { color: #6fb07e; }
+.process.kernel .p-name { color: #c9a6ff; }
+
+/* Code panel */
+.code-panel { width: 460px; background: #1a1825; border: 2px solid #2a2833; border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #c0b3e0; display: flex; flex-direction: column; max-height: 100%; overflow-y: auto; }
+.code-panel .code-title { font-family: 'Kalam', cursive; font-size: 13px; color: #79b8d8; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed #2a2833; }
+.code-panel pre { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6; }
+.code-panel .line { display: block; padding: 1px 8px; border-radius: 3px; color: #8f89a6; }
+.code-panel .line.hl { background: rgba(255,233,107,0.2); color: #ffe96b; font-weight: 700; box-shadow: inset 4px 0 0 #ffe96b; }
+.code-panel .kw { color: #ff9f7a; } .code-panel .fn { color: #79b8d8; } .code-panel .com { color: #5c5a75; font-style: italic; } .code-panel .num { color: #c9a6ff; } .code-panel .type { color: #9dd6a8; } .code-panel .str { color: #ffd88a; }
+.action-card { background: rgba(255,233,107,0.08); border: 2px solid #ffe96b; border-radius: 8px; padding: 10px 14px; margin-top: 12px; font-family: 'Patrick Hand', cursive; font-size: 14px; color: #ffe96b; line-height: 1.4; }
+
+/* Big text */
+.big-text { font-family: 'Kalam', cursive; font-size: 22px; color: #ffe96b; text-align: center; line-height: 1.5; max-width: 900px; }
+.big-text .muted { color: #5c5a75; font-size: 15px; }
+.big-text code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 17px; }
+.big-text b { color: #ff9f7a; }
+
+/* Binary visualizer */
+.bits-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.bit { width: 54px; height: 54px; border: 3px solid #5c5a75; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: #5c5a75; background: #1a1825; transition: all 0.4s; }
+.bit.zero { color: #ff9f7a; border-color: #ff9f7a; background: rgba(255,159,122,0.1); }
+.bit.one { color: #79b8d8; border-color: #79b8d8; background: rgba(121,184,216,0.1); }
+.bit.active { transform: scale(1.15); box-shadow: 0 0 16px currentColor; }
+.bits-container { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.bits-labels { display: flex; gap: 6px; }
+.bits-labels span { width: 54px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #5c5a75; }
+.bits-weights { display: flex; gap: 6px; }
+.bits-weights span { width: 54px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #c0b3e0; }
+
+/* Problem/solution */
+.prob-box { background: rgba(255,100,100,0.08); border: 2px solid rgba(255,100,100,0.4); border-radius: 12px; padding: 14px 22px; font-size: 17px; line-height: 1.5; max-width: 800px; text-align: center; }
+.sol-box { background: rgba(111,176,126,0.08); border: 2px solid rgba(111,176,126,0.4); border-radius: 12px; padding: 14px 22px; font-size: 17px; line-height: 1.5; max-width: 800px; text-align: center; }
+.arrow-down { font-size: 26px; color: #c0b3e0; text-align: center; }
+
+/* Tables */
+.t-table { display: grid; gap: 6px; padding: 14px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.t-row { display: grid; grid-template-columns: auto 1fr; gap: 16px; padding: 2px 0; }
+.t-row .k { color: #ff9f7a; font-weight: 700; }
+.t-row .v { color: #c0b3e0; }
+
+/* Caption */
+.caption { font-family: 'Patrick Hand', cursive; font-size: 19px; color: #f0e9d8; text-align: center; max-width: 1100px; line-height: 1.45; margin: 12px auto 0 auto; min-height: 50px; opacity: 0; transform: translateY(15px); transition: all 0.6s ease; }
+.caption.in { opacity: 1; transform: translateY(0); }
+.caption b { color: #ff9f7a; }
+.caption code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 8px; border-radius: 4px; font-size: 15px; }
+.caption .hl { background: #ffe96b; color: #0f0e1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 8px; max-width: 900px; width: 100%; }
+.tl-row { display: flex; gap: 12px; align-items: center; padding: 8px 12px; background: #1a1825; border-left: 3px solid; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.tl-row.c { border-color: #ff9f7a; }
+.tl-row.s { border-color: #6fb07e; }
+.tl-row.k { border-color: #c9a6ff; }
+.tl-tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 700; }
+.tl-tag.c { background: rgba(255,159,122,0.2); color: #ff9f7a; }
+.tl-tag.s { background: rgba(111,176,126,0.2); color: #6fb07e; }
+.tl-tag.k { background: rgba(201,166,255,0.2); color: #c9a6ff; }
+.tl-action b { color: #ffe96b; }
+
+/* Side-by-side */
+.compare-row { display: flex; gap: 20px; align-items: stretch; }
+.compare-col { flex: 1; padding: 14px; border-radius: 10px; border: 2px solid; font-size: 14px; line-height: 1.5; font-family: 'Patrick Hand', cursive; }
+.compare-col.bad { background: rgba(255,100,100,0.05); border-color: rgba(255,100,100,0.4); }
+.compare-col.good { background: rgba(111,176,126,0.05); border-color: rgba(111,176,126,0.4); }
+.compare-col h4 { font-family: 'Kalam', cursive; font-size: 16px; margin-bottom: 8px; }
+.compare-col.bad h4 { color: #ff7a7a; }
+.compare-col.good h4 { color: #6fb07e; }
+.compare-col code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #2a2833; padding: 2px 5px; border-radius: 3px; color: #ffb380; }
+
+/* Controls */
+.progress { position: fixed; bottom: 0; left: 0; height: 4px; background: #ffe96b; transition: width 0.2s linear; }
+.controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 8px; }
+.controls button { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.controls button:hover { background: #ffe96b; color: #0f0e1a; }
+.scene-counter { position: fixed; bottom: 18px; left: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5c5a75; }
+.keyhint { position: fixed; bottom: 42px; left: 20px; font-family: 'Caveat', cursive; font-size: 13px; color: #3a3849; }
+
+.chapter-banner { font-family: 'Kalam', cursive; font-size: 38px; color: #c9a6ff; text-align: center; padding: 20px; border: 3px dashed #c9a6ff; border-radius: 16px; max-width: 700px; background: rgba(201,166,255,0.05); }
+.chapter-num { font-size: 18px; color: #5c5a75; letter-spacing: 4px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="video">
+  <div class="chapter-tag" id="chapter-tag">partie 1</div>
+  <div class="scene-title" id="title">minitalk — théorie</div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="main">
+    <div class="stage-wrap" id="stage"></div>
+    <div class="code-panel" id="code-wrap" style="display:none">
+      <div class="code-title" id="code-title">CODE</div>
+      <pre id="code-body"></pre>
+      <div class="action-card" id="action-card">→ démarrage…</div>
+    </div>
+  </div>
+  <div class="caption" id="caption"></div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="scene-counter" id="counter">scène 1 / ?</div>
+<div class="keyhint">← prev · space pause · → next</div>
+<div class="controls">
+  <button id="btn-prev">⏮ prev</button>
+  <button id="btn-pause">⏸ pause</button>
+  <button id="btn-next">⏭ next</button>
+  <button id="btn-replay">↺ replay</button>
+</div>
+
+<script>
+const SCENES = [
+  // ═════════════════ PARTIE 1 — LE BINAIRE ═════════════════
+  {
+    chapter: 'partie 1 / 5 — le binaire',
+    dur: 6000,
+    title: '',
+    subtitle: '',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="chapter-banner">
+          <div class="chapter-num">PARTIE 1 / 5</div>
+          Le binaire<br>
+          <span style="font-size:18px; color:#5c5a75;">(prérequis avant tout le reste)</span>
+        </div>`;
+      caption.innerHTML = "Avant de comprendre les signaux, il faut comprendre comment un ordinateur représente les nombres et les caractères. C'est <b>uniquement avec des 0 et des 1</b>.";
+    }
+  },
+
+  {
+    chapter: 'partie 1 / 5 — le binaire',
+    dur: 9000,
+    title: "Décimal vs Binaire",
+    subtitle: "tu connais le décimal — le binaire suit la même logique avec 2 chiffres",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size:20px; line-height:1.7;">
+          <b style="color:#ff9f7a">Décimal (base 10)</b> · 10 chiffres : 0 1 2 3 4 5 6 7 8 9<br>
+          chaque position = puissance de 10
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:18px; text-align:center; color:#c0b3e0;">
+          245 = <span style="color:#ffe96b">2</span>×100 + <span style="color:#ffe96b">4</span>×10 + <span style="color:#ffe96b">5</span>×1
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="big-text" style="font-size:20px; line-height:1.7;">
+          <b style="color:#79b8d8">Binaire (base 2)</b> · 2 chiffres : 0 1<br>
+          chaque position = puissance de 2
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:18px; text-align:center; color:#c0b3e0;">
+          1011 = <span style="color:#ffe96b">1</span>×8 + <span style="color:#ffe96b">0</span>×4 + <span style="color:#ffe96b">1</span>×2 + <span style="color:#ffe96b">1</span>×1 = <b style="color:#6fb07e">11</b>
+        </div>`;
+      caption.innerHTML = "Tout système numérique fonctionne pareil. <b>Le décimal</b> a 10 chiffres parce qu'on a 10 doigts. <b>Le binaire</b> a 2 chiffres parce qu'un transistor a 2 états (on/off).";
+    }
+  },
+
+  {
+    chapter: 'partie 1 / 5 — le binaire',
+    dur: 10000,
+    title: "Un octet = 8 bits = 0 à 255",
+    subtitle: "les 8 positions et leurs poids",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="bits-container">
+          <div class="bits-weights">
+            <span>128</span><span>64</span><span>32</span><span>16</span><span>8</span><span>4</span><span>2</span><span>1</span>
+          </div>
+          <div class="bits-row">
+            <div class="bit zero">0</div><div class="bit one">1</div><div class="bit zero">0</div><div class="bit one">1</div>
+            <div class="bit zero">0</div><div class="bit zero">0</div><div class="bit one">1</div><div class="bit one">1</div>
+          </div>
+          <div class="bits-labels">
+            <span>bit 7</span><span>bit 6</span><span>bit 5</span><span>bit 4</span><span>bit 3</span><span>bit 2</span><span>bit 1</span><span>bit 0</span>
+          </div>
+        </div>
+        <div class="big-text" style="font-size:19px;">
+          64 + 16 + 2 + 1 = <b style="color:#6fb07e">83</b><br>
+          <span class="muted">le bit le plus à gauche (bit 7) = MSB · à droite (bit 0) = LSB</span>
+        </div>
+        <div class="big-text" style="font-size:18px; color:#c0b3e0;">
+          Valeur min : <code style="color:#ff9f7a">00000000</code> = 0<br>
+          Valeur max : <code style="color:#79b8d8">11111111</code> = 255
+        </div>`;
+      caption.innerHTML = "1 octet = 8 bits. Chaque bit a un <b>poids</b> (puissance de 2). En additionnant les poids des bits à 1, t'obtiens la valeur. <b>MSB</b> = Most Significant Bit (le plus gros poids). <b>LSB</b> = Least Significant Bit.";
+    }
+  },
+
+  {
+    chapter: 'partie 1 / 5 — le binaire',
+    dur: 9000,
+    title: "ASCII — char ↔ nombre",
+    subtitle: "chaque caractère a un code, en C c'est juste un int8",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="t-table">
+          <div class="t-row"><span class="k">'A'</span><span class="v">= 65 = 01000001</span></div>
+          <div class="t-row"><span class="k">'B'</span><span class="v">= 66 = 01000010</span></div>
+          <div class="t-row"><span class="k">'S'</span><span class="v">= 83 = 01010011</span></div>
+          <div class="t-row"><span class="k">'a'</span><span class="v">= 97 = 01100001</span></div>
+          <div class="t-row"><span class="k">'0'</span><span class="v">= 48 = 00110000</span></div>
+          <div class="t-row"><span class="k">' '</span><span class="v">= 32 = 00100000</span></div>
+          <div class="t-row"><span class="k">'\\0'</span><span class="v">= 0 = 00000000 (fin de string)</span></div>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// en C, c'est équivalent :</span></span>
+<span class="line"><span class="kw">char</span> c1 = <span class="str">'S'</span>;</span>
+<span class="line"><span class="kw">char</span> c2 = <span class="num">83</span>;</span>
+<span class="line"><span class="kw">char</span> c3 = <span class="num">0b01010011</span>;</span>
+<span class="line"><span class="com">// les 3 valent exactement</span></span>
+<span class="line"><span class="com">// la même chose</span></span>
+<span class="line"> </span>
+<span class="line"><span class="kw">if</span> (c1 == <span class="num">83</span>)</span>
+<span class="line">  <span class="fn">printf</span>(<span class="str">"oui"</span>); <span class="com">// affiche oui</span></span>`;
+      action.innerHTML = 'Un <code>char</code> en C est juste<br>un nombre entier sur 8 bits.';
+      caption.innerHTML = "En C, <code>'S'</code> et <code>83</code> sont <b>strictement la même valeur</b>. Le compilateur convertit automatiquement. Quand tu envoies un <code>char</code> dans <code>write()</code>, le terminal regarde le nombre et affiche le caractère correspondant.";
+    }
+  },
+
+  // ═════════════════ PARTIE 2 — BIT MANIPULATION ═════════════════
+  {
+    chapter: 'partie 2 / 5 — manipulation de bits',
+    dur: 6000,
+    title: '',
+    subtitle: '',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="chapter-banner">
+          <div class="chapter-num">PARTIE 2 / 5</div>
+          Manipulation de bits<br>
+          <span style="font-size:18px; color:#5c5a75;">>> · << · &amp; · |</span>
+        </div>`;
+      caption.innerHTML = "Pour <b>extraire</b> chaque bit d'un char (côté client) et pour <b>reconstruire</b> un char à partir de bits reçus (côté server), il faut maîtriser les opérations bitwise.";
+    }
+  },
+
+  {
+    chapter: 'partie 2 / 5 — manipulation de bits',
+    dur: 11000,
+    title: "Le shift droit : >>",
+    subtitle: "décale les bits vers la droite (équivaut à diviser par 2)",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size:19px;">
+          <code>c = 'S'</code> = <code>01010011</code> = 83
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#c0b3e0;">c &gt;&gt; 0 : <span style="color:#ffe96b">0 1 0 1 0 0 1 1</span> = 83</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#c0b3e0;">c &gt;&gt; 1 : <span style="color:#ffe96b">0 0 1 0 1 0 0 1</span> = 41</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#c0b3e0;">c &gt;&gt; 2 : <span style="color:#ffe96b">0 0 0 1 0 1 0 0</span> = 20</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#c0b3e0;">c &gt;&gt; 7 : <span style="color:#ffe96b">0 0 0 0 0 0 0 0</span> = 0 (le bit 7 a "sorti" en bit 0)</div>
+        </div>
+        <div class="big-text" style="font-size:18px;">
+          <b>Pour récupérer le bit à la position i :</b><br>
+          <code>(c >> i) &amp; 1</code>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="kw">char</span> c = <span class="num">0b01010011</span>; <span class="com">// 'S'</span></span>
+<span class="line"> </span>
+<span class="line"><span class="com">// extraire le bit 7 (MSB)</span></span>
+<span class="line"><span class="kw">int</span> bit7 = (c &gt;&gt; <span class="num">7</span>) &amp; <span class="num">1</span>;</span>
+<span class="line"><span class="com">// 01010011 &gt;&gt; 7 = 00000000</span></span>
+<span class="line"><span class="com">// &amp; 1 = 0</span></span>
+<span class="line"> </span>
+<span class="line"><span class="com">// extraire le bit 6</span></span>
+<span class="line"><span class="kw">int</span> bit6 = (c &gt;&gt; <span class="num">6</span>) &amp; <span class="num">1</span>;</span>
+<span class="line"><span class="com">// 01010011 &gt;&gt; 6 = 00000001</span></span>
+<span class="line"><span class="com">// &amp; 1 = 1</span></span>
+<span class="line"> </span>
+<span class="line"><span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">7</span>; i &gt;= <span class="num">0</span>; i--)</span>
+<span class="line">  <span class="fn">envoie_bit</span>((c &gt;&gt; i) &amp; <span class="num">1</span>);</span>`;
+      action.innerHTML = 'Côté client : extraction<br>des bits du char à envoyer.';
+      caption.innerHTML = "<code>(c >> i) &amp; 1</code> = isole le bit à la position i. Le <b>shift</b> amène ce bit en position 0, le <b>masque &amp; 1</b> efface tous les autres. C'est le motif qu'on utilise côté <b>client</b> pour extraire chaque bit avant de l'envoyer.";
+    }
+  },
+
+  {
+    chapter: 'partie 2 / 5 — manipulation de bits',
+    dur: 11000,
+    title: "Le shift gauche : <<",
+    subtitle: "décale vers la gauche (équivaut à multiplier par 2)",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size:18px;">
+          Côté server, on REÇOIT des bits un par un.<br>
+          Comment les assembler en un char ?
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:center; font-family:'JetBrains Mono',monospace; font-size:13px;">
+          <div style="color:#5c5a75;">on reçoit bit 7 = 0 →</div>
+          <div style="color:#ffe96b;">c = 0 → 00000000</div>
+          <div style="color:#5c5a75;">on reçoit bit 6 = 1 → c = (c &lt;&lt; 1) | bit →</div>
+          <div style="color:#ffe96b;">c = 1 → 00000001</div>
+          <div style="color:#5c5a75;">on reçoit bit 5 = 0 → c = (c &lt;&lt; 1) | bit →</div>
+          <div style="color:#ffe96b;">c = 2 → 00000010</div>
+          <div style="color:#5c5a75;">... 5 bits plus tard ...</div>
+          <div style="color:#6fb07e; font-size:16px;">c = 83 → 01010011 → 'S' ✓</div>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// côté server, dans le handler</span></span>
+<span class="line"><span class="kw">static</span> <span class="kw">char</span> c = <span class="num">0</span>;</span>
+<span class="line"><span class="kw">static</span> <span class="kw">int</span> bit_count = <span class="num">0</span>;</span>
+<span class="line"> </span>
+<span class="line"><span class="kw">int</span> bit;</span>
+<span class="line"><span class="kw">if</span> (sig == SIGUSR1)</span>
+<span class="line">  bit = <span class="num">0</span>;</span>
+<span class="line"><span class="kw">else</span></span>
+<span class="line">  bit = <span class="num">1</span>;</span>
+<span class="line"> </span>
+<span class="line">c = (c &lt;&lt; <span class="num">1</span>) | bit;</span>
+<span class="line"><span class="com">// shift left + OR avec bit</span></span>
+<span class="line">bit_count++;</span>
+<span class="line"> </span>
+<span class="line"><span class="kw">if</span> (bit_count == <span class="num">8</span>)</span>
+<span class="line">{</span>
+<span class="line">  <span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);</span>
+<span class="line">  c = <span class="num">0</span>; bit_count = <span class="num">0</span>;</span>
+<span class="line">}</span>`;
+      action.innerHTML = 'Côté server : reconstruction<br>bit par bit, MSB first.';
+      caption.innerHTML = "À chaque bit reçu : on <b>décale c d'1 cran à gauche</b> (pour faire de la place à droite) et on <b>OR avec le nouveau bit</b>. Après 8 bits, c contient le char complet. C'est l'inverse de l'opération côté client.";
+    }
+  },
+
+  // ═════════════════ PARTIE 3 — SIGNAUX & KERNEL ═════════════════
+  {
+    chapter: 'partie 3 / 5 — signaux & kernel',
+    dur: 6000,
+    title: '',
+    subtitle: '',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="chapter-banner">
+          <div class="chapter-num">PARTIE 3 / 5</div>
+          Signaux UNIX<br>
+          <span style="font-size:18px; color:#5c5a75;">comment Linux livre les signaux</span>
+        </div>`;
+      caption.innerHTML = "On a vu le concept du signal. Maintenant on plonge dans <b>comment le kernel</b> les livre, et pourquoi <code>signal()</code> n'est pas assez fiable.";
+    }
+  },
+
+  {
+    chapter: 'partie 3 / 5 — signaux & kernel',
+    dur: 12000,
+    title: "Le kernel comme intermédiaire",
+    subtitle: "kill() ne tape pas directement le process — il passe par le noyau",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div style="display:flex; gap:30px; align-items:center; flex-wrap: wrap; justify-content: center;">
+          <div class="process client">
+            <div class="p-label">CLIENT</div>
+            <div class="p-name">./client</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <div style="color:#c9a6ff; font-size:14px;">↓ kill()</div>
+          </div>
+          <div class="process kernel">
+            <div class="p-label">LINUX KERNEL</div>
+            <div class="p-name">noyau</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <div style="color:#c9a6ff; font-size:14px;">↓ delivers SIGUSR1</div>
+          </div>
+          <div class="process server">
+            <div class="p-label">SERVER</div>
+            <div class="p-name">./server</div>
+          </div>
+        </div>
+        <div class="big-text" style="font-size:17px; line-height:1.7;">
+          Le client n'écrit pas directement dans la RAM du server.<br>
+          Il dit au <b style="color:#c9a6ff">kernel</b> : "envoie SIGUSR1 au PID 1234".<br>
+          Le kernel marque le bit SIGUSR1 comme "pending" dans la table du process server.<br>
+          Quand le server est ordonnancé pour s'exécuter → <b style="color:#ff9f7a">interruption</b> → handler.
+        </div>`;
+      caption.innerHTML = "Cette indirection a une conséquence : <b>si plusieurs SIGUSR1 arrivent avant que le server soit ordonnancé</b>, le kernel n'en garde qu'un (un bit, pas un compteur). Les autres sont <b>perdus</b>.";
+    }
+  },
+
+  {
+    chapter: 'partie 3 / 5 — signaux & kernel',
+    dur: 11000,
+    title: "Cycle de vie d'un signal côté server",
+    subtitle: "ce qui se passe étape par étape",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="timeline">
+          <div class="tl-row k"><span class="tl-tag k">KERNEL</span><span class="tl-action">reçoit <code>kill(server_pid, SIGUSR1)</code> du client</span></div>
+          <div class="tl-row k"><span class="tl-tag k">KERNEL</span><span class="tl-action">met le bit SIGUSR1 à 1 dans la table "pending signals" du server</span></div>
+          <div class="tl-row k"><span class="tl-tag k">KERNEL</span><span class="tl-action">quand le scheduler choisit de faire tourner le server :</span></div>
+          <div class="tl-row k"><span class="tl-tag k">KERNEL</span><span class="tl-action">→ vérifie les pending signals</span></div>
+          <div class="tl-row k"><span class="tl-tag k">KERNEL</span><span class="tl-action">→ trouve SIGUSR1 → <b>interrompt le code en cours</b></span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">handler() s'exécute</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">handler return → le code reprend là où il s'était arrêté</span></div>
+        </div>`;
+      caption.innerHTML = "Le handler tourne dans un <b>contexte spécial</b> — il peut interrompre n'importe quoi (boucle, write, malloc). C'est pour ça qu'il faut faire <b>très peu de choses dans le handler</b> et utiliser uniquement des fonctions <b>async-signal-safe</b> (write oui, printf non).";
+    }
+  },
+
+  {
+    chapter: 'partie 3 / 5 — signaux & kernel',
+    dur: 12000,
+    title: "signal() vs sigaction()",
+    subtitle: "le sujet autorise les 2, mais l'un est BIEN meilleur",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="compare-row">
+          <div class="compare-col bad">
+            <h4>❌ signal()</h4>
+            • API <b>POSIX legacy</b><br>
+            • Comportement varie selon les UNIX (BSD vs SysV)<br>
+            • Pas de contrôle des flags<br>
+            • Sur certains systèmes : reset auto après chaque signal reçu<br>
+            • → tu dois rappeler <code>signal()</code> à chaque fois<br>
+            • <b>Peu fiable</b>
+          </div>
+          <div class="compare-col good">
+            <h4>✅ sigaction()</h4>
+            • API <b>POSIX moderne</b><br>
+            • Comportement <b>portable et déterministe</b><br>
+            • Flags configurables : <code>SA_SIGINFO</code> (PID du sender), <code>SA_RESTART</code><br>
+            • Handler n'est PAS reset auto<br>
+            • <b>Fiable et puissant</b>
+          </div>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// signal() — simple mais bof</span></span>
+<span class="line"><span class="fn">signal</span>(SIGUSR1, handler);</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// sigaction() — recommandé</span></span>
+<span class="line"><span class="kw">struct</span> <span class="type">sigaction</span> sa;</span>
+<span class="line"> </span>
+<span class="line">sa.sa_sigaction = handler;</span>
+<span class="line"><span class="fn">sigemptyset</span>(&amp;sa.sa_mask);</span>
+<span class="line">sa.sa_flags = SA_SIGINFO;</span>
+<span class="line"> </span>
+<span class="line"><span class="fn">sigaction</span>(SIGUSR1, &amp;sa, NULL);</span>
+<span class="line"><span class="fn">sigaction</span>(SIGUSR2, &amp;sa, NULL);</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// handler avec siginfo :</span></span>
+<span class="line"><span class="kw">void</span> <span class="fn">handler</span>(<span class="kw">int</span> sig,</span>
+<span class="line">    <span class="type">siginfo_t</span> *info, <span class="kw">void</span> *ctx)</span>
+<span class="line">{</span>
+<span class="line">  <span class="kw">int</span> sender = info-&gt;si_pid;</span>
+<span class="line">  <span class="com">// → PID du sender !</span></span>
+<span class="line">}</span>`;
+      action.innerHTML = 'Pour minitalk : utilise<br><b>sigaction</b> avec <b>SA_SIGINFO</b><br>pour récupérer le PID du client.';
+      caption.innerHTML = "<b>Utilise sigaction()</b>. C'est ce que les évaluateurs attendent. <code>SA_SIGINFO</code> te donne accès au PID du sender via <code>siginfo_t</code> — indispensable pour que le server puisse répondre au bon client (ACK).";
+    }
+  },
+
+  // ═════════════════ PARTIE 4 — VARIABLES GLOBALES ═════════════════
+  {
+    chapter: 'partie 4 / 5 — variables globales',
+    dur: 6000,
+    title: '',
+    subtitle: '',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="chapter-banner">
+          <div class="chapter-num">PARTIE 4 / 5</div>
+          La variable globale<br>
+          <span style="font-size:18px; color:#5c5a75;">pourquoi on en a besoin · comment la déclarer</span>
+        </div>`;
+      caption.innerHTML = "Le sujet autorise <b>1 global var par programme</b>. Pourquoi en a-t-on besoin ? Comment la déclarer correctement ?";
+    }
+  },
+
+  {
+    chapter: 'partie 4 / 5 — variables globales',
+    dur: 12000,
+    title: "Pourquoi une global var ?",
+    subtitle: "le handler ne peut pas recevoir d'argument utilisateur",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size:19px;">
+          La signature du handler est <b>imposée par le système</b> :
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:14px; background:#1a1825; padding:14px 20px; border-radius:8px; color:#c0b3e0; border:2px solid #2a2833;">
+          <span style="color:#ff9f7a">void</span> handler(<span style="color:#ff9f7a">int</span> sig, <span style="color:#9dd6a8">siginfo_t</span> *info, <span style="color:#ff9f7a">void</span> *ctx);
+        </div>
+        <div class="big-text" style="font-size:17px;">
+          Le handler ne peut PAS recevoir notre état<br>
+          (bit_count, char en cours de construction, etc.) en argument.<br><br>
+          <b style="color:#ffe96b">Solution :</b> ces variables sont <b style="color:#ff9f7a">globales</b>.<br>
+          Mais on n'a droit qu'à <b>UNE seule</b> → on les met dans une <b>struct</b>.
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// 1 SEULE global → struct</span></span>
+<span class="line"><span class="kw">typedef</span> <span class="kw">struct</span>  <span class="type">s_msg</span></span>
+<span class="line">{</span>
+<span class="line">  <span class="kw">char</span>     current;</span>
+<span class="line">  <span class="kw">int</span>      bit_count;</span>
+<span class="line">  <span class="kw">int</span>      client_pid;</span>
+<span class="line">}                 <span class="type">t_msg</span>;</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// global UNIQUE</span></span>
+<span class="line"><span class="kw">static</span> <span class="kw">volatile</span></span>
+<span class="line">  <span class="type">sig_atomic_t</span> g_state[<span class="num">3</span>];</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// ou en struct simple :</span></span>
+<span class="line"><span class="type">t_msg</span> g_msg;</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// le handler y accède</span></span>
+<span class="line"><span class="kw">void</span> <span class="fn">handler</span>(<span class="kw">int</span> sig...)</span>
+<span class="line">{</span>
+<span class="line">  g_msg.bit_count++;</span>
+<span class="line">}</span>`;
+      action.innerHTML = 'État conservé entre les<br>appels successifs du handler.';
+      caption.innerHTML = "Le handler est appelé pour chaque bit reçu — donc 8 fois par char. Il doit <b>se souvenir</b> d'un appel à l'autre : quel char est en construction, combien de bits déjà reçus. <b>Une struct globale</b> = 1 variable qui contient tout l'état.";
+    }
+  },
+
+  {
+    chapter: 'partie 4 / 5 — variables globales',
+    dur: 12000,
+    title: "volatile sig_atomic_t — pourquoi ?",
+    subtitle: "le type spécial pour les variables touchées par un handler",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="t-table">
+          <div class="t-row"><span class="k">volatile</span><span class="v">empêche le compilateur d'optimiser les accès — il relit toujours depuis la RAM</span></div>
+          <div class="t-row"><span class="k">sig_atomic_t</span><span class="v">type garanti atomique : une lecture/écriture en une seule instruction CPU</span></div>
+        </div>
+        <div class="prob-box" style="font-size:16px;">
+          ⚠️ Sans ces qualificatifs :<br>
+          Le code main peut lire <code>g_msg.bit_count</code> pendant que le handler l'incrémente<br>
+          → valeurs corrompues, comportement indéfini
+        </div>
+        <div class="sol-box" style="font-size:16px;">
+          ✅ Pour minitalk : pas obligatoire pour passer mais <b>recommandé</b><br>
+          Au minimum sur l'<b>ack_flag</b> qui est lu par main pendant que handler l'écrit.
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="com">// déclaration recommandée</span></span>
+<span class="line"><span class="kw">volatile</span> <span class="type">sig_atomic_t</span>  ack = <span class="num">0</span>;</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// dans le handler</span></span>
+<span class="line"><span class="kw">void</span> <span class="fn">handler</span>(<span class="kw">int</span> sig)</span>
+<span class="line">{</span>
+<span class="line">  ack = <span class="num">1</span>;</span>
+<span class="line">}</span>
+<span class="line"> </span>
+<span class="line"><span class="com">// dans main du client</span></span>
+<span class="line"><span class="kw">while</span> (!ack)</span>
+<span class="line">  <span class="fn">pause</span>();</span>
+<span class="line"><span class="com">// sans volatile, le compilo</span></span>
+<span class="line"><span class="com">// optimiserait en : while(true)</span></span>
+<span class="line"><span class="com">// car il ne voit pas que</span></span>
+<span class="line"><span class="com">// ack peut changer</span></span>
+<span class="line">ack = <span class="num">0</span>;</span>`;
+      action.innerHTML = 'volatile = "ne lis JAMAIS<br>cette var depuis un registre,<br>toujours depuis la RAM"';
+      caption.innerHTML = "<b>volatile</b> dit au compilateur : cette variable peut changer hors de ton contrôle (par un handler asynchrone), donc <b>ne fais aucune optimisation dessus</b>. <b>sig_atomic_t</b> = type entier qu'on peut lire/écrire en une instruction (pas de risque de lecture partielle).";
+    }
+  },
+
+  // ═════════════════ PARTIE 5 — PROTOCOLE COMPLET ═════════════════
+  {
+    chapter: 'partie 5 / 5 — protocole complet',
+    dur: 6000,
+    title: '',
+    subtitle: '',
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="chapter-banner">
+          <div class="chapter-num">PARTIE 5 / 5</div>
+          Le protocole complet<br>
+          <span style="font-size:18px; color:#5c5a75;">la mécanique end-to-end</span>
+        </div>`;
+      caption.innerHTML = "Mise en commun de tout. Le protocole précis client ↔ server avec tous les détails.";
+    }
+  },
+
+  {
+    chapter: 'partie 5 / 5 — protocole complet',
+    dur: 13000,
+    title: "Algorithme côté client",
+    subtitle: "boucle char → boucle bit → kill + pause",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="timeline">
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">parse argv[1] = server_pid · argv[2] = string</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">setup sigaction(SIGUSR1, ack_handler) — pour recevoir les ACK</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action"><b>pour chaque char</b> de la string (+ '\\0' final) :</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">&nbsp;&nbsp;<b>pour chaque bit i</b> de 7 à 0 :</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;bit = (c &gt;&gt; i) &amp; 1</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;si bit == 0 → kill(server_pid, <b>SIGUSR1</b>)</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;si bit == 1 → kill(server_pid, <b>SIGUSR2</b>)</span></div>
+          <div class="tl-row c"><span class="tl-tag c">CLIENT</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;<b>pause()</b> en attendant l'ACK du server</span></div>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="kw">static</span> <span class="kw">volatile</span></span>
+<span class="line">  <span class="type">sig_atomic_t</span>  g_ack = <span class="num">0</span>;</span>
+<span class="line"> </span>
+<span class="line"><span class="kw">void</span> <span class="fn">send_bit</span>(<span class="kw">int</span> pid, <span class="kw">int</span> bit)</span>
+<span class="line">{</span>
+<span class="line">  <span class="kw">if</span> (bit == <span class="num">0</span>)</span>
+<span class="line">    <span class="fn">kill</span>(pid, SIGUSR1);</span>
+<span class="line">  <span class="kw">else</span></span>
+<span class="line">    <span class="fn">kill</span>(pid, SIGUSR2);</span>
+<span class="line">  <span class="kw">while</span> (!g_ack)</span>
+<span class="line">    <span class="fn">pause</span>();</span>
+<span class="line">  g_ack = <span class="num">0</span>;</span>
+<span class="line">}</span>
+<span class="line"> </span>
+<span class="line"><span class="kw">void</span> <span class="fn">send_char</span>(<span class="kw">int</span> pid, <span class="kw">char</span> c)</span>
+<span class="line">{</span>
+<span class="line">  <span class="kw">int</span> i = <span class="num">7</span>;</span>
+<span class="line">  <span class="kw">while</span> (i &gt;= <span class="num">0</span>)</span>
+<span class="line">  {</span>
+<span class="line">    <span class="fn">send_bit</span>(pid, (c&gt;&gt;i)&amp;<span class="num">1</span>);</span>
+<span class="line">    i--;</span>
+<span class="line">  }</span>
+<span class="line">}</span>`;
+      action.innerHTML = 'Le client envoie 1 bit,<br>attend l\'ACK,<br>envoie le suivant.';
+      caption.innerHTML = "Le client est <b>strictement séquentiel</b>. Il envoie 1 bit, met le drapeau <code>g_ack</code> à 0, appelle <code>pause()</code>. Le handler ACK le réveille en mettant <code>g_ack</code> à 1. Et on recommence pour le bit suivant.";
+    }
+  },
+
+  {
+    chapter: 'partie 5 / 5 — protocole complet',
+    dur: 13000,
+    title: "Algorithme côté server",
+    subtitle: "handler → assemble bit par bit → write quand 8 bits",
+    show_code: true,
+    render: (stage, caption, code, action) => {
+      stage.innerHTML = `
+        <div class="timeline">
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">au lancement : affiche son PID (<code>printf("PID: %d\\n", getpid())</code>)</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">setup sigaction(SIGUSR1, handler) + sigaction(SIGUSR2, handler)</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">boucle infinie : while(1) pause();</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action"><b>quand handler() est appelé :</b></span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;bit = (sig == SIGUSR1) ? 0 : 1</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;c = (c &lt;&lt; 1) | bit</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;bit_count++</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;si bit_count == 8 :</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;si c == '\\0' → '\\n' (fin de message)</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;sinon → write(1, &amp;c, 1)</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;&nbsp;&nbsp;c = 0, bit_count = 0</span></div>
+          <div class="tl-row s"><span class="tl-tag s">SERVER</span><span class="tl-action">&nbsp;&nbsp;<b>kill(client_pid, SIGUSR1)</b> → ACK</span></div>
+        </div>`;
+      code.innerHTML = `<span class="line"><span class="kw">void</span> <span class="fn">handler</span>(<span class="kw">int</span> sig,</span>
+<span class="line">    <span class="type">siginfo_t</span> *info, <span class="kw">void</span> *ctx)</span>
+<span class="line">{</span>
+<span class="line">  <span class="kw">static</span> <span class="kw">char</span> c = <span class="num">0</span>;</span>
+<span class="line">  <span class="kw">static</span> <span class="kw">int</span> n = <span class="num">0</span>;</span>
+<span class="line">  <span class="kw">int</span> bit;</span>
+<span class="line"> </span>
+<span class="line">  bit = (sig == SIGUSR2);</span>
+<span class="line">  c = (c &lt;&lt; <span class="num">1</span>) | bit;</span>
+<span class="line">  n++;</span>
+<span class="line">  <span class="kw">if</span> (n == <span class="num">8</span>)</span>
+<span class="line">  {</span>
+<span class="line">    <span class="kw">if</span> (c == <span class="num">0</span>)</span>
+<span class="line">      <span class="fn">write</span>(<span class="num">1</span>, <span class="str">"\\n"</span>, <span class="num">1</span>);</span>
+<span class="line">    <span class="kw">else</span></span>
+<span class="line">      <span class="fn">write</span>(<span class="num">1</span>, &amp;c, <span class="num">1</span>);</span>
+<span class="line">    c = <span class="num">0</span>; n = <span class="num">0</span>;</span>
+<span class="line">  }</span>
+<span class="line">  <span class="fn">kill</span>(info-&gt;si_pid, SIGUSR1);</span>
+<span class="line">}</span>`;
+      action.innerHTML = 'Variables statiques dans<br>le handler = conservent l\'état<br>d\'un appel à l\'autre.';
+      caption.innerHTML = "Le server est <b>passif</b> : il attend (<code>pause()</code>) et c'est le handler qui fait tout. <code>static</code> permet aux variables locales de <b>conserver leur valeur</b> entre les appels du handler. <code>info->si_pid</code> donne le PID du client → on peut lui envoyer l'ACK.";
+    }
+  },
+
+  {
+    chapter: 'partie 5 / 5 — protocole complet',
+    dur: 11000,
+    title: "Edge cases à connaître",
+    subtitle: "ce qui peut casser et comment l'éviter",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="t-table" style="max-width: 900px;">
+          <div class="t-row"><span class="k">char unsigned</span><span class="v">utilise <code>unsigned char</code> ou <code>(unsigned char)c</code> sinon les bits hauts (chars accentués) merdent</span></div>
+          <div class="t-row"><span class="k">'\\0' final</span><span class="v">le client envoie '\\0' à la fin de la string → 8 bits à 0 → le server détecte la fin</span></div>
+          <div class="t-row"><span class="k">multi-clients</span><span class="v">le server doit reset l'état (c, bit_count) quand le PID du client change</span></div>
+          <div class="t-row"><span class="k">handler async-safe</span><span class="v">JAMAIS de printf, malloc, etc. dans un handler → seulement write, kill, getpid</span></div>
+          <div class="t-row"><span class="k">SIGINT propre</span><span class="v">si le server reçoit Ctrl+C, il quitte (default) — pas besoin de handler dessus</span></div>
+          <div class="t-row"><span class="k">PID = 0 ou négatif</span><span class="v">valide ft_atoi pour éviter kill(0, ...) qui envoie au process group entier</span></div>
+        </div>`;
+      caption.innerHTML = "Ces edge cases sont les questions classiques en defense. <b>Le plus important : char unsigned</b> (sinon Unicode bonus pète) et <b>handler async-safe</b> (pas de printf).";
+    }
+  },
+
+  {
+    chapter: 'partie 5 / 5 — protocole complet',
+    dur: 10000,
+    title: "✅ Récap final pour la defense",
+    subtitle: "ce que tu dois pouvoir dire en 30 secondes",
+    show_code: false,
+    render: (stage, caption) => {
+      stage.innerHTML = `
+        <div class="big-text" style="font-size:18px; line-height:1.7; text-align:left; padding: 16px 24px; background: rgba(255,233,107,0.05); border: 2px dashed #ffe96b; border-radius:12px;">
+          <b style="color:#ffe96b">"Minitalk c'est :</b><br><br>
+          <b style="color:#ff9f7a">1️⃣</b> Un client qui prend un PID + une string en argument.<br>
+          <b style="color:#ff9f7a">2️⃣</b> Il envoie la string <b>caractère par caractère</b>, et chaque caractère est <b>encodé en binaire 8 bits</b>.<br>
+          <b style="color:#ff9f7a">3️⃣</b> Pour chaque bit : <b>SIGUSR1 si 0, SIGUSR2 si 1</b>, via <code>kill()</code>.<br>
+          <b style="color:#ff9f7a">4️⃣</b> Le server reçoit les signaux via <code>sigaction()</code>, <b>reconstruit le char bit par bit</b> dans une variable globale, et l'affiche avec <code>write()</code> quand il a les 8 bits.<br>
+          <b style="color:#ff9f7a">5️⃣</b> Pour éviter les pertes de signaux, le server <b>ACK chaque bit</b> en renvoyant un signal au client, qui attend cet ACK via <code>pause()</code>."
+        </div>`;
+      caption.innerHTML = "Mémorise ces 5 points. C'est la réponse parfaite à <b>\"explique ton projet\"</b>. Le reste (sigaction, volatile, global var) — t'es prêt à répondre si on te creuse dessus.";
+    }
+  },
+];
+
+let currentScene = 0;
+let timer = null;
+let paused = false;
+let startTime = 0;
+let remainingTime = 0;
+
+const titleEl = document.getElementById('title');
+const chapterEl = document.getElementById('chapter-tag');
+const subtitleEl = document.getElementById('subtitle');
+const stageEl = document.getElementById('stage');
+const codeWrapEl = document.getElementById('code-wrap');
+const codeBodyEl = document.getElementById('code-body');
+const actionEl = document.getElementById('action-card');
+const captionEl = document.getElementById('caption');
+const progressEl = document.getElementById('progress');
+const counterEl = document.getElementById('counter');
+
+function playScene(idx) {
+  if (idx >= SCENES.length) idx = 0;
+  if (idx < 0) idx = SCENES.length - 1;
+  currentScene = idx;
+  const s = SCENES[idx];
+
+  titleEl.classList.remove('in');
+  captionEl.classList.remove('in');
+
+  setTimeout(() => {
+    chapterEl.textContent = s.chapter || '';
+    titleEl.textContent = s.title;
+    subtitleEl.textContent = s.subtitle || '';
+    codeWrapEl.style.display = s.show_code ? 'flex' : 'none';
+    s.render(stageEl, captionEl, codeBodyEl, actionEl);
+    setTimeout(() => { titleEl.classList.add('in'); setTimeout(() => captionEl.classList.add('in'), 200); }, 80);
+    counterEl.textContent = `scène ${idx + 1} / ${SCENES.length}`;
+    progressEl.style.width = ((idx + 1) / SCENES.length * 100) + '%';
+    startTime = Date.now();
+    remainingTime = s.dur;
+    if (!paused) scheduleNext(s.dur);
+  }, 350);
+}
+
+function scheduleNext(d) { if (timer) clearTimeout(timer); timer = setTimeout(() => playScene(currentScene + 1), d); }
+function togglePause() {
+  paused = !paused;
+  document.getElementById('btn-pause').textContent = paused ? '▶ reprendre' : '⏸ pause';
+  if (paused) { if (timer) clearTimeout(timer); remainingTime -= (Date.now() - startTime); }
+  else { startTime = Date.now(); scheduleNext(Math.max(remainingTime, 500)); }
+}
+function replay() { paused = false; document.getElementById('btn-pause').textContent = '⏸ pause'; if (timer) clearTimeout(timer); playScene(0); }
+function prev() { if (timer) clearTimeout(timer); playScene(currentScene - 1); }
+function next() { if (timer) clearTimeout(timer); playScene(currentScene + 1); }
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-replay').addEventListener('click', replay);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+  if (e.code === 'KeyR') { e.preventDefault(); replay(); }
+});
+
+playScene(0);
+</script>
+</body>
+</html>

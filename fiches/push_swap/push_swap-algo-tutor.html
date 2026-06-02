@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>push_swap — algo visualisé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../zine.css?v=3">
+<style>
+main { max-width: 1200px !important; }
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 20px 24px; box-shadow: 5px 5px 0 var(--ink); margin: 20px 0; }
+.intro h2 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 22px; margin: 0 0 10px; }
+.intro p { font-family: 'Patrick Hand', cursive; font-size: 17px; line-height: 1.5; margin: 8px 0; }
+.intro code { font-family: 'JetBrains Mono', monospace; background: var(--hl-yellow); padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+
+.debugger { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 6px 6px 0 var(--ink); margin: 20px 0; }
+
+.stacks-wrap { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 16px; margin-bottom: 18px; }
+@media (max-width: 900px) { .stacks-wrap { grid-template-columns: 1fr; } }
+
+.stack-col { background: var(--paper-d); border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: 14px; min-height: 300px; display: flex; flex-direction: column; }
+.stack-col h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; text-align: center; margin: 0 0 10px; color: var(--ink); text-transform: uppercase; letter-spacing: 2px; }
+.stack-col .top-label { font-family: 'Caveat', cursive; font-size: 14px; color: var(--accent-d); text-align: center; font-weight: 700; }
+.stack-col .bottom-label { font-family: 'Caveat', cursive; font-size: 14px; color: var(--ink-soft); text-align: center; font-weight: 700; margin-top: auto; }
+.stack-items { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; min-height: 200px; align-items: center; }
+.stack-item { background: var(--paper); border: 2px solid var(--ink); border-radius: 8px; padding: 6px 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; min-width: 52px; text-align: center; transition: all 0.2s; box-shadow: 2px 2px 0 var(--ink); }
+.stack-item.moving { background: var(--hl-yellow); transform: scale(1.1); box-shadow: 3px 3px 0 var(--accent); }
+.stack-item.new { animation: fadeIn 0.3s ease; }
+.stack-empty { font-family: 'Caveat', cursive; font-size: 18px; color: var(--muted); font-style: italic; margin: 20px 0; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.pseudo-col { background: #1C1A28; color: #E9E5F0; border-radius: 12px; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; }
+.pseudo-col h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; color: var(--hl-yellow); margin: 0 0 10px; text-align: center; letter-spacing: 1px; }
+.pseudo-line { padding: 3px 10px 3px 40px; position: relative; border-radius: 3px; margin: 1px 0; white-space: pre; }
+.pseudo-line::before { content: attr(data-lineno); position: absolute; left: 8px; color: #5C5A75; font-size: 10px; }
+.pseudo-line.active { background: rgba(255,233,107,0.22); border-left: 3px solid var(--hl-yellow); padding-left: 37px; font-weight: 700; }
+.kw { color: #A5D8A8; } .tp { color: #79B8D8; } .fn { color: #C0B3E0; } .cm { color: #5C5A75; font-style: italic; } .num { color: #FFB380; }
+
+.op-banner { background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 18px; box-shadow: 3px 3px 0 var(--accent); }
+.op-banner .tag { background: var(--hl-yellow); color: var(--ink); font-weight: 700; padding: 4px 10px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; min-width: 50px; text-align: center; }
+.op-banner .desc { font-family: 'Patrick Hand', cursive; font-size: 16px; flex: 1; }
+.op-banner .count { font-family: 'Kalam', cursive; font-size: 18px; font-weight: 700; color: var(--hl-yellow); }
+
+.ctrls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.ctrl-btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 22px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: all 0.15s; }
+.ctrl-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ctrl-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn.primary { background: var(--accent); color: #fff; }
+.step-counter { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink-soft); text-align: center; margin-top: 10px; font-weight: 700; }
+.step-counter .num { color: var(--accent-d); font-size: 22px; }
+
+.examples { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.ex-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.1s; }
+.ex-chip:hover { transform: translateY(-2px); }
+.ex-chip.active { background: var(--hl-yellow); }
+
+.notes { background: var(--hl-mint); border: 3px dashed var(--ink); border-radius: 14px; padding: 18px 22px; margin: 20px 0; }
+.notes h3 { font-family: 'Kalam', cursive; font-weight: 700; font-size: 20px; margin: 0 0 10px; }
+.notes p, .notes li { font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.notes ul { margin: 8px 0 0 20px; }
+.notes code { font-family: 'JetBrains Mono', monospace; background: var(--paper); padding: 1px 5px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="progress-bar"></div>
+
+<div class="band">
+  <span class="band-l">★ push_swap — algo visualisé (find-min + push)</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">push_swap algo</span></div>
+  <div style="font-family:'Caveat',cursive;font-size:28px;color:var(--ink-soft);transform:rotate(-1deg);display:inline-block;margin-top:10px;">2 piles, 11 ops, étape par étape ↓</div>
+</section>
+
+<main>
+
+<div class="intro">
+  <h2>💡 Ce que tu vas voir</h2>
+  <p>L'algo visualisé ici s'appelle <b>"find-min + push"</b>. C'est le <b>petit frère du vrai Turk</b> : même idée (B comme parking, rapatriement en fin), mais sans les "chunks" de Turk.</p>
+  <p><b>La règle du jeu</b> :</p>
+  <ul style="font-family:'Patrick Hand',cursive;font-size:17px;line-height:1.5;margin:6px 0 6px 22px;">
+    <li>Trouver le plus petit nombre de A</li>
+    <li>Le faire remonter en haut de A (avec <code>ra</code> ou <code>rra</code>, selon le plus court)</li>
+    <li><code>pb</code> pour l'envoyer sur B</li>
+    <li>Recommencer jusqu'à ce que A soit vide</li>
+    <li>À la fin, B contient [plus grand en haut, plus petit en bas]</li>
+    <li><code>pa</code> × N pour tout ramener → A est trié</li>
+  </ul>
+  <p><b>Pour 5 nombres</b> : ~15 ops. <b>Pour 100 nombres</b> : ~2500 ops (trop pour les 700 demandés). C'est pour ça qu'on va coder <b>Turk avec chunks</b>, qui batch plusieurs nombres par scan. Mais cet algo simple permet déjà de voir le <b>principe</b>.</p>
+</div>
+
+<section class="section fade">
+  <div class="debugger">
+    <div class="examples" id="examples"></div>
+
+    <div class="op-banner">
+      <div class="tag" id="op-tag">ready</div>
+      <div class="desc" id="op-desc">Choisis un exemple et clique next.</div>
+      <div class="count">ops : <span id="op-count">0</span></div>
+    </div>
+
+    <div class="stacks-wrap">
+      <div class="stack-col">
+        <h3>stack A</h3>
+        <div class="top-label">↑ TOP</div>
+        <div class="stack-items" id="stack-a"></div>
+        <div class="bottom-label">BOTTOM ↓</div>
+      </div>
+
+      <div class="stack-col">
+        <h3>stack B</h3>
+        <div class="top-label">↑ TOP</div>
+        <div class="stack-items" id="stack-b"></div>
+        <div class="bottom-label">BOTTOM ↓</div>
+      </div>
+
+      <div class="pseudo-col">
+        <h3>pseudo-code</h3>
+        <div id="pseudo"></div>
+      </div>
+    </div>
+
+    <div class="ctrls">
+      <button class="ctrl-btn" id="btn-prev">◀ prev</button>
+      <button class="ctrl-btn primary" id="btn-next">next ▶</button>
+      <button class="ctrl-btn" id="btn-play">▶ play</button>
+      <button class="ctrl-btn" id="btn-reset">↺ reset</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Patrick Hand',cursive;font-size:14px;">
+        vitesse : <input type="range" id="speed" min="100" max="1500" value="500" step="50">
+      </label>
+    </div>
+
+    <div class="step-counter">étape <span class="num" id="step-n">0</span> / <span id="step-total">0</span></div>
+  </div>
+
+  <div class="notes">
+    <h3>🧠 Ce que tu dois capter en regardant</h3>
+    <ul>
+      <li><b>A ne fait que se vider</b>. On enlève le plus petit à chaque tour. A rétrécit.</li>
+      <li><b>B se construit à l'envers</b> : les plus petits vont d'abord (donc se retrouvent en BAS de B), les plus grands à la fin (TOP de B).</li>
+      <li><b>Le <code>pa</code> en fin inverse l'ordre</b> : le plus grand sort de B en premier → finit en BAS de A. Le plus petit sort en dernier → finit en HAUT de A. ✅ Trié.</li>
+      <li><b>Le coût réel</b> c'est les rotations <code>ra</code>/<code>rra</code> pour amener le min en haut. Plus A est grande, plus ça coûte. D'où pourquoi on va améliorer avec les chunks.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-sig">petit Turk pigé ✌</div>
+  <div class="footer-meta">push_swap · <a href="../../index.html">dashboard</a> · <a href="../skills/pointeurs.html">fiche pointeurs</a></div>
+</footer>
+
+<script>
+/* ============================================================ */
+/*  Pseudocode (indexed by line)                                */
+/* ============================================================ */
+
+const PSEUDO = [
+  '<span class="cm">// find-min + push (petit Turk)</span>',
+  '',
+  '<span class="kw">while</span> (A <span class="kw">not</span> empty)',
+  '{',
+  '    min_idx = find_min_index(A);',
+  '    rotate_shortest(A, min_idx);  <span class="cm">// ra ou rra</span>',
+  '    pb;                            <span class="cm">// envoie min vers B</span>',
+  '}',
+  '',
+  '<span class="kw">while</span> (B <span class="kw">not</span> empty)',
+  '{',
+  '    pa;                            <span class="cm">// rapatrie tout</span>',
+  '}',
+];
+
+const LN = {
+  whileA: 3,
+  findMin: 5,
+  rotate: 6,
+  pb: 7,
+  whileB: 10,
+  pa: 12,
+};
+
+/* ============================================================ */
+/*  Simulator : applies the algorithm, records each frame       */
+/* ============================================================ */
+
+function simulate(initialA) {
+  const frames = [];
+  let A = [...initialA];
+  let B = [];
+  let opCount = 0;
+  let highlightIdx = null;
+
+  const snap = (line, tag, desc, highlight = {}) => {
+    frames.push({
+      line, tag, desc,
+      A: [...A], B: [...B],
+      opCount,
+      aHighlight: highlight.a ?? null,
+      bHighlight: highlight.b ?? null,
+      movingOut: highlight.movingOut ?? null,
+      movingIn: highlight.movingIn ?? null,
+    });
+  };
+
+  snap(LN.whileA, 'start', `Départ. A contient ${A.length} nombres, B est vide.`);
+
+  /* Phase 1 : find-min + push to B */
+  while (A.length > 0) {
+    snap(LN.whileA, 'check', `A n'est pas vide (${A.length} éléments) → on continue.`);
+
+    // find min index
+    let minIdx = 0;
+    for (let i = 1; i < A.length; i++) {
+      if (A[i] < A[minIdx]) minIdx = i;
+    }
+    snap(LN.findMin, 'search', `Min = ${A[minIdx]}, à la position ${minIdx} dans A (en partant du haut).`, { a: minIdx });
+
+    // rotate shortest path
+    if (minIdx === 0) {
+      snap(LN.rotate, 'info', `Min déjà en haut, pas de rotation nécessaire.`, { a: 0 });
+    } else if (minIdx <= Math.floor(A.length / 2)) {
+      // ra × minIdx
+      for (let i = 0; i < minIdx; i++) {
+        const top = A.shift();
+        A.push(top);
+        opCount++;
+        snap(LN.rotate, 'ra', `ra : le haut (${top}) descend tout en bas. Op #${opCount}.`, { a: A.indexOf(A[0]) });
+      }
+    } else {
+      // rra × (A.length - minIdx)
+      const count = A.length - minIdx;
+      for (let i = 0; i < count; i++) {
+        const bottom = A.pop();
+        A.unshift(bottom);
+        opCount++;
+        snap(LN.rotate, 'rra', `rra : le bas (${bottom}) remonte tout en haut. Op #${opCount}.`, { a: 0 });
+      }
+    }
+
+    // pb
+    const pushed = A.shift();
+    B.unshift(pushed);
+    opCount++;
+    snap(LN.pb, 'pb', `pb : ${pushed} (haut de A) → haut de B. Op #${opCount}.`, { b: 0, movingIn: 0 });
+  }
+
+  snap(LN.whileA, 'check', `A est vide. Fin de phase 1.`);
+
+  /* Phase 2 : pa everything back */
+  while (B.length > 0) {
+    snap(LN.whileB, 'check', `B n'est pas vide (${B.length} éléments) → on continue.`);
+
+    const pulled = B.shift();
+    A.unshift(pulled);
+    opCount++;
+    snap(LN.pa, 'pa', `pa : ${pulled} (haut de B) → haut de A. Op #${opCount}.`, { a: 0, movingIn: 0 });
+  }
+
+  snap(LN.whileB, 'done', `B est vide. A est triée ! Total : ${opCount} ops.`);
+  return frames;
+}
+
+const EXAMPLES = [
+  { label: '[5, 3, 1, 4, 2]', arr: [5, 3, 1, 4, 2] },
+  { label: '[7, 3, 5, 1, 9, 2, 8, 4, 6]', arr: [7, 3, 5, 1, 9, 2, 8, 4, 6] },
+  { label: '[3, 1, 2]  (exo 2 hier)', arr: [3, 1, 2] },
+  { label: '[5, 1, 4, 2, 3]  (exo 4 hier)', arr: [5, 1, 4, 2, 3] },
+];
+
+let frames = [], cur = 0, playing = false, playTimer = null;
+
+function renderExamples() {
+  const el = document.getElementById('examples');
+  el.innerHTML = EXAMPLES.map((e, idx) =>
+    `<button class="ex-chip ${idx === 0 ? 'active' : ''}" data-idx="${idx}">${e.label}</button>`).join('');
+  el.querySelectorAll('.ex-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      el.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadExample(EXAMPLES[parseInt(chip.dataset.idx)]);
+    });
+  });
+}
+
+function renderPseudo() {
+  document.getElementById('pseudo').innerHTML = PSEUDO.map((html, idx) =>
+    `<div class="pseudo-line" data-lineno="${String(idx + 1).padStart(2, ' ')}" data-line="${idx + 1}">${html || '&nbsp;'}</div>`).join('');
+}
+
+function renderStack(elemId, items, highlightIdx, movingInIdx) {
+  const el = document.getElementById(elemId);
+  if (items.length === 0) {
+    el.innerHTML = '<div class="stack-empty">(vide)</div>';
+    return;
+  }
+  el.innerHTML = items.map((v, idx) => {
+    let cls = 'stack-item';
+    if (idx === highlightIdx) cls += ' moving';
+    if (idx === movingInIdx) cls += ' new';
+    return `<div class="${cls}">${v}</div>`;
+  }).join('');
+}
+
+function renderFrame(f) {
+  document.querySelectorAll('.pseudo-line').forEach(el => el.classList.remove('active'));
+  const line = document.querySelector(`.pseudo-line[data-line="${f.line}"]`);
+  if (line) line.classList.add('active');
+
+  renderStack('stack-a', f.A, f.aHighlight, f.tag === 'pa' && f.movingIn === 0 ? 0 : null);
+  renderStack('stack-b', f.B, f.bHighlight, f.tag === 'pb' && f.movingIn === 0 ? 0 : null);
+
+  document.getElementById('op-tag').textContent = f.tag;
+  document.getElementById('op-desc').textContent = f.desc;
+  document.getElementById('op-count').textContent = f.opCount;
+
+  document.getElementById('step-n').textContent = cur + 1;
+  document.getElementById('step-total').textContent = frames.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur >= frames.length - 1;
+}
+
+function loadExample(ex) {
+  frames = simulate(ex.arr);
+  cur = 0;
+  stopPlay();
+  renderFrame(frames[0]);
+}
+
+function next() { if (cur < frames.length - 1) { cur++; renderFrame(frames[cur]); } else stopPlay(); }
+function prev() { if (cur > 0) { cur--; renderFrame(frames[cur]); } }
+function reset() { stopPlay(); cur = 0; renderFrame(frames[0]); }
+function startPlay() {
+  if (cur >= frames.length - 1) cur = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸ pause';
+  const speed = 1600 - parseInt(document.getElementById('speed').value);
+  playTimer = setInterval(() => { if (cur < frames.length - 1) next(); else stopPlay(); }, speed);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ play';
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+}
+
+document.getElementById('btn-next').addEventListener('click', () => { stopPlay(); next(); });
+document.getElementById('btn-prev').addEventListener('click', () => { stopPlay(); prev(); });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-play').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('speed').addEventListener('input', () => { if (playing) { stopPlay(); startPlay(); } });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { stopPlay(); next(); }
+  else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); if (playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('scroll', () => {
+  const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+renderPseudo();
+renderExamples();
+loadExample(EXAMPLES[0]);
+</script>
+
+<script src="../zine-night.js"></script>
+
+</body>
+</html>
