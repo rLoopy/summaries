@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>get_next_line — le modèle mental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../zine.css?v=10">
+<style>
+main { max-width: 1000px !important; }
+.code-block { background: #1C1A28; border-radius: 12px; border: 2.5px solid var(--ink); padding: 14px 18px; margin: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: #E9E5F0; overflow-x: auto; white-space: pre; box-shadow: 3px 3px 0 var(--ink); }
+.code-block .kw { color: #A5D8A8; } .code-block .tp { color: #79B8D8; } .code-block .fn { color: #C0B3E0; } .code-block .str { color: #FFD88A; } .code-block .num { color: #FFB380; } .code-block .cm { color: #5C5A75; font-style: italic; }
+.note { background: var(--paper-d); border-left: 4px solid var(--accent); padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.5; }
+.note.warn { border-left-color: #ff7a7a; background: rgba(255,122,122,0.06); }
+.note.tip { border-left-color: #6fb07e; background: rgba(111,176,126,0.06); }
+.note.key { border-left-color: var(--hl-yellow-d); background: rgba(255,233,107,0.08); }
+.note b { color: var(--accent-d); }
+.note code { font-family: 'JetBrains Mono', monospace; background: #1C1A28; color: #ffb380; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+h2 { font-family: 'Kalam', cursive; font-size: 27px; color: var(--accent-d); border-bottom: 3px dashed var(--ink); padding-bottom: 6px; margin: 30px 0 14px 0; }
+h3 { font-family: 'Kalam', cursive; font-size: 21px; color: var(--ink); margin: 18px 0 8px 0; }
+.buf { display: inline-flex; gap: 2px; margin: 8px 0; flex-wrap: wrap; }
+.cell { width: 30px; height: 34px; border: 2px solid var(--ink); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; background: var(--paper-d); }
+.cell.nl { background: var(--hl-yellow); }
+.cell.nul { background: var(--paper-e); color: var(--muted); }
+.cell.line { background: var(--hl-mint); }
+.cell.left { background: var(--hl-blue); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-family: 'Patrick Hand', cursive; font-size: 14px; margin: 8px 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 18px; height: 18px; border: 2px solid var(--ink); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="band">
+  <span class="band-l">★ get_next_line — modèle mental</span>
+  <span class="band-r">by loopy · 2026</span>
+</div>
+<section class="hero">
+  <span class="hero-stars s1">✦</span>
+  <span class="hero-stars s2">★</span>
+  <div class="hero-title"><span class="word">get_next_line</span></div>
+  <p class="hero-sub">comprendre AVANT de débugger — les 5 notions clés</p>
+</section>
+<main>
+<section>
+<h2>Pourquoi cette fiche</h2>
+<div class="note key">
+<b>Le piège de broken_gnl</b> : tu ne peux pas corriger un GNL cassé si tu ne sais pas ce qu un GNL correct DOIT faire. Trouver un bug = comparer le code à un modèle mental. Cette fiche te donne ce modèle.
+</div>
+<p style="font-family:'Patrick Hand',cursive; font-size:17px; line-height:1.6;">
+Bonne nouvelle : 3 des 4 mécanismes de GNL, tu les as déjà vus.
+</p>
+<ul style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.7;">
+<li><b>static variable</b> → comme le buffer du server minitalk</li>
+<li><b>boucle de read</b> → comme read_file dans so_long</li>
+<li><b>char * et malloc/strjoin</b> → comme partout dans tes projets</li>
+<li><b>le leftover</b> → LE seul nouveau concept (on insiste dessus)</li>
+</ul>
+</section>
+
+<section>
+<h2>Le contrat de GNL</h2>
+<p style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.6;">
+GNL est appelée <b>plusieurs fois de suite</b>. À chaque appel, elle retourne <b>UNE ligne</b> (avec le \n inclus). Quand le fichier est fini, elle retourne <b>NULL</b>.
+</p>
+<div class="code-block"><span class="cm">// fichier = "abc\ndef\nghi"</span>
+get_next_line(fd);  <span class="cm">// retourne "abc\n"</span>
+get_next_line(fd);  <span class="cm">// retourne "def\n"</span>
+get_next_line(fd);  <span class="cm">// retourne "ghi"   (pas de \n final)</span>
+get_next_line(fd);  <span class="cm">// retourne NULL    (fini)</span></div>
+<div class="note">
+<b>Le defi</b> : entre 2 appels, GNL doit se <b>souvenir</b> où elle en était dans le fichier. C est le role de la <b>static variable</b>.
+</div>
+</section>
+
+<section>
+<h2>Notion 1 — La static variable</h2>
+<p style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.6;">
+Une variable <code style="font-family:'JetBrains Mono',monospace; background:#1C1A28; color:#ffb380; padding:2px 6px; border-radius:4px;">static</code> garde sa valeur <b>entre les appels</b> de la fonction. Sans elle, GNL repartirait de zéro à chaque appel et relirait toujours le début.
+</p>
+<div class="code-block"><span class="kw">static char</span> b[BUFFER_SIZE + <span class="num">1</span>] = <span class="str">""</span>;</div>
+<div class="note tip">
+Tu as DEJA vu ca : dans le server minitalk, <code>static unsigned char c</code> gardait le caractere en construction entre les signaux. Meme idee : la static memorise l etat.
+</div>
+</section>
+
+<section>
+<h2>Notion 2 — La boucle de read</h2>
+<p style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.6;">
+On ne peut pas lire un fichier d un coup. On lit par <b>bouts de BUFFER_SIZE</b>. On répète <code>read()</code> jusqu à trouver un <code>\n</code> (ou la fin du fichier).
+</p>
+<div class="code-block"><span class="kw">while</span> (pas de \n dans le buffer)
+{
+    read(fd, buf, BUFFER_SIZE);  <span class="cm">// lit un bout</span>
+    <span class="cm">// accumule dans la ligne</span>
+}</div>
+<div class="note tip">
+Tu as DEJA vu ca : dans so_long, read_file bouclait sur read() pour lire toute la map. Meme principe.
+</div>
+</section>
+
+<section>
+<h2>Notion 3 — Trouver le \n</h2>
+<p style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.6;">
+On utilise <code>ft_strchr(buffer, '\n')</code> pour savoir si une fin de ligne est présente. Si oui, la ligne se termine là. Si non, il faut lire encore.
+</p>
+<div class="buf">
+<div class="cell">a</div><div class="cell">b</div><div class="cell">c</div><div class="cell nl">\n</div><div class="cell">d</div><div class="cell">e</div><div class="cell">f</div>
+</div>
+<p style="font-family:'Patrick Hand',cursive; font-size:15px; color:var(--muted);">
+strchr trouve le \n (jaune) à la position 3 → la ligne c est "abc\n", le reste "def" c est le leftover.
+</p>
+</section>
+<section>
+<h2>Notion 4 — Le LEFTOVER (le concept clé)</h2>
+<div class="note key">
+<b>C est LE truc qui fait rater GNL.</b> Quand on lit par bouts de BUFFER_SIZE, on lit souvent <b>plus qu une ligne</b>. Le surplus (apres le \n) doit etre GARDE pour le prochain appel.
+</div>
+
+<h3>Exemple concret (BUFFER_SIZE = 10)</h3>
+<p style="font-family:'Patrick Hand',cursive; font-size:15px;">Fichier : <code style="font-family:'JetBrains Mono',monospace; background:#1C1A28; color:#ffb380; padding:2px 6px; border-radius:4px;">"abc\ndef\nghi"</code></p>
+
+<p style="font-family:'Patrick Hand',cursive; font-size:15px; margin-top:12px;"><b>1er read</b> lit 10 chars d un coup :</p>
+<div class="buf">
+<div class="cell line">a</div><div class="cell line">b</div><div class="cell line">c</div><div class="cell nl">\n</div><div class="cell left">d</div><div class="cell left">e</div><div class="cell left">f</div><div class="cell left">\n</div><div class="cell left">g</div><div class="cell left">h</div>
+</div>
+<div class="legend">
+<span><span class="swatch" style="background:var(--hl-mint)"></span> ligne a retourner ("abc\n")</span>
+<span><span class="swatch" style="background:var(--hl-yellow)"></span> le \n trouve</span>
+<span><span class="swatch" style="background:var(--hl-blue)"></span> LEFTOVER a garder ("def\ngh")</span>
+</div>
+
+<p style="font-family:'Patrick Hand',cursive; font-size:15px; margin-top:12px;">
+On retourne <b>"abc\n"</b>. Mais on a aussi lu <b>"def\ngh"</b> ! Si on jette ce surplus, le prochain appel relit le fichier au mauvais endroit → <b>données perdues</b>.
+</p>
+
+<div class="note warn">
+<b>Le mécanisme du leftover</b> : apres avoir extrait la ligne, on <b>décale</b> le contenu apres le \n vers le debut du buffer static (avec memmove). Comme ca, au prochain appel, le buffer commence par "def\ngh" et on continue proprement.
+</div>
+
+<div class="code-block"><span class="cm">// apres avoir retourne "abc\n" :</span>
+ft_memmove(b, tmp + <span class="num">1</span>, ft_strlen(tmp + <span class="num">1</span>) + <span class="num">1</span>);
+<span class="cm">// b contient maintenant "def\ngh" pour le prochain appel</span></div>
+
+<div class="note">
+<b>Dans broken_gnl, c est SOUVENT ce qui manque</b> : le code retourne la ligne mais oublie de sauver le leftover. Resultat : le buffer static garde des vieilles donnees ou en perd. <b>Cherche toujours : est-ce que le leftover est gere ?</b>
+</div>
+</section>
+
+<section>
+<h2>Notion 5 — Les cas limites</h2>
+<p style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.6;">Un GNL correct gère ces situations. Un GNL cassé en oublie souvent :</p>
+<ul style="font-family:'Patrick Hand',cursive; font-size:16px; line-height:1.7;">
+<li><b>Fin de fichier</b> : <code>read</code> retourne 0 → il faut <b>sortir de la boucle</b> (sinon boucle infinie)</li>
+<li><b>Pas de \n final</b> : la derniere ligne sans \n doit quand meme etre retournee</li>
+<li><b>Fichier vide</b> : doit retourner NULL direct, pas crasher</li>
+<li><b>Plus rien a lire ET buffer vide</b> : retourner NULL (pas une string vide)</li>
+<li><b>read retourne -1</b> (erreur) : retourner NULL</li>
+</ul>
+<div class="note warn">
+<b>Bug classique #1</b> : oublier le <code>if (read_ret == 0) break;</code> → boucle infinie en fin de fichier.<br>
+<b>Bug classique #2</b> : la boucle <code>while(!tmp)</code> ne <b>recalcule jamais</b> tmp apres un read → boucle infinie.
+</div>
+</section>
+
+<section>
+<h2>Récap — la checklist mentale</h2>
+<div class="note key">
+Quand tu regardes un GNL (cassé ou pas), verifie ces 5 points :
+<ol style="margin-top:8px; line-height:1.8;">
+<li><b>Static</b> : le buffer survit-il entre les appels ?</li>
+<li><b>Read loop</b> : boucle-t-on bien jusqu au \n, en recalculant la condition ?</li>
+<li><b>Fin de fichier</b> : sort-on de la boucle quand read == 0 ?</li>
+<li><b>Leftover</b> : sauve-t-on le surplus apres le \n pour le prochain appel ?</li>
+<li><b>NULL</b> : retourne-t-on NULL quand il n y a plus rien ?</li>
+</ol>
+</div>
+<div class="note tip">
+<b>Prochaine etape</b> : le step debugger visuel, ou tu vois un GNL CORRECT tourner appel par appel. Tu verras le buffer se remplir, la ligne sortir, le leftover rester. Puis on passera aux bugs.
+</div>
+</section>
+</main>
+<script src="../zine-night.js"></script>
+</body>
+</html>
