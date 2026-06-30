@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>get_next_line step debugger</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0e1a; color: #f0e9d8; font-family: 'Patrick Hand', cursive; min-height: 100vh; padding: 14px 18px 70px 18px; }
+.app { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.topbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 10px 14px; background: #1a1825; border: 2px solid #2a2833; border-radius: 10px; }
+.title { font-family: 'Kalam', cursive; font-size: 20px; color: #ffe96b; }
+.btn { font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px; background: #2a2833; color: #f0e9d8; border: 2px solid #f0e9d8; border-radius: 8px; padding: 6px 13px; cursor: pointer; }
+.btn:hover { background: #ffe96b; color: #0f0e1a; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary { background: #6fb07e; color: #0f0e1a; border-color: #6fb07e; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.counter { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c0b3e0; }
+.grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+.panel { background: #1a1825; border: 2px solid #2a2833; border-radius: 12px; padding: 14px; }
+.panel-title { font-family: 'Kalam', cursive; font-size: 16px; color: #79b8d8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.code { background: #1C1A28; border-radius: 8px; padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.55; }
+.cl { padding: 1px 12px 1px 38px; position: relative; white-space: pre; color: #8f89a6; transition: all 0.2s; }
+.cl .ln { position: absolute; left: 6px; color: #5c5a75; font-size: 9px; width: 24px; text-align: right; }
+.cl.hl { background: rgba(255,233,107,0.2); color: #ffe96b; font-weight: 700; box-shadow: inset 3px 0 0 #ffe96b; }
+.kw { color: #ff9f7a; } .fn { color: #79b8d8; } .cm { color: #5c5a75; font-style: italic; } .num { color: #c9a6ff; } .tp { color: #9dd6a8; } .str { color: #ffd88a; }
+.state { display: flex; flex-direction: column; gap: 12px; }
+.var-block { background: #0f0e1a; border: 2px solid #2a2833; border-radius: 8px; padding: 10px 12px; }
+.var-label { font-family: 'Kalam', cursive; font-size: 13px; color: #5c5a75; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.cells { display: flex; gap: 3px; flex-wrap: wrap; min-height: 36px; align-items: center; }
+.cell { min-width: 28px; height: 32px; padding: 0 4px; border: 2px solid #5c5a75; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: #c0b3e0; background: #1C1A28; }
+.cell.nl { background: rgba(255,233,107,0.25); color: #ffe96b; border-color: #ffe96b; }
+.cell.nul { background: #2a2833; color: #5c5a75; border-style: dashed; }
+.cell.lo { background: rgba(121,184,216,0.2); color: #79b8d8; border-color: #79b8d8; }
+.empty-tag { font-family: 'Patrick Hand', cursive; color: #5c5a75; font-style: italic; font-size: 14px; }
+.ret-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #6fb07e; font-weight: 700; word-break: break-all; }
+.ret-val.null { color: #5c5a75; font-style: italic; }
+.read-box { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ffb380; }
+.output { background: #0f0e1a; border: 2px solid #6fb07e; border-radius: 8px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #6fb07e; min-height: 40px; white-space: pre-wrap; word-break: break-all; }
+.output .ph { color: #5c5a75; font-style: italic; }
+.desc { background: #1a1825; border: 2px solid #2a2833; border-left: 4px solid #ffe96b; border-radius: 8px; padding: 12px 16px; font-family: 'Patrick Hand', cursive; font-size: 16px; line-height: 1.45; min-height: 70px; }
+.desc .tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 8px; background: rgba(201,166,255,0.2); color: #c9a6ff; }
+.desc .tag.read { background: rgba(255,159,122,0.2); color: #ff9f7a; }
+.desc .tag.line { background: rgba(111,176,126,0.2); color: #6fb07e; }
+.desc .tag.lo { background: rgba(121,184,216,0.2); color: #79b8d8; }
+.desc code { font-family: 'JetBrains Mono', monospace; background: #2a2833; color: #ffb380; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+.desc b { color: #ffe96b; }
+.desc .why { display:block; margin-top:8px; padding:7px 12px; background:rgba(121,184,216,0.08); border-left:3px solid #79b8d8; border-radius:0 6px 6px 0; font-size:14px; color:#c0b3e0; }
+.desc .why::before { content:'Pourquoi ? '; color:#79b8d8; font-weight:700; }
+.cfg { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; color: #c0b3e0; }
+.cfg input { background: #0f0e1a; border: 2px solid #5c5a75; border-radius: 6px; padding: 4px 8px; color: #ffe96b; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.cfg input.file { width: 140px; } .cfg input.buf { width: 50px; text-align: center; }
+.progress { position: fixed; bottom: 0; left: 0; height: 3px; background: #ffe96b; z-index: 50; transition: width 0.2s; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #c0b3e0; margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #5c5a75; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+  <div class="title">get_next_line step debugger (version CORRECTE)</div>
+  <div class="cfg">
+    <span>fichier :</span><input class="file" id="f-input" value="ab\ncd\nef">
+    <span>BUFFER :</span><input class="buf" id="b-input" value="6">
+    <button class="btn primary" onclick="reload()">recharger</button>
+  </div>
+  <div class="btns">
+    <button class="btn" id="prev" onclick="prev()">prev</button>
+    <button class="btn" id="next" onclick="next()">next</button>
+    <button class="btn" onclick="restart()">reset</button>
+  </div>
+  <div class="counter"><span id="cur">0</span> / <span id="tot">0</span></div>
+</div>
+<div class="grid">
+  <div class="panel">
+    <div class="panel-title">code (get_next_line correct)</div>
+    <div class="code" id="code"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:rgba(255,233,107,0.25)"></span> \n trouve</span>
+      <span><span class="sw" style="background:rgba(121,184,216,0.2)"></span> leftover</span>
+      <span><span class="sw" style="background:#2a2833"></span> \0 vide</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">etat (appel #<span id="callno">1</span>)</div>
+    <div class="state">
+      <div class="var-block">
+        <div class="var-label">b : buffer static (survit entre appels)</div>
+        <div class="cells" id="buf"></div>
+      </div>
+      <div class="var-block">
+        <div class="var-label">ret : la ligne en construction</div>
+        <div class="ret-val" id="ret">NULL</div>
+      </div>
+      <div class="var-block">
+        <div class="var-label">tmp : strchr(b, n) trouve un \n ?</div>
+        <div class="read-box" id="tmp">-</div>
+      </div>
+      <div class="var-block">
+        <div class="var-label">dernier read()</div>
+        <div class="read-box" id="read">-</div>
+      </div>
+      <div class="var-block">
+        <div class="var-label">lignes retournees (output)</div>
+        <div class="output" id="out"><span class="ph">rien encore</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="desc" id="desc"></div>
+</div>
+<div class="progress" id="prog" style="width:0%"></div>
+<script>
+var NL = String.fromCharCode(10);
+var NUL = String.fromCharCode(0);
+var BS = String.fromCharCode(92);
+
+var CODE = [
+  "char *get_next_line(int fd)",
+  "{",
+  "  static char b[BUF + 1] = \"\";",
+  "  char *ret = NULL;",
+  "  char *tmp = strchr(b, BACKSLASH_N);",
+  "  while (!tmp)",
+  "  {",
+  "    ret = append(ret, b);",
+  "    b[0] = ZERO;",
+  "    n = read(fd, b, BUF);",
+  "    if (n == 0) break;",
+  "    b[n] = ZERO;",
+  "    tmp = strchr(b, BACKSLASH_N);",
+  "  }",
+  "  if (tmp) {",
+  "    ret = append_n(ret, b, tmp - b + 1);",
+  "    memmove(b, tmp + 1, len + 1);",
+  "  }",
+  "  else if (!ret || !*ret)",
+  "    return (NULL);",
+  "  return (ret);",
+  "}"
+];
+
+function renderCode() {
+  var c = document.getElementById("code");
+  c.innerHTML = "";
+  for (var i = 0; i < CODE.length; i++) {
+    var d = document.createElement("div");
+    d.className = "cl";
+    d.dataset.line = i + 1;
+    var txt = CODE[i].replace(/BACKSLASH_N/g, BS + "n").replace(/ZERO/g, "0");
+    d.innerHTML = "<span class=ln>" + (i + 1) + "</span>" + escapeHtml(txt);
+    c.appendChild(d);
+  }
+}
+function escapeHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function hl(line) {
+  var els = document.querySelectorAll("#code .cl");
+  for (var i=0;i<els.length;i++){ els[i].classList.remove("hl"); if (parseInt(els[i].dataset.line)===line) els[i].classList.add("hl"); }
+}
+<script>
+function buildSteps(file, BUF) {
+  var steps = [];
+  var b = "";
+  var fp = 0;
+  var out = [];
+  var call = 0;
+  function snap(line, b2, ret, tmp, read, tag, desc, why) {
+    steps.push({ line: line, b: b2, ret: ret, tmp: tmp, read: read,
+      out: out.slice(), call: call, tag: tag, desc: desc, why: why });
+  }
+  function doRead(n) {
+    var chunk = file.substr(fp, n);
+    fp += chunk.length;
+    return chunk;
+  }
+  var guard = 0;
+  while (guard < 50) {
+    guard++;
+    call++;
+    var ret = null;
+    snap(4, b, ret, null, null, "", "Appel #" + call + " : on entre dans get_next_line. <b>ret = NULL</b> (la ligne qu on va construire).",
+      "ret demarre vide. On va y accumuler les morceaux jusqu a trouver un retour a la ligne.");
+    var tmp = b.indexOf(NL) >= 0;
+    snap(5, b, ret, tmp, null, "", "strchr(b, retour-ligne) : le buffer static contient-il deja un \\n ? <b>" + (tmp ? "OUI" : "NON") + "</b>.",
+      tmp ? "Le leftover du dernier appel contient deja une ligne complete. On n aura PAS besoin de lire le fichier." : "Pas de ligne complete dans b. Il va falloir lire le fichier.");
+    while (!tmp) {
+      snap(6, b, ret, tmp, null, "", "while(!tmp) : pas de \\n -> on entre dans la boucle de lecture.", "");
+      ret = (ret || "") + b;
+      snap(8, b, ret, tmp, null, "line", "append : on ajoute le contenu de b a ret. ret = <b>" + showStr(ret) + "</b>.",
+        "Tout ce qu on a deja lu (sans \\n) est mis de cote dans ret avant de lire la suite.");
+      b = "";
+      snap(9, b, ret, tmp, null, "", "b[0] = 0 : on vide le buffer (on vient de copier son contenu dans ret).",
+        "Si on vidait pas, le prochain read s ajouterait par dessus l ancien contenu.");
+      var chunk = doRead(BUF);
+      var n = chunk.length;
+      b = chunk;
+      snap(10, b, ret, tmp, n, "read", "read(fd, b, " + BUF + ") -> lit <b>" + n + "</b> caractere(s). b = <b>" + showStr(b) + "</b>.",
+        "On lit un bout de BUFFER_SIZE caracteres. read retourne combien il a lu (0 = fin du fichier).");
+      if (n === 0) {
+        snap(11, b, ret, tmp, n, "", "read a retourne 0 -> <b>fin du fichier</b>. On sort de la boucle (break).",
+          "Sans ce break, la boucle tournerait a l infini en fin de fichier. C est un bug classique de broken_gnl.");
+        break;
+      }
+      snap(12, b, ret, tmp, n, "", "b[n] = 0 : on termine la string proprement.",
+        "read ne met pas de \0. Il faut le poser sinon la string contient des caracteres parasites.");
+      tmp = b.indexOf(NL) >= 0;
+      snap(13, b, ret, tmp, n, "", "On recalcule strchr(b, \\n) : \\n trouve ? <b>" + (tmp ? "OUI" : "NON") + "</b>.",
+        "ESSENTIEL : si on recalcule pas tmp ici, la condition while ne change jamais -> boucle infinie. Bug classique #2.");
+    }
+    if (tmp) {
+      snap(15, b, ret, tmp, null, "", "if(tmp) : on a un \\n dans b. On peut extraire la ligne.", "");
+      var idx = b.indexOf(NL);
+      ret = (ret || "") + b.substring(0, idx + 1);
+      snap(16, b, ret, tmp, null, "line", "append_n : on ajoute b jusqu au \\n inclus. ret = <b>" + showStr(ret) + "</b>.",
+        "On prend uniquement jusqu au \\n. Le RESTE de b (apres le \\n) ne fait pas partie de cette ligne.");
+      var leftover = b.substring(idx + 1);
+      b = leftover;
+      snap(17, b, ret, tmp, null, "lo", "memmove : on garde le RESTE (apres le \\n) dans b. b = <b>" + showStr(b) + "</b>.",
+        "LE concept cle : ce surplus (leftover) sera dispo au prochain appel. Sans ca, on perd des donnees. C est le bug central de broken_gnl.");
+      out.push(ret);
+      snap(21, b, ret, tmp, null, "", "return ret : on retourne la ligne <b>" + showStr(ret) + "</b>. Le buffer b garde le leftover pour la prochaine fois.",
+        "Le buffer static b n est PAS reset : il garde le leftover pour le prochain appel. C est ca qui permet de continuer ou on en etait.");
+    } else {
+      if (!ret || ret === "") {
+        snap(20, b, null, tmp, null, "", "Fin de fichier et rien a retourner -> <b>return NULL</b>. C est fini.",
+          "Quand il n y a plus rien a lire ET rien dans ret, on signale la fin avec NULL.");
+        renderAll(steps);
+        return steps;
+      }
+      out.push(ret);
+      snap(21, b, ret, tmp, null, "line", "Derniere ligne sans \\n final. return ret = <b>" + showStr(ret) + "</b>.",
+        "Le fichier ne finit pas par \\n, mais on retourne quand meme cette derniere ligne.");
+    }
+  }
+  return steps;
+}
+function showStr(s) {
+  if (s === null) return "NULL";
+  if (s === "") return "(vide)";
+  return "\"" + s.replace(new RegExp(NL, "g"), BS + "n") + "\"";
+}
+</script>
+<script>
+var steps = [];
+var idx = 0;
+
+function renderCells(str) {
+  if (str === "") return "<span class=empty-tag>(buffer vide)</span>";
+  var h = "";
+  for (var i = 0; i < str.length; i++) {
+    var ch = str[i];
+    var cls = "cell";
+    var label = ch;
+    if (ch === NL) { cls += " nl"; label = BS + "n"; }
+    h += "<div class=" + JSON.stringify(cls).replace(/\"/g,"\x27") + ">" + label + "</div>";
+  }
+  return h;
+}
+
+function render() {
+  var s = steps[idx];
+  if (!s) return;
+  hl(s.line);
+  document.getElementById("callno").textContent = s.call;
+  document.getElementById("buf").innerHTML = renderCells(s.b);
+  var rv = document.getElementById("ret");
+  if (s.ret === null) { rv.textContent = "NULL"; rv.classList.add("null"); }
+  else { rv.textContent = showStr(s.ret); rv.classList.remove("null"); }
+  var tb = document.getElementById("tmp");
+  if (s.tmp === null) tb.textContent = "-";
+  else tb.innerHTML = s.tmp ? "<span style=color:#6fb07e>OUI</span> (b contient un " + BS + "n)" : "<span style=color:#ff7a7a>NON</span> (pas de " + BS + "n dans b)";
+  var rb = document.getElementById("read");
+  rb.textContent = (s.read === null) ? "-" : (s.read + " caractere(s) lus");
+  var ob = document.getElementById("out");
+  if (s.out.length === 0) ob.innerHTML = "<span class=ph>rien encore</span>";
+  else ob.textContent = s.out.map(function(l){ return showStr(l); }).join("  ");
+  var d = document.getElementById("desc");
+  var html = "<span class=" + JSON.stringify("tag " + s.tag).replace(/\"/g,"\x27") + ">" + (s.tag || "step") + "</span>" + s.desc;
+  if (s.why) html += "<div class=why>" + s.why + "</div>";
+  d.innerHTML = html;
+  document.getElementById("cur").textContent = idx;
+  document.getElementById("tot").textContent = steps.length - 1;
+  document.getElementById("prev").disabled = (idx === 0);
+  document.getElementById("next").disabled = (idx === steps.length - 1);
+  document.getElementById("prog").style.width = (steps.length > 1 ? (idx / (steps.length - 1) * 100) : 0) + "%";
+}
+function renderAll(s) { steps = s; idx = 0; render(); }
+function next() { if (idx < steps.length - 1) { idx++; render(); } }
+function prev() { if (idx > 0) { idx--; render(); } }
+function restart() { idx = 0; render(); }
+function reload() {
+  var raw = document.getElementById("f-input").value;
+  var file = raw.split(BS + "n").join(NL);
+  var buf = parseInt(document.getElementById("b-input").value) || 6;
+  if (buf < 1) buf = 1;
+  steps = buildSteps(file, buf);
+  idx = 0;
+  render();
+}
+document.addEventListener("keydown", function(e){
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "ArrowRight") { e.preventDefault(); next(); }
+  if (e.code === "ArrowLeft") { e.preventDefault(); prev(); }
+});
+renderCode();
+reload();
+</script>
+</body>
+</html>
